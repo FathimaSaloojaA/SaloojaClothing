@@ -1,0 +1,60 @@
+const express = require("express");
+const mongoose = require("mongoose");
+const session = require("express-session");
+const MongoStore = require("connect-mongo");
+const dotenv = require("dotenv");
+const cookieParser = require("cookie-parser");
+const path = require("path");
+const indexRoutes = require('./routes/user/indexRoutes')
+ // adjust path as needed
+const expressLayouts = require('express-ejs-layouts');
+const { EMAIL_FROM, EMAIL_PASS } = require('./utils/constants');
+
+dotenv.config();
+
+const app = express();
+
+// Connect MongoDB
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}).then(() => {
+  console.log("✅ Connected to MongoDB");
+}).catch((err) => {
+  console.error("❌ MongoDB connection error:", err);
+});
+
+// Middleware
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(cookieParser());
+
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
+  cookie: { maxAge: 1000 * 60 * 60 * 24 } // 1 day
+}));
+
+// View engine
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+app.use(expressLayouts);
+
+
+// Static files
+app.use(express.static(path.join(__dirname, "public")));
+
+// Sample route
+
+app.use('/', indexRoutes);
+const authRoutes = require('./routes/user/authRoutes');
+app.use('/', authRoutes); // mount under "/"
+
+console.log('EMAIL_FROM:', EMAIL_FROM);
+console.log('EMAIL_PASS length:', EMAIL_PASS.length);
+
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
