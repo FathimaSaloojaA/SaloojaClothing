@@ -4,8 +4,11 @@ const User = require('../../models/userModel');
 const Otp = require('../../models/otpModel');
 const generateOtp = require('../../utils/generateOtp');
 const mailer = require('../../utils/mailer');
+
+const BASE_URL = require('../../utils/constants').BASE_URL;
 const { EMAIL_FROM } = require('../../utils/constants');
 const bcrypt = require('bcrypt');
+const crypto=require('crypto')
 
 module.exports = {
   // 1️⃣ Show Register Page
@@ -101,18 +104,123 @@ resendOtp: async (req, res) => {
 
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
     await Otp.create({ email: tempUser.email, code: otpCode, createdAt: new Date() });
-    await mailer.sendEmail(
-      tempUser.email,
-      'Your OTP Code (Resent)',
-      `Your new OTP code is ${otpCode}. It expires in 5 minutes.`
-    );
+    
 
     res.redirect('/verify-otp');
   } catch (err) {
     console.error('Resend OTP Error:', err);
     res.render('user/verify-otp', { error: 'Failed to resend OTP', layout: false });
   }
+},
+
+googleCallback: (req, res) => {
+    // User is attached to req.user by passport on success
+    res.redirect('/');  // or wherever you want to redirect after login
+  },
+
+  showLoginPage: (req, res) => {
+    res.render('user/login',{error:"welcome",layout:false});
+  },
+
+  postLogin:async(req,res)=>{
+const { email, password } = req.body;
+try {
+    const user = await User.findOne({ email, isBlocked: false });
+    if (!user) return res.render('user/login', { error: 'Invalid credentials', layout: false });
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.render('user/login', { error: 'Invalid credentials', layout: false });
+
+    req.session.user = user;
+    res.redirect('/product'); // or /dashboard or wherever you want
+  } catch (err) {
+    console.error('Login Error:', err);
+    res.render('user/login', { error: 'Something went wrong', layout: false });
+  }
+  },
+  renderForgotPassword : (req, res) => {
+  res.render('user/forgot-password', { layout: false,success:null,error:null });
+},
+
+handleForgotPassword : async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.render('user/forgot-password', { error: 'Email not registered', layout: false });
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const tokenExpire = Date.now() + 15 * 60 * 1000; // 15 minutes
+
+    user.resetToken = token;
+    user.resetTokenExpire = tokenExpire;
+    await user.save();
+
+    const resetLink = `${BASE_URL}/reset-password?token=${token}`;
+    await mailer.sendEmail(user.email, 'Password Reset', `Click to reset your password: ${resetLink}`);
+
+    res.render('user/forgot-password', { success: 'Reset link sent to your email', error:null,layout: false });
+  } catch (err) {
+    console.error('Forgot Password Error:', err);
+    res.render('user/forgot-password', { error: 'Something went wrong', layout: false });
+  }
+},
+getResetPasswordForm : async (req, res) => {
+  const token = req.query.token;
+
+  if (!token) {
+    return res.render('user/reset-password', { error: 'Invalid or expired token', layout: false });
+  }
+
+  const user = await User.findOne({
+    resetToken: token,
+    resetTokenExpire: { $gt: Date.now() }
+  });
+
+  if (!user) {
+    return res.render('user/reset-password', { error: 'Token expired or invalid', layout: false });
+  }
+
+  res.render('user/reset-password', { token, layout: false });
+},
+postResetPassword: async (req, res) => {
+  const { token, newPassword, confirmPassword } = req.body;
+
+  if (newPassword !== confirmPassword) {
+    return res.render('user/reset-password', { error: 'Passwords do not match', token, layout: false });
+  }
+
+  const user = await User.findOne({
+    resetToken: token,
+    resetTokenExpire: { $gt: Date.now() }
+  });
+
+  if (!user) {
+    return res.render('user/reset-password', { error: 'Token expired or invalid', layout: false });
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  user.password = hashedPassword;
+  user.resetToken = undefined;
+  user.resetTokenExpire = undefined;
+
+  await user.save();
+
+  res.redirect('/login'); // or show success message
+},
+logoutUser : (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Error destroying session:', err);
+      return res.status(500).send('Logout failed.');
+    }
+    res.clearCookie('connect.sid'); // Clear session cookie
+    res.redirect('/login'); // Redirect to login or landing page
+  })
 }
+
 
 
 

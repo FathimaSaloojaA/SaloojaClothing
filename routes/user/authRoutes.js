@@ -3,7 +3,7 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../../controllers/user/authController');
-//const googleAuth = require('../../middlewares/googleAuth'); // if using passport
+const passport = require('../../middlewares/passport'); // if using passport
 //const otpMiddleware = require('../../middlewares/otpMiddleware'); // optional
 
 // Show Register Page
@@ -21,16 +21,29 @@ router.post('/resend-otp', authController.resendOtp);
 
 
 // Google Signup/Login
-//router.get('/auth/google', googleAuth.initiate);           // redirect to Google
-//router.get('/auth/google/callback', googleAuth.callback);  // handle callback
-
+router.get('/auth/google', passport.authenticate('google', {
+  scope: ['profile', 'email']
+}));
+router.get('/auth/google/callback', 
+  passport.authenticate('google', { failureRedirect: '/login' }),
+  authController.googleCallback
+);
 // Show Login Page
-//router.get('/login', authController.showLoginPage);
+router.get('/login', authController.showLoginPage);
 
 // Handle Login Form Submission
-//router.post('/login', authController.handleLogin);
+router.post('/login', authController.postLogin);
+router.get('/forgot-password', authController.renderForgotPassword);
+router.post('/forgot-password', authController.handleForgotPassword);
+router.get('/reset-password', authController.getResetPasswordForm);
+router.post('/reset-password', authController.postResetPassword);
+
+
+
+// Protected example route (like dashboard)
+//router.get('/dashboard', isUserLoggedIn, authController.dashboard); // Only logged-in users can access
 
 // Logout
-//router.get('/logout', authController.logout);
+router.get('/logout', authController.logoutUser);
 
 module.exports = router;
