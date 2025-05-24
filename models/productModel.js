@@ -25,6 +25,7 @@ const productSchema = new mongoose.Schema({
   name: { type: String, required: true },
   category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
   description: { type: String, required: true },
+  highlights:[String],
   variants: [variantSchema],   // Array of product variants
   totalStock: { type: Number, required: true },  // Optional if you want total separate
   averageRating: { type: Number, default: 0 },
@@ -32,7 +33,21 @@ const productSchema = new mongoose.Schema({
   reviews: [reviewSchema],     // Embedded reviews
   isListed: { type: Boolean, default: true },
   isDeleted: { type: Boolean, default: false },
-  createdAt: { type: Date, default: Date.now }
+  isBlocked: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now },
+  subcategory: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'SubCategory'
+},
+discountPercentage: {
+  type: Number,
+  default: 0,
+},
+couponNote: {
+  type: String,
+  default: null,
+}
+
 });
 
 

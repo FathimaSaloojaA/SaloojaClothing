@@ -84,3 +84,26 @@
 
     <!-- Template Javascript -->
     <script src="js/main.js"></script>
+    <script>
+  $(document).ready(function () {
+    // When any carousel image is clicked
+    $(".carousel-inner img").click(function () {
+      const src = $(this).attr("src");
+      const title = $(this).attr("alt") || "Product Image";
+
+      $("#zoomImage").attr("src", src).removeClass("zoomed");
+      $("#zoomImageTitle").text(title);
+      $("#zoomModal").modal("show");
+    });
+
+    // Toggle zoom in/out on clicking the zoomed image
+    $("#zoomImage").click(function () {
+      $(this).toggleClass("zoomed");
+    });
+
+    // Remove zoom effect when modal closes
+    $("#zoomModal").on("hidden.bs.modal", function () {
+      $("#zoomImage").removeClass("zoomed");
+    });
+  });
+</script>

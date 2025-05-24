@@ -864,6 +864,13 @@ pre code {
 .offset-11 {
   margin-left: 91.66667%;
 }
+/* Zoom effect on modal image */
+#zoomImage.zoomed {
+  cursor: zoom-out;
+  transform: scale(2);
+  transition: transform 0.3s ease;
+  max-height: none !important;
+}
 
 @media (min-width: 576px) {
   .col-sm {

@@ -58,7 +58,8 @@ app.use('/', authRoutes); // mount under "/"
 
 const productRoutes = require('./routes/user/productRoutes');
 app.use('/',productRoutes)
-
+const cartRoutes = require('./routes/user/cartRoutes');
+app.use('/cart', cartRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
