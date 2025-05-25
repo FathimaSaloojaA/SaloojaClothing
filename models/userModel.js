@@ -36,6 +36,11 @@ const userSchema = new mongoose.Schema({
   },
   resetToken: { type: String },
 resetTokenExpire: { type: Date },
-});
+
+  isAdmin: {
+    type: Boolean,
+    default: false
+  }
+})
 
 module.exports = mongoose.model('User', userSchema);

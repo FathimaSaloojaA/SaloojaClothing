@@ -115,7 +115,7 @@ resendOtp: async (req, res) => {
 
 googleCallback: (req, res) => {
     // User is attached to req.user by passport on success
-    res.redirect('/');  // or wherever you want to redirect after login
+    res.redirect('/product');  // or wherever you want to redirect after login
   },
 
   showLoginPage: (req, res) => {

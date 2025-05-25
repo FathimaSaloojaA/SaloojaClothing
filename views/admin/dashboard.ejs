@@ -1,0 +1,48 @@
+
+<div class="main-content">
+  <h2 class="page-title">Dashboard</h2>
+
+  <!-- Analytics Cards -->
+  <div class="analytics-cards">
+    <div class="card">👤<p>Total Users</p><h3><%= totalUsers %></h3></div>
+    <div class="card">📦<p>Total Orders</p><h3>5678</h3></div> 
+    <div class="card">🕒<p>Total Sessions</p><h3><%= totalSessions %></h3></div> <!-- dummy -->
+  </div>
+
+  <!-- Sales Chart -->
+  <div class="chart-container">
+    <canvas id="salesChart"></canvas>
+  </div>
+
+<!--bottom-->
+<section class="dashboardbottom">
+  <div class="card low-stock">
+    <h4>Low Stock Alerts</h4>
+    <ul>
+      <% lowStockProducts.forEach(product => { %>
+        <li><%= product.name %> (Qty: <%= product.totalStock %>)</li>
+      <% }) %>
+    </ul>
+  </div>
+
+  <div class="card blocked-users">
+    <h4>Blocked Users</h4>
+    <p><%= blockedUsersCount %></p>
+  </div>
+
+ <div class="card recent-orders">
+  <h4>Recent Orders</h4>
+  <ul>
+    <li>Order #A1234 - Delivered</li>
+    <li>Order #B5678 - Pending</li>
+    <li>Order #C9101 - Shipped</li>
+    <li>Order #D1121 - Cancelled</li>
+    <li>Order #E3141 - Processing</li>
+  </ul>
+</div>
+
+</section>
+
+
+</div>
+

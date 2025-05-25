@@ -1,0 +1,125 @@
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: #f8f9fa;
+}
+
+.sidebar {
+  position: fixed;
+  left: 0;
+  width: 200px;
+  height: 100%;
+  background: #212529;
+  color: #fff;
+  padding-top: 20px;
+}
+
+.sidebar h3 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar ul li a {
+  display: block;
+  color: #fff;
+  text-decoration: none;
+  padding: 12px 20px;
+  transition: background 0.3s;
+}
+
+.sidebar ul li a:hover {
+  background: #343a40;
+}
+
+.main-content {
+  margin-left: 200px;
+  padding: 20px;
+}
+
+.page-title {
+  margin-top: 0;
+  font-size: 28px;
+}
+
+.analytics-cards {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  flex: 1;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  text-align: center;
+  transition: transform 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+.dashboardbottom {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2.5rem;
+}
+
+.dashboardbottom .card {
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.07);
+  transition: all 0.3s ease;
+}
+
+.dashboardbottom .card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+}
+
+.dashboardbottom .card h4 {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.dashboardbottom .card p,
+.dashboardbottom .card li {
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.dashboardbottom .card ul {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.dashboardbottom .card li {
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.dashboardbottom .card li:last-child {
+  border-bottom: none;
+}
+
+/* Colored left borders */
+.dashboardbottom .blocked-users {
+  border-left: 5px solid #e74c3c;
+}
+.dashboardbottom .recent-orders {
+  border-left: 5px solid #3498db;
+}
+.dashboardbottom .low-stock {
+  border-left: 5px solid #f39c12;
+}
+

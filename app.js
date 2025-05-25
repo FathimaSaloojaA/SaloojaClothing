@@ -4,6 +4,8 @@ const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const dotenv = require("dotenv");
 const cookieParser = require("cookie-parser");
+const adminAuthRoutes = require('./routes/admin/authRoutes');
+
 
 const path = require("path");
 const indexRoutes = require('./routes/user/indexRoutes')
@@ -54,7 +56,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use('/', indexRoutes);
 const authRoutes = require('./routes/user/authRoutes');
 app.use('/', authRoutes); // mount under "/"
-
+app.use('/admin', adminAuthRoutes);
 
 const productRoutes = require('./routes/user/productRoutes');
 app.use('/',productRoutes)
