@@ -1,0 +1,31 @@
+<main class="edit-category-container">
+  <h2 class="edit-category-heading">Edit Category</h2>
+
+  <form method="POST" action="/admin/category/edit/<%= category._id %>" class="edit-category-form">
+
+    <div class="form-group">
+      <label>Category Name</label>
+      <input type="text" name="categoryName" value="<%= category.name %>" required class="input-field" />
+    </div>
+
+    <div class="subcategory-section">
+      <label>Subcategories</label>
+      
+      <% subcategories.forEach(function(subcategory, index) { %>
+        <div class="subcategory-row">
+          <input type="text" name="existingSubcategories[<%= subcategory._id %>]" value="<%= subcategory.name %>" class="input-field" />
+          <button type="button" class="delete-btn" onclick="removeExistingSubcategory('<%= subcategory._id %>', this)">🗑️</button>
+        </div>
+      <% }); %>
+    </div>
+
+    <div id="newSubcategories"></div>
+
+    <button type="button" class="add-btn" onclick="addNewSubcategoryField()">+ Add New Subcategory</button>
+
+    <div class="button-group">
+      <button type="submit" class="submit-btn">Update Category</button>
+    </div>
+  </form>
+</main>
+

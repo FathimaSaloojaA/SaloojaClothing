@@ -1,0 +1,17 @@
+<div class="category-container">
+  <form method="POST" action="/admin/categories/add" class="category-form glass-effect">
+    <h2 class="form-heading">Add Category</h2>
+
+    <label for="categoryName" class="form-label">Category Name</label>
+    <input type="text" name="name" id="categoryName" class="form-input" required />
+
+    <div id="subcategoryFields" class="subcategory-section">
+      <label class="form-label">Subcategory</label>
+      <input type="text" name="subcategories" class="form-input" placeholder="Enter subcategory" />
+    </div>
+
+    <button type="button" onclick="addSubcategoryField()" class="btn add-btn">+ Add Another Subcategory</button>
+
+    <button type="submit" class="btn submit-btn">Submit</button>
+  </form>
+</div>

@@ -6,6 +6,7 @@ const dotenv = require("dotenv");
 const cookieParser = require("cookie-parser");
 const adminAuthRoutes = require('./routes/admin/authRoutes');
 const adminUserRoutes = require('./routes/admin/userRoutes');
+const adminCategoryRoutes = require('./routes/admin/categoryRoutes');
 
 const path = require("path");
 const indexRoutes = require('./routes/user/indexRoutes')
@@ -59,7 +60,7 @@ app.use('/', authRoutes); // mount under "/"
 app.use('/admin', adminAuthRoutes);
 
 app.use('/admin', adminUserRoutes); // '/admin/users' now works
-
+app.use('/admin', adminCategoryRoutes)
 const productRoutes = require('./routes/user/productRoutes');
 app.use('/',productRoutes)
 const cartRoutes = require('./routes/user/cartRoutes');

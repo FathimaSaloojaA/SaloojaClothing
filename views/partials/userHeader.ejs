@@ -1,8 +1,8 @@
 <!-- views/partials/userHeader.ejs -->
 
 <!-- Topbar -->
-<div class="container-fluid">
-    <div class="row bg-secondary py-2 px-xl-5">
+<div class="container-fluid" style="padding:0; margin:0;">
+    <div class="row bg-secondary py-2 px-xl-5" style="margin-bottom: 0; padding-bottom: 0;">
         <div class="col-lg-6 d-none d-lg-block">
             <div class="d-inline-flex align-items-center">
                 <a class="text-dark" href="">FAQs</a>
@@ -34,26 +34,71 @@
     </div>
 
     <!-- Navbar -->
-    <div class="row align-items-center py-3 px-xl-5">
+    <div class="row align-items-center py-3 px-xl-5" style="margin-bottom: 0; padding-bottom: 0;">
         <div class="col-lg-3 d-none d-lg-block">
             <a href="" class="text-decoration-none">
-                <h1 class="m-0 display-5 font-weight-semi-bold">
+                <h1 class="m-0 display-5 font-weight-semi-bold" style="margin-bottom: 0;">
                     <span class="text-primary font-weight-bold border px-3 mr-1">Salooja</span>CLOTHING
                 </h1>
             </a>
         </div>
+
+        <!--searchbar-->
         <div class="col-lg-6 col-6 text-left">
-            <form action="">
-                <div class="input-group">
-                    <input type="text" class="form-control" placeholder="Search for products">
-                    <div class="input-group-append">
-                        <span class="input-group-text bg-transparent text-primary">
-                            <i class="fa fa-search"></i>
-                        </span>
-                    </div>
-                </div>
-            </form>
-        </div>
+  <form action="/product" method="GET" class="d-flex">
+    <div class="input-group" style="margin-bottom: 0;">
+      <input 
+        type="text" 
+        class="form-control" 
+        placeholder="Search for products" 
+        name="search"
+        value="<%= typeof search !== 'undefined' ? search : '' %>"
+      >
+      <div class="input-group-append">
+        <button type="submit" class="input-group-text bg-transparent text-primary border-0">
+          <i class="fa fa-search"></i>
+        </button>
+      </div>
+    </div>
+
+    <% if (typeof search !== 'undefined' && search.trim() !== '') { %>
+      <a href="/product" class="btn btn-sm btn-outline-secondary ml-2">Clear</a>
+    <% } %>
+
+<!--dropdown for sorting-->
+<label for="sortSelect">Sort By (Hold Ctrl or Cmd to select multiple)</label>
+  <select id="sortSelect" name="sort" multiple style="height: 100px; width: 200px;">
+    <option value="priceAsc">Price: Low to High</option>
+    <option value="priceDesc">Price: High to Low</option>
+    <option value="nameAsc">Name: A - Z</option>
+    <option value="nameDesc">Name: Z - A</option>
+  </select>
+  
+  <button type="submit">Apply Sort</button>
+
+
+  <!-- ✅ Add Price Checkboxes Here -->
+  <div class="form-group mt-3">
+    <label><input type="checkbox" name="price" value="0-999" <%= price?.includes('0-999') ? 'checked' : '' %>> Under ₹1000</label><br>
+    <label><input type="checkbox" name="price" value="1000-1999" <%= price?.includes('1000-1999') ? 'checked' : '' %>> ₹1000 - ₹1999</label><br>
+    <label><input type="checkbox" name="price" value="2000-4999" <%= price?.includes('2000-4999') ? 'checked' : '' %>> ₹2000 - ₹4999</label><br>
+    <label><input type="checkbox" name="price" value="5000-99999" <%= price?.includes('5000-99999') ? 'checked' : '' %>> Above ₹5000</label>
+  </div>
+
+  <!-- Preserve category/subcategory if selected -->
+  <% if (category) { %>
+    <input type="hidden" name="category" value="<%= category %>">
+  <% } %>
+  <% if (subcategory) { %>
+    <input type="hidden" name="subcategory" value="<%= subcategory %>">
+  <% } %>
+
+  <!-- Submit Button -->
+  <button type="submit" class="btn btn-primary mt-2">Apply Filters</button>
+
+  </form>
+</div>
+
         <div class="col-lg-3 col-6 text-right">
             <a href="" class="btn border">
                 <i class="fas fa-heart text-primary"></i>
@@ -66,44 +111,45 @@
         </div>
     </div>
 
-    <div class="row border-top px-xl-5">
-        <div class="col-lg-3 d-none d-lg-block">
-  <a class="btn shadow-none d-flex align-items-center justify-content-between bg-primary text-white w-100"
-     data-toggle="collapse" href="#navbar-vertical"
-     style="height: 65px; margin-top: -1px; padding: 0 30px;">
-    <h6 class="m-0">Categories</h6>
-    <i class="fa fa-angle-down text-dark"></i>
-  </a>
-<nav class="collapse show navbar navbar-vertical navbar-light align-items-start p-0 border border-top-0 border-bottom-0" id="navbar-vertical">
-                    <div class="navbar-nav w-100 overflow-hidden" style="height: 410px">
-                        <div class="nav-item dropdown">
-                            <a href="#" class="nav-link" data-toggle="dropdown">Dresses <i class="fa fa-angle-down float-right mt-1"></i></a>
-                            <div class="dropdown-menu position-absolute bg-secondary border-0 rounded-0 w-100 m-0">
-                                <a href="" class="dropdown-item">Men's Dresses</a>
-                                <a href="" class="dropdown-item">Women's Dresses</a>
-                                <a href="" class="dropdown-item">Baby's Dresses</a>
-                            </div>
-                        </div>
-                        <a href="" class="nav-item nav-link">Shirts</a>
-                        <a href="" class="nav-item nav-link">Jeans</a>
-                        <a href="" class="nav-item nav-link">Swimwear</a>
-                        <a href="" class="nav-item nav-link">Sleepwear</a>
-                        <a href="" class="nav-item nav-link">Sportswear</a>
-                        <a href="" class="nav-item nav-link">Jumpsuits</a>
-                        <a href="" class="nav-item nav-link">Blazers</a>
-                        <a href="" class="nav-item nav-link">Jackets</a>
-                        <a href="" class="nav-item nav-link">Shoes</a>
+    <div class="row border-top px-xl-5" style="margin-bottom: 0; padding-bottom: 0;">
+        
+     <div class="col-lg-3 d-none d-lg-block">
+    <a href="/product" class="btn btn-secondary w-100 mb-2">All Products</a>
+
+    <a class="btn shadow-none d-flex align-items-center justify-content-between bg-primary text-white w-100"
+        data-toggle="collapse" href="#navbar-vertical"
+        style="height: 65px; margin-top: -1px; padding: 0 30px;">
+        <h6 class="m-0">Categories</h6>
+        <i class="fa fa-angle-down text-dark"></i>
+    </a>
+
+    <nav class="collapse show navbar navbar-vertical navbar-light align-items-start p-0 border border-top-0 border-bottom-0"
+        id="navbar-vertical" style="margin-bottom: 0; padding-bottom: 0;">
+        <div class="navbar-nav w-100 overflow-auto" style="max-height: 410px; margin-bottom: 0; padding-bottom: 0;">
+            <% categories.forEach(category => { %>
+                <div class="nav-item dropdown">
+                    <a href="/product?category=<%= category._id %>" class="nav-link" data-toggle="dropdown">
+                        <%= category.name %> <i class="fa fa-angle-down float-right mt-1"></i>
+                    </a>
+                    <div class="dropdown-menu position-absolute bg-secondary border-0 rounded-0 w-100 m-0">
+                        <% category.subcategories.forEach(sub => { %>
+                            <a href="/product?category=<%= category._id %>&subcategory=<%= sub._id %>" class="dropdown-item">
+                                <%= sub.name %>
+                            </a>
+                        <% }) %>
                     </div>
-                </nav>
-  
+                </div>
+            <% }) %>
+        </div>
+    </nav>
 </div>
 
-
-        <div class="col-lg-9">
-            <nav class="navbar navbar-expand-lg bg-light navbar-light py-3 py-lg-0 px-0">
+        <div class="col-lg-9" style="margin-bottom: 0; padding-bottom: 0;">
+            <nav class="navbar navbar-expand-lg bg-light navbar-light py-3 py-lg-0 px-0"
+                style="margin-bottom: 0 !important; padding-bottom: 0 !important;">
                 <a href="" class="text-decoration-none d-block d-lg-none">
-                    <h1 class="m-0 display-5 font-weight-semi-bold">
-                        <span class="text-primary font-weight-bold border px-3 mr-1">E</span>Shopper
+                    <h1 class="m-0 display-5 font-weight-semi-bold" style="margin-bottom: 0;">
+                        <span class="text-primary font-weight-bold border px-3 mr-1">Salooja</span>Clothing
                     </h1>
                 </a>
                 <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
@@ -113,22 +159,26 @@
                     <div class="navbar-nav mr-auto py-0">
                         <a href="/home" class="nav-item nav-link active">Home</a>
                         <a href="/product" class="nav-item nav-link">Shop</a>
-                        <a href="detail.html" class="nav-item nav-link">Shop Detail</a>
+                        
                         <div class="nav-item dropdown">
                             <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Pages</a>
                             <div class="dropdown-menu rounded-0 m-0">
-                                <a href="cart.html" class="dropdown-item">Shopping Cart</a>
-                                <a href="checkout.html" class="dropdown-item">Checkout</a>
+                                <a href="" class="dropdown-item">Shopping Cart</a>
+                                <a href="" class="dropdown-item">Checkout</a>
                             </div>
                         </div>
-                        <a href="contact.html" class="nav-item nav-link">Contact</a>
+                        <a href="" class="nav-item nav-link">Contact</a>
                     </div>
-                    <div class="navbar-nav ml-auto py-0">
-                        <a href="/login" class="nav-item nav-link">Login</a>
-                        <a href="/register" class="nav-item nav-link">Register</a>
+                    <div class="navbar-nav ml-auto py-0 ">
+                        <a href="/login" class="nav-item nav-link" >Login</a>
+                        <a href="/register" class="nav-item nav-link" >Register</a>
+                        
                     </div>
+
                 </div>
             </nav>
         </div>
     </div>
+
+    
 </div>

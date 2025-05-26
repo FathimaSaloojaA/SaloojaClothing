@@ -1,0 +1,96 @@
+<section class="category-table-section">
+  <div class="content">
+    <h2 class="table-title">Category Management</h2>
+
+    <div class="action-bar">
+      <a href="/admin/categories/add" class="add-btn">+ Add Category</a>
+
+      <form method="GET" action="/admin/categories" class="search-form">
+        <input 
+          type="text" 
+          name="search" 
+          id="searchInput"
+          placeholder="Search by category name" 
+          value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>"
+          autocomplete="off"
+        />
+        <button type="submit">Search</button>
+        <button type="button" onclick="clearSearchCat()">Clear</button>
+      </form>
+    </div>
+
+    <div class="table-container">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Status</th>
+            <th>Created At</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (categories.length > 0) { %>
+            <% categories.forEach(category => { %>
+              <tr>
+                <td>
+                  <details>
+                    <summary><strong><%= category.name %></strong></summary>
+                    <% if (category.subcategories && category.subcategories.length > 0) { %>
+                      <ul class="subcategory-list">
+                        <% category.subcategories.forEach(sub => { %>
+                          <li>
+                            - <%= sub.name %>
+                            
+                            <form action="/admin/subcategories/delete/<%= sub._id %>" method="POST" class="inline-form">
+                              <button type="submit" onclick="return confirm('Delete this subcategory?')">Delete</button>
+                            </form>
+                          </li>
+                        <% }) %>
+                      </ul>
+                    <% } else { %>
+                      <p class="no-sub">No subcategories</p>
+                    <% } %>
+                    
+                  </details>
+                </td>
+                <td class="<%= category.isListed ? 'status-active' : 'status-blocked' %>">
+                  <%= category.isListed ? 'Listed' : 'Unlisted' %>
+                </td>
+                <td><%= category.createdAt.toLocaleDateString() %></td>
+                <td>
+                  <a href="/admin/category/edit/<%= category._id %>" class="edit-btn">Edit</a>
+                  <form action="/admin/category/delete/<%= category._id %>" method="POST" style="display:inline;">
+                    <button type="submit" class="delete-btn" onclick="return confirm('Are you sure you want to delete this category? All associated subcategories will also be deleted.')">Delete</button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td colspan="4" style="text-align: center;">No categories found.</td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination">
+      <% if (currentPage > 1) { %>
+        <a href="/admin/categories?<%= searchQuery ? 'search=' + encodeURIComponent(searchQuery) + '&' : '' %>page=<%= currentPage - 1 %>" class="page-btn prev-btn">&laquo; Prev</a>
+      <% } %>
+
+      <% for(let i = 1; i <= totalPages; i++) { %>
+        <a href="/admin/categories?<%= searchQuery ? 'search=' + encodeURIComponent(searchQuery) + '&' : '' %>page=<%= i %>" 
+           class="page-btn <%= currentPage === i ? 'active' : '' %>">
+           <%= i %>
+        </a>
+      <% } %>
+
+      <% if (currentPage < totalPages) { %>
+        <a href="/admin/categories?<%= searchQuery ? 'search=' + encodeURIComponent(searchQuery) + '&' : '' %>page=<%= currentPage + 1 %>" class="page-btn next-btn">Next &raquo;</a>
+      <% } %>
+    </div>
+  </div>
+</section>
