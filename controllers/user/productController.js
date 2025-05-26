@@ -6,7 +6,7 @@ exports.loadShopPage = async (req, res) => {
   try {
     const { category, subcategory,search,price } = req.query;
 
-    const filter = { isListed: true, isDeleted: false };
+    const filter = { isListed: true, isDeleted: false ,isBlocked:false};
 
     // Filter based on category and/or subcategory
     if (category) filter.category = category;
@@ -102,7 +102,7 @@ if (search) {
 
     // Render the page
     res.render('user/product', {
-      userName: req.session.user ? req.session.user.name : '',
+      userName: req.session.user ? req.session.user.firstName : '',
       products,
       search,
       sort,

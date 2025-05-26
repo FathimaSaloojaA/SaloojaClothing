@@ -1,0 +1,70 @@
+<section class="user-table-section">
+<div class="content">
+  <!-- Your <h2>User List</h2> and table go here -->
+   <h2 class="table-title">User List</h2>
+<form method="GET" action="/admin/users" class="search-form">
+    <input 
+      type="text" 
+      name="search" 
+      id="searchInput"
+      placeholder="Search by name or email" 
+      value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>"
+      autocomplete="off"
+    />
+    <button type="submit">Search</button>
+    <button type="button" onclick="clearSearch()">Clear</button>
+  </form>
+
+  <div class="table-container">
+    <table class="user-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% users.forEach(user => { %>
+          <tr>
+            <td><%= user.firstName %></td>
+            <td><%= user.email %></td>
+            <td class="<%= user.isBlocked ? 'status-blocked' : 'status-active' %>">
+              <%= user.isBlocked ? 'Blocked' : 'Active' %>
+            </td>
+            <td>
+          <button 
+            class="status-btn <%= user.isBlocked ? 'unblock' : 'block' %>" 
+            onclick="confirmToggle('<%= user._id %>', <%= user.isBlocked %>)">
+            <%= user.isBlocked ? 'Unblock' : 'Block' %>
+          </button>
+        </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pagination">
+      <% if (currentPage > 1) { %>
+        <a href="/admin/users?<%= searchQuery ? 'search=' + encodeURIComponent(searchQuery) + '&' : '' %>page=<%= currentPage - 1 %>" class="page-btn prev-btn">&laquo; Prev</a>
+      <% } %>
+
+      <% for(let i = 1; i <= totalPages; i++) { %>
+        <a href="/admin/users?<%= searchQuery ? 'search=' + encodeURIComponent(searchQuery) + '&' : '' %>page=<%= i %>" 
+           class="page-btn <%= currentPage === i ? 'active' : '' %>">
+           <%= i %>
+        </a>
+      <% } %>
+
+      <% if (currentPage < totalPages) { %>
+        <a href="/admin/users?<%= searchQuery ? 'search=' + encodeURIComponent(searchQuery) + '&' : '' %>page=<%= currentPage + 1 %>" class="page-btn next-btn">Next &raquo;</a>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+
+  
+</section>

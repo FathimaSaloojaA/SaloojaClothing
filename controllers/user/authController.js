@@ -125,11 +125,14 @@ googleCallback: (req, res) => {
   postLogin:async(req,res)=>{
 const { email, password } = req.body;
 try {
-    const user = await User.findOne({ email, isBlocked: false });
+    const user = await User.findOne({ email });
     if (!user) return res.render('user/login', { error: 'Invalid credentials', layout: false });
 
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.render('user/login', { error: 'Invalid credentials', layout: false });
+    if (user.isBlocked) {
+  return res.render('user/login', { error: "Your account is blocked by admin.",layout:false });
+}
 
     req.session.user = user;
     res.redirect('/product'); // or /dashboard or wherever you want

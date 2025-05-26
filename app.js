@@ -5,7 +5,7 @@ const MongoStore = require("connect-mongo");
 const dotenv = require("dotenv");
 const cookieParser = require("cookie-parser");
 const adminAuthRoutes = require('./routes/admin/authRoutes');
-
+const adminUserRoutes = require('./routes/admin/userRoutes');
 
 const path = require("path");
 const indexRoutes = require('./routes/user/indexRoutes')
@@ -57,6 +57,8 @@ app.use('/', indexRoutes);
 const authRoutes = require('./routes/user/authRoutes');
 app.use('/', authRoutes); // mount under "/"
 app.use('/admin', adminAuthRoutes);
+
+app.use('/admin', adminUserRoutes); // '/admin/users' now works
 
 const productRoutes = require('./routes/user/productRoutes');
 app.use('/',productRoutes)

@@ -21,3 +21,47 @@ new Chart(ctx, {
     }
   }
 });
+
+  function confirmBlock(userId) {
+    if (confirm("Are you sure you want to block this user?")) {
+      window.location.href = `/admin/users/block/${userId}`;
+    }
+  }
+
+  function confirmUnblock(userId) {
+    if (confirm("Are you sure you want to unblock this user?")) {
+      window.location.href = `/admin/users/unblock/${userId}`;
+    }
+  }
+
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    sidebar.classList.toggle('hidden');
+  }
+  function confirmToggle(userId, isBlocked) {
+    const action = isBlocked ? 'Unblock' : 'Block';
+    if (confirm(`Are you sure you want to ${action} this user?`)) {
+      fetch(`/admin/users/${userId}/${isBlocked ? 'unblock' : 'block'}`, {
+        method: 'POST',
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          location.reload();
+        } else {
+          alert('Something went wrong!');
+        }
+      })
+      .catch(() => alert('Server error occurred!'));
+    }
+  }
+  
+   function clearSearch() {
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    searchInput.value = '';
+    window.location.href = '/admin/users'; // Redirect to show full list
+  } else {
+    console.log('Search input not found!');
+  }
+}
