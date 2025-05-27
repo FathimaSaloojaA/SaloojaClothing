@@ -5,7 +5,7 @@ const {isUserLoggedIn ,checkUserBlocked}= require('../../middlewares/authMiddlew
 // <- Add this
 router.get('/product',isUserLoggedIn, checkUserBlocked,productController.loadShopPage);
 // userRoutes/productRoutes.js
-router.get('/product/:id',checkUserBlocked,productController.loadProductDetails);
+router.get('/product/:id',isUserLoggedIn,checkUserBlocked,productController.loadProductDetails);
 
 
 module.exports = router;

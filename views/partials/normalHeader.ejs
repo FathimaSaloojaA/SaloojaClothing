@@ -37,67 +37,95 @@
     <div class="row align-items-center py-3 px-xl-5" style="margin-bottom: 0; padding-bottom: 0;">
         <div class="col-lg-3 d-none d-lg-block">
             <a href="" class="text-decoration-none">
-                <h1 class="m-0 display-5 font-weight-semi-bold" style="margin-bottom: 0;">
+                <h3 class="m-0 display-5 font-weight-semi-bold" style="margin-bottom: 0;">
                     <span class="text-primary font-weight-bold border px-3 mr-1">Salooja</span>CLOTHING
-                </h1>
+                </h3>
             </a>
         </div>
 
         <!--searchbar-->
-        <div class="col-lg-6 col-6 text-left">
-  <form action="/product" method="GET" class="d-flex">
-    <div class="input-group" style="margin-bottom: 0;">
+        <div class="col-12" style="padding: 1rem;">
+  <form action="/product" method="GET" 
+    style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; 
+           padding: 12px 16px; border: 1px solid #ddd; border-radius: 10px; background-color: #fff; box-shadow: 0 1px 6px rgba(0,0,0,0.1);">
+
+    <!-- Search Bar -->
+    <div style="display: flex; align-items: center; gap: 8px; flex: 1 1 250px; min-width: 200px; max-width: 350px;">
       <input 
         type="text" 
-        class="form-control" 
-        placeholder="Search for products" 
-        name="search"
-        value="<%= typeof search !== 'undefined' ? search : '' %>"
+        name="search" 
+        placeholder="Search products..." 
+        value="<%= typeof search !== 'undefined' ? search : '' %>" 
+        style="flex: 1; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95rem; outline: none; transition: border-color 0.3s;"
+        onfocus="this.style.borderColor='#007bff'"
+        onblur="this.style.borderColor='#ccc'"
       >
-      <div class="input-group-append">
-        <button type="submit" class="input-group-text bg-transparent text-primary border-0">
-          <i class="fa fa-search"></i>
-        </button>
-      </div>
+      <button type="submit" 
+        style="background: none; border: none; color: #007bff; cursor: pointer; font-size: 1.2rem; padding: 4px 8px;"
+        aria-label="Search">
+        <i class="fa fa-search"></i>
+      </button>
+
+      <% if (typeof search !== 'undefined' && search.trim() !== '') { %>
+        <a href="/product" 
+           style="padding: 6px 14px; border: 1px solid #6c757d; border-radius: 6px; color: #fff; font-weight: 600; text-decoration: none; font-size: 0.9rem; white-space: nowrap; background-color: #6c757d; user-select: none;"
+           onmouseover="this.style.backgroundColor='#5a6268'" onmouseout="this.style.backgroundColor='#6c757d'">
+          Clear
+        </a>
+      <% } %>
     </div>
 
-    <% if (typeof search !== 'undefined' && search.trim() !== '') { %>
-      <a href="/product" class="btn btn-sm btn-outline-secondary ml-2">Clear</a>
+    <!-- Sorting Dropdown -->
+    <div style="display: flex; flex-direction: column; min-width: 180px; max-width: 220px; flex: 1 1 180px;">
+      <label for="sortSelect" style="font-weight: 600; font-size: 0.9rem; margin-bottom: 4px; color: #333;">Sort By</label>
+      <select id="sortSelect" name="sort" style="padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 0.9rem; outline: none;">
+        <option value="">-- Select --</option>
+        <option value="priceAsc" <%= sort === 'priceAsc' ? 'selected' : '' %>>Price: Low to High</option>
+        <option value="priceDesc" <%= sort === 'priceDesc' ? 'selected' : '' %>>Price: High to Low</option>
+        <option value="nameAsc" <%= sort === 'nameAsc' ? 'selected' : '' %>>Name: A - Z</option>
+        <option value="nameDesc" <%= sort === 'nameDesc' ? 'selected' : '' %>>Name: Z - A</option>
+      </select>
+    </div>
+
+    <!-- Price Filters -->
+    <div style="display: flex; flex-wrap: wrap; gap: 8px; min-width: 280px; max-width: 320px; font-size: 0.9rem; color: #444; font-weight: 500; flex: 1 1 320px;">
+      <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+        <input type="checkbox" name="price" value="0-999" <%= price?.includes('0-999') ? 'checked' : '' %> style="cursor: pointer;">
+        Under ₹1000
+      </label>
+      <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+        <input type="checkbox" name="price" value="1000-1999" <%= price?.includes('1000-1999') ? 'checked' : '' %> style="cursor: pointer;">
+        ₹1000 - ₹1999
+      </label>
+      <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+        <input type="checkbox" name="price" value="2000-4999" <%= price?.includes('2000-4999') ? 'checked' : '' %> style="cursor: pointer;">
+        ₹2000 - ₹4999
+      </label>
+      <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+        <input type="checkbox" name="price" value="5000-99999" <%= price?.includes('5000-99999') ? 'checked' : '' %> style="cursor: pointer;">
+        Above ₹5000
+      </label>
+    </div>
+
+    <!-- Preserve Category/Subcategory -->
+    <% if (category) { %>
+      <input type="hidden" name="category" value="<%= category %>">
+    <% } %>
+    <% if (subcategory) { %>
+      <input type="hidden" name="subcategory" value="<%= subcategory %>">
     <% } %>
 
-<!--dropdown for sorting-->
-<label for="sortSelect">Sort By (Hold Ctrl or Cmd to select multiple)</label>
-  <select id="sortSelect" name="sort" multiple style="height: 100px; width: 200px;">
-    <option value="priceAsc">Price: Low to High</option>
-    <option value="priceDesc">Price: High to Low</option>
-    <option value="nameAsc">Name: A - Z</option>
-    <option value="nameDesc">Name: Z - A</option>
-  </select>
-  
-  <button type="submit">Apply Sort</button>
-
-
-  <!-- ✅ Add Price Checkboxes Here -->
-  <div class="form-group mt-3">
-    <label><input type="checkbox" name="price" value="0-999" <%= price?.includes('0-999') ? 'checked' : '' %>> Under ₹1000</label><br>
-    <label><input type="checkbox" name="price" value="1000-1999" <%= price?.includes('1000-1999') ? 'checked' : '' %>> ₹1000 - ₹1999</label><br>
-    <label><input type="checkbox" name="price" value="2000-4999" <%= price?.includes('2000-4999') ? 'checked' : '' %>> ₹2000 - ₹4999</label><br>
-    <label><input type="checkbox" name="price" value="5000-99999" <%= price?.includes('5000-99999') ? 'checked' : '' %>> Above ₹5000</label>
-  </div>
-
-  <!-- Preserve category/subcategory if selected -->
-  <% if (category) { %>
-    <input type="hidden" name="category" value="<%= category %>">
-  <% } %>
-  <% if (subcategory) { %>
-    <input type="hidden" name="subcategory" value="<%= subcategory %>">
-  <% } %>
-
-  <!-- Submit Button -->
-  <button type="submit" class="btn btn-primary mt-2">Apply Filters</button>
-
+    <!-- Apply Button -->
+    <div style="min-width: 120px; text-align: right; flex: 1 1 120px;">
+      <button type="submit" 
+              style="padding: 10px 20px; border: none; border-radius: 8px; background-color: #007bff; color: white; font-weight: 600; cursor: pointer; font-size: 1rem; box-shadow: 0 2px 5px rgba(0,123,255,0.4); transition: background-color 0.3s;"
+              onmouseover="this.style.backgroundColor='#0056b3'" onmouseout="this.style.backgroundColor='#007bff'">
+        Apply Filters
+      </button>
+    </div>
   </form>
 </div>
+
 
         <div class="col-lg-3 col-6 text-right">
             <a href="" class="btn border">
@@ -148,9 +176,9 @@
             <nav class="navbar navbar-expand-lg bg-light navbar-light py-3 py-lg-0 px-0"
                 style="margin-bottom: 0 !important; padding-bottom: 0 !important;">
                 <a href="" class="text-decoration-none d-block d-lg-none">
-                    <h1 class="m-0 display-5 font-weight-semi-bold" style="margin-bottom: 0;">
+                    <h3 class="m-0 display-5 font-weight-semi-bold" style="margin-bottom: 0;">
                         <span class="text-primary font-weight-bold border px-3 mr-1">Salooja</span>Clothing
-                    </h1>
+                    </h3>
                 </a>
                 <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
                     <span class="navbar-toggler-icon"></span>

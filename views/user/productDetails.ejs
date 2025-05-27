@@ -34,7 +34,13 @@
         <div class="carousel-inner border">
             <% product.variants.forEach((variant, index) => { %>
                 <div class="carousel-item <%= index === 0 ? 'active' : '' %>">
-                    <img class="w-100 h-100" src="/product-images/<%= variant.images[0] %>" alt="Image">
+                    <% 
+  let imgPath = variant.images[0]; 
+  if (!imgPath.startsWith('/')) {
+    imgPath = '/product-images/' + imgPath;
+  } 
+%>
+                    <img class="w-100 h-100" src="<%= imgPath %>" alt="Image">
                 </div>
             <% }) %>
         </div>

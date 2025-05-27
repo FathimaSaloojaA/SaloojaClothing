@@ -1,0 +1,71 @@
+<main class="product-form-container" style="max-width: 800px; margin: auto; padding: 2rem; background: #fff; border-radius: 12px; box-shadow: 0 0 15px rgba(0,0,0,0.1);">
+  <h2 style="text-align: center; margin-bottom: 1.5rem; font-size: 2rem;">Edit Product</h2>
+  <form action="/admin/products/edit/<%= product._id %>" method="POST" enctype="multipart/form-data">
+
+    <!-- Basic Fields -->
+    <label style="display:block; margin-top: 1rem;">Name</label>
+    <input type="text" name="name" value="<%= product.name %>" required style="width:100%; padding: 10px; border:1px solid #ccc; border-radius: 8px;">
+
+    <label style="display:block; margin-top: 1rem;">Description</label>
+    <textarea name="description" required style="width:100%; padding: 10px; border:1px solid #ccc; border-radius: 8px;"><%= product.description %></textarea>
+
+    <label style="display:block; margin-top: 1rem;">Category</label>
+    <select name="category" required style="width:100%; padding: 10px; border:1px solid #ccc; border-radius: 8px;">
+      <% categories.forEach(cat => { %>
+        <option value="<%= cat._id %>" <%= product.category.equals(cat._id) ? 'selected' : '' %>><%= cat.name %></option>
+      <% }) %>
+    </select>
+
+    <label style="display:block; margin-top: 1rem;">Subcategory</label>
+    <select name="subcategory" style="width:100%; padding: 10px; border:1px solid #ccc; border-radius: 8px;">
+      <% subcategories.forEach(sub => { %>
+        <option value="<%= sub._id %>" <%= product.subcategory && product.subcategory.equals(sub._id) ? 'selected' : '' %>><%= sub.name %></option>
+      <% }) %>
+    </select>
+
+    <label style="display:block; margin-top: 1rem;">Highlights (comma-separated)</label>
+    <input type="text" name="highlights" value="<%= product.highlights.join(', ') %>" style="width:100%; padding: 10px; border:1px solid #ccc; border-radius: 8px;">
+
+    <label style="display:block; margin-top: 1rem;">Coupon Note</label>
+    <input type="text" name="couponNote" value="<%= product.couponNote %>" style="width:100%; padding: 10px; border:1px solid #ccc; border-radius: 8px;">
+
+    <label style="display:block; margin-top: 1rem;">Discount (%)</label>
+    <input type="number" name="discountPercentage" value="<%= product.discountPercentage %>" style="width:100%; padding: 10px; border:1px solid #ccc; border-radius: 8px;">
+
+    <!-- Existing Variants -->
+    <h3 style="margin-top: 2rem;">Existing Variants</h3>
+    <% product.variants.forEach((variant, index) => { %>
+      <% if (!variant.isDeleted) { %>
+        <div class="variant-block" style="margin-top: 1rem; padding: 1rem; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9;">
+          <input type="hidden" name="existingVariantIds[]" value="<%= variant._id %>">
+
+          <label style="display:block;">Size</label>
+          <input type="text" name="existingVariantSizes[]" value="<%= variant.size %>" required style="width:100%; padding: 8px; border:1px solid #ccc; border-radius: 6px;">
+
+          <label style="display:block; margin-top: 0.5rem;">Color</label>
+          <input type="text" name="existingVariantColors[]" value="<%= variant.color %>" required style="width:100%; padding: 8px; border:1px solid #ccc; border-radius: 6px;">
+
+          <label style="display:block; margin-top: 0.5rem;">Price</label>
+          <input type="number" name="existingVariantPrices[]" value="<%= variant.price %>" required style="width:100%; padding: 8px; border:1px solid #ccc; border-radius: 6px;">
+
+          <label style="display:block; margin-top: 0.5rem;">Stock</label>
+          <input type="number" name="existingVariantStocks[]" value="<%= variant.stock %>" required style="width:100%; padding: 8px; border:1px solid #ccc; border-radius: 6px;">
+
+          <label style="display:block; margin-top: 0.5rem;">Replace Image (optional)</label>
+          <input type="file" name="existingVariantImages" accept="image/*" style="width:100%; padding: 6px; border-radius: 6px; border: 1px solid #ccc;">
+
+          <button type="button" onclick="removeExistingVariant(this, '<%= variant._id %>')" style="margin-top: 0.8rem; background: #dc3545; color: white; padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer;">Remove</button>
+        </div>
+      <% } %>
+    <% }) %>
+
+    <input type="hidden" name="removedVariantIds[]" id="removedVariantIds">
+
+    <!-- New Variants -->
+    <h3 style="margin-top: 2rem;">New Variants</h3>
+    <div id="newVariantsContainer"></div>
+    <button type="button" onclick="addNewVariant()" style="margin-top: 1rem; background: #007bff; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer;">Add Variant</button>
+
+    <button type="submit" style="margin-top: 2rem; width: 100%; padding: 12px; background-color: #28a745; color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer;">Update Product</button>
+  </form>
+</main>

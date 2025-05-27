@@ -102,7 +102,44 @@ const loadHome = async (req, res) => {
          subcategories: subcategories.filter(sub => sub.category.toString() === cat._id.toString())
        };
      });
- 
+ const categoriesWithData = await Promise.all(
+    categories.map(async (category) => {
+      const products = await Product.find({ category: category._id, isDeleted: false });
+
+      const productCount = products.length;
+
+      // Get image from first product's first variant
+      let image = '';
+      if (products.length > 0 && products[0].variants.length > 0) {
+        image = '/product-images/' + products[0].variants[0].images[0];
+      }
+
+      return {
+        _id: category._id,
+        name: category.name,
+        productCount,
+        image
+      };
+    })
+  );
+
+
+  const newArrivals = await Product.find({ isDeleted: false, isListed: true })
+    .sort({ createdAt: -1 })
+    .limit(6)
+    .lean();
+
+  const newArrivalsWithImages = newArrivals.map(product => {
+    const firstVariant = product.variants?.[0];
+    const image = firstVariant?.images?.[0] || 'default.jpg';
+    return {
+      _id: product._id,
+      name: product.name,
+      price: firstVariant?.price,
+      image
+    };
+  });
+
      // Render the page
      res.render('user/home', {
        userName: req.session.user ? req.session.user.firstName : '',
@@ -110,10 +147,12 @@ const loadHome = async (req, res) => {
        search,
        sort,
        title:'Home',
+       newArrivals: newArrivalsWithImages,
        price,
        category: req.query.category,
    subcategory: req.query.subcategory,
        categories: categoryMap,
+       categoriesWithData,
        layout: 'user/indexLayout'
      });
    }

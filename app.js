@@ -7,6 +7,7 @@ const cookieParser = require("cookie-parser");
 const adminAuthRoutes = require('./routes/admin/authRoutes');
 const adminUserRoutes = require('./routes/admin/userRoutes');
 const adminCategoryRoutes = require('./routes/admin/categoryRoutes');
+const adminProductRoutes = require('./routes/admin/productRoutes');
 
 const path = require("path");
 const indexRoutes = require('./routes/user/indexRoutes')
@@ -43,6 +44,8 @@ app.use(session({
 }));
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(express.static(path.join(__dirname, "public")));
+
 // View engine
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
@@ -50,7 +53,6 @@ app.use(expressLayouts);
 
 
 // Static files
-app.use(express.static(path.join(__dirname, "public")));
 
 // Sample route
 
@@ -61,6 +63,7 @@ app.use('/admin', adminAuthRoutes);
 
 app.use('/admin', adminUserRoutes); // '/admin/users' now works
 app.use('/admin', adminCategoryRoutes)
+app.use('/admin', adminProductRoutes)
 const productRoutes = require('./routes/user/productRoutes');
 app.use('/',productRoutes)
 const cartRoutes = require('./routes/user/cartRoutes');

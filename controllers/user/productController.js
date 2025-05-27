@@ -79,14 +79,30 @@ if (search) {
   filter.$and = orFilters;
 }
 
-
+//pagination
+   const page = parseInt(req.query.page) || 1;
+  const limit = 3; // Products per page
+  const skip = (page - 1) * limit;
+  
     
 // Fetch products with filtering
     const products = await Product.find(filter)
-      .populate('category')
-      .populate('subcategory')
-      .sort(sortOption)
-      .lean();
+  .populate({
+    path: 'category',
+    match: { isListed: true, isDeleted: false }
+  })
+  .populate({
+    path: 'subcategory',
+    match: { isListed: true, isDeleted: false }
+  })
+  .sort(sortOption)
+  .skip(skip)
+  .limit(limit)
+  .lean();
+  const filteredProducts = products.filter(prod => prod.category && prod.subcategory);
+   const totalProducts = await Product.countDocuments({ isDeleted: false, isListed: true });
+   
+const totalPages = Math.ceil(totalProducts / limit);
 
     // Fetch all categories and subcategories
     const categories = await Category.find({ isListed: true, isDeleted: false }).lean();
@@ -103,13 +119,15 @@ if (search) {
     // Render the page
     res.render('user/product', {
       userName: req.session.user ? req.session.user.firstName : '',
-      products,
+      products:filteredProducts,
       search,
       sort,
       price,
       category: req.query.category,
   subcategory: req.query.subcategory,
       categories: categoryMap,
+      currentPage: page,
+    totalPages,
       layout: 'user/normalLayout'
     });
   } catch (err) {
@@ -122,73 +140,116 @@ if (search) {
 exports.loadProductDetails = async (req, res) => {
   try {
     const productId = req.params.id;
-     const { category, subcategory,price } = req.query;
+    const { category, subcategory, price } = req.query;
 
     const filter = { isListed: true, isDeleted: false };
 
-    // Filter based on category and/or subcategory
     if (category) filter.category = category;
     if (subcategory) filter.subcategory = subcategory;
+
+    // Fetch valid categories and subcategories
     const categories = await Category.find({ isListed: true, isDeleted: false }).lean();
     const subcategories = await Subcategory.find({ isListed: true, isDeleted: false }).lean();
 
     // Group subcategories under each category
-    const categoryMap = categories.map(cat => {
-      return {
-        ...cat,
-        subcategories: subcategories.filter(sub => sub.category.toString() === cat._id.toString())
-      };
-    });
+    const categoryMap = categories.map(cat => ({
+      ...cat,
+      subcategories: subcategories.filter(sub => sub.category.toString() === cat._id.toString())
+    }));
 
-const products = await Product.find(filter)
-      .populate('category')
-      .populate('subcategory')
+    // Fetch products and filter out any with deleted/unlisted category or subcategory
+    const productsRaw = await Product.find(filter)
+      .populate({
+        path: 'category',
+        match: { isListed: true, isDeleted: false }
+      })
+      .populate({
+        path: 'subcategory',
+        match: { isListed: true, isDeleted: false }
+      })
       .lean();
 
+    const products = productsRaw.filter(p => p.category && p.subcategory);
+
+    // Fetch main product
     const product = await Product.findOne({
       _id: productId,
       isListed: true,
       isDeleted: false
     })
-      .populate('category')
-      .populate('subcategory')
+      .populate({
+        path: 'category',
+        match: { isListed: true, isDeleted: false }
+      })
+      .populate({
+        path: 'subcategory',
+        match: { isListed: true, isDeleted: false }
+      })
       .lean();
 
-    if (!product || product.isBlocked || product.isDeleted) {
-      return res.redirect('/product'); // fallback if blocked or missing
+    if (!product || product.isBlocked || !product.category || !product.subcategory) {
+      return res.redirect('/product'); // Invalid or hidden product
     }
 
-const relatedProducts = await Product.find({
-  _id: { $ne: productId },
-  category: product.category,
-  isBlocked: false,
-  isDeleted: false
-}).limit(4).lean(); // use lean for easier data manipulation
-
-// Extract first image from first variant
-relatedProducts.forEach(prod => {
-  const firstVariantWithImage = prod.variants.find(v => v.images?.length);
-  prod.previewImage = firstVariantWithImage?.images[0] || "default.jpg";
-  prod.price = firstVariantWithImage?.price || "N/A";
-});
-
-
- const allVariantsOutOfStock = product.variants.every(variant => variant.stock === 0);
+    // Check stock
+    const allVariantsOutOfStock = product.variants.every(v => v.stock === 0);
     if (allVariantsOutOfStock) {
-      return res.redirect('/product'); // treat as unavailable
+      return res.redirect('/product'); // Treat as unavailable
     }
+
+    // Related products from same (still valid) category
+    const relatedRaw = await Product.find({
+      _id: { $ne: productId },
+      category: product.category._id,
+      isBlocked: false,
+      isDeleted: false
+    })
+      .populate({
+        path: 'category',
+        match: { isListed: true, isDeleted: false }
+      })
+      .populate({
+        path: 'subcategory',
+        match: { isListed: true, isDeleted: false }
+      })
+      .limit(4)
+      .lean();
+
+    const relatedProducts = relatedRaw
+      .filter(p => p.category && p.subcategory)
+      .map(prod => {
+        const variantWithImage = prod.variants.find(v => v.images?.length);
+        return {
+          ...prod,
+          previewImage: variantWithImage?.images[0] || "default.jpg",
+          price: variantWithImage?.price || "N/A"
+        };
+      });
+
+    // Sort handling
+    let sort = req.query.sort || [];
+    if (!Array.isArray(sort)) sort = [sort];
+
+    const sortOption = {};
+    sort.slice().reverse().forEach(val => {
+      if (val === 'priceAsc') sortOption['variants.price'] = 1;
+      else if (val === 'priceDesc') sortOption['variants.price'] = -1;
+      else if (val === 'nameAsc') sortOption['name'] = 1;
+      else if (val === 'nameDesc') sortOption['name'] = -1;
+    });
+
+    // Render product details
     res.render('user/productDetails', {
       product,
       products,
       price,
-      category: req.query.category,
-  subcategory: req.query.subcategory,
-  
+      sort,
+      category,
+      subcategory,
       relatedProducts,
       userName: req.session.user ? req.session.user.name : '',
       layout: 'user/normalLayout',
-      categories: categoryMap,
-      
+      categories: categoryMap
     });
 
   } catch (err) {
@@ -196,4 +257,3 @@ relatedProducts.forEach(prod => {
     res.status(500).send('Something went wrong');
   }
 };
-

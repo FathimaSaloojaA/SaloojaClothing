@@ -1,0 +1,56 @@
+<div class="product-form-container">
+  <h2>Add New Product</h2>
+  <form id="addProductForm" action="/admin/products/add" method="POST" enctype="multipart/form-data">
+    
+    <div class="form-group">
+      <label for="name">Product Name:</label>
+      <input type="text" name="name" id="name" required>
+    </div>
+
+    <div class="form-group">
+      <label for="description">Description:</label>
+      <textarea name="description" id="description" rows="4" required></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="category">Category:</label>
+      <select name="category" id="category" required>
+        <% categories.forEach(cat => { %>
+          <option value="<%= cat._id %>"><%= cat.name %></option>
+        <% }) %>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="subcategory">Subcategory:</label>
+      <select name="subcategory" id="subcategory" required>
+        <% subcategories.forEach(sub => { %>
+          <option value="<%= sub._id %>"><%= sub.name %></option>
+        <% }) %>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="highlights">Highlights (comma-separated):</label>
+      <input type="text" name="highlights" id="highlights">
+    </div>
+
+    <div class="form-group">
+      <label for="couponNote">Coupon Note:</label>
+      <input type="text" name="couponNote" id="couponNote">
+    </div>
+
+    <div class="form-group">
+      <label for="discountPercentage">Discount %:</label>
+      <input type="number" name="discountPercentage" id="discountPercentage" min="0" max="100">
+    </div>
+
+    <div id="variantSection"></div>
+
+    <button type="button" onclick="addVariant()">Add Variant</button>
+
+    <div class="form-group">
+      <button type="submit">Add Product</button>
+    </div>
+  </form>
+</div>

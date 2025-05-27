@@ -7,7 +7,8 @@ const variantSchema = new mongoose.Schema({
   color: { type: String },      // e.g., 'Red', 'Blue'
   price: { type: Number, required: true },
   stock: { type: Number, required: true },
-  images: [String]              // Array of image URLs
+  images: [String]  ,// Array of image URLs
+  isDeleted: { type: Boolean, default: false }            
 });
 
 const reviewSchema = new mongoose.Schema({
