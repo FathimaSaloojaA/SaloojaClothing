@@ -53,12 +53,29 @@
         </div>
     <% }) %>
 </div>
+<% 
+  const queryParams = [];
+  if (category) queryParams.push(`category=${category}`);
+  if (subcategory) queryParams.push(`subcategory=${subcategory}`);
+  if (search) queryParams.push(`search=${encodeURIComponent(search)}`);
+  if (price) {
+    const priceArray = Array.isArray(price) ? price : [price];
+    priceArray.forEach(p => queryParams.push(`price=${p}`));
+  }
+  if (sort) {
+    const sortArray = Array.isArray(sort) ? sort : [sort];
+    sortArray.forEach(s => queryParams.push(`sort=${s}`));
+  }
+
+  const baseQuery = queryParams.join('&');
+%>
+
 <div class="col-12" style="display: flex; justify-content: center; margin-top: 20px;">
   <nav>
     <ul style="list-style: none; padding: 0; margin: 0; display: flex; gap: 8px;">
       <% if (currentPage > 1) { %>
         <li>
-          <a href="?page=<%= currentPage - 1 %>" 
+          <a href="?page=<%= currentPage - 1 %><%= baseQuery ? '&' + baseQuery : '' %>"
              style="display: block; padding: 6px 12px; border: 1px solid #ddd; border-radius: 4px; color: #007bff; text-decoration: none; font-weight: 600;">
              &laquo; Previous
           </a>
@@ -67,7 +84,7 @@
 
       <% for (let i = 1; i <= totalPages; i++) { %>
         <li>
-          <a href="?page=<%= i %>" 
+          <a href="?page=<%= i %><%= baseQuery ? '&' + baseQuery : '' %>"
              style="display: block; padding: 6px 12px; border: 1px solid #ddd; border-radius: 4px; color: <%= currentPage === i ? '#fff' : '#e56caa' %>; background-color: <%= currentPage === i ? '#e56caa' : 'transparent' %>; font-weight: 600; text-decoration: none;">
              <%= i %>
           </a>
@@ -76,7 +93,7 @@
 
       <% if (currentPage < totalPages) { %>
         <li>
-          <a href="?page=<%= currentPage + 1 %>" 
+          <a href="?page=<%= currentPage + 1 %><%= baseQuery ? '&' + baseQuery : '' %>"
              style="display: block; padding: 6px 12px; border: 1px solid #ddd; border-radius: 4px; color: #e56caa; text-decoration: none; font-weight: 600;">
              Next &raquo;
           </a>
@@ -85,6 +102,7 @@
     </ul>
   </nav>
 </div>
+
 
 
                     

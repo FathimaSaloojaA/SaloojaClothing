@@ -8,7 +8,7 @@ const addToCart = async (req, res) => {
 
   const product = await Product.findById(productId);
   if (!product || product.isBlocked || product.isDeleted) {
-    return res.status(400).json({ redirect: true });
+    return res.redirect('/product')
   }
 
   const variant = product.variants.id(variantId);

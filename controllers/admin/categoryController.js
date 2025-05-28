@@ -1,7 +1,7 @@
 
 const Category = require('../../models/categoryModel');
 const Subcategory = require('../../models/subCategoryModel');
-
+const Product=require('../../models/productModel');
 const loadCategoryList = async (req, res) => {
   try {
     const searchQuery = req.query.search || '';
@@ -52,36 +52,64 @@ const loadCategoryList = async (req, res) => {
 };
 
 
+
 const softDeleteCategory = async (req, res) => {
   const categoryId = req.params.id;
 
   try {
+    // Soft delete category
     await Category.findByIdAndUpdate(categoryId, { isDeleted: true });
 
-    // Soft delete all subcategories of this category
+    // Soft delete all subcategories under this category
     await Subcategory.updateMany(
       { category: categoryId },
       { isDeleted: true }
     );
 
+    // Get all subcategory IDs of this category
+    const subcatIds = await Subcategory.find({ category: categoryId }).distinct('_id');
+
+    // Soft delete all products in this category
+    await Product.updateMany(
+      { category: categoryId },
+      { isDeleted: true }
+    );
+
+    // Soft delete all products in these subcategories
+    if (subcatIds.length > 0) {
+      await Product.updateMany(
+        { subcategory: { $in: subcatIds } },
+        { isDeleted: true }
+      );
+    }
+
     res.redirect('/admin/categories');
   } catch (error) {
-    console.error("Soft delete error:", error);
+    console.error("Soft delete category error:", error);
     res.status(500).send("Failed to delete category");
   }
 };
+
 const softDeleteSubcategory = async (req, res) => {
   const subcategoryId = req.params.id;
 
   try {
+    // Soft delete subcategory
     await Subcategory.findByIdAndUpdate(subcategoryId, { isDeleted: true });
-    // Redirect back to categories page or wherever you want
+
+    // Soft delete all products with this subcategory
+    await Product.updateMany(
+      { subcategory: subcategoryId },
+      { isDeleted: true }
+    );
+
     res.redirect('/admin/categories');
   } catch (error) {
     console.error("Soft delete subcategory error:", error);
     res.status(500).send("Failed to delete subcategory");
   }
 };
+
 
 
 const loadAddCategoryForm = (req, res) => {

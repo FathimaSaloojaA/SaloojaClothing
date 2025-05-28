@@ -8,7 +8,8 @@ const mailer = require('../../utils/mailer');
 const BASE_URL = require('../../utils/constants').BASE_URL;
 const { EMAIL_FROM } = require('../../utils/constants');
 const bcrypt = require('bcrypt');
-const crypto=require('crypto')
+const crypto=require('crypto');
+const { error } = require('console');
 
 module.exports = {
   // 1️⃣ Show Register Page
@@ -56,7 +57,7 @@ module.exports = {
   // Show OTP Verification Page
 // 3️⃣ Show OTP Page
 showOtpPage: (req, res) => {
-  res.render('user/verify-otp', { error:'hey', layout: false })
+  res.render('user/verify-otp', { error:'Any Error will be shown here', layout: false })
 
 },
 // 4️⃣ Handle OTP Verification
@@ -135,7 +136,7 @@ try {
 }
 
     req.session.user = user;
-    res.redirect('/product'); // or /dashboard or wherever you want
+    res.redirect('/product'); //  or wherever you i want
   } catch (err) {
     console.error('Login Error:', err);
     res.render('user/login', { error: 'Something went wrong', layout: false });
@@ -213,14 +214,18 @@ postResetPassword: async (req, res) => {
 
   res.redirect('/login'); // or show success message
 },
-logoutUser : (req, res) => {
+logoutUser: async (req, res) => {
+  
   req.session.destroy((err) => {
+    
+    
     if (err) {
       console.error('Error destroying session:', err);
+      
       return res.status(500).send('Logout failed.');
     }
     res.clearCookie('connect.sid'); // Clear session cookie
-    res.redirect('/login'); // Redirect to login or landing page
+    res.redirect('/'); // Redirect to login or landing page
   })
 }
 

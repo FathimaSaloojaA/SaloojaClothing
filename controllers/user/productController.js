@@ -4,130 +4,127 @@ const Subcategory = require('../../models/subCategoryModel');
 
 exports.loadShopPage = async (req, res) => {
   try {
-    const { category, subcategory,search,price } = req.query;
+    const { category, subcategory, search, price } = req.query;
 
-    const filter = { isListed: true, isDeleted: false ,isBlocked:false};
+    const filter = { isListed: true, isDeleted: false, isBlocked: false };
 
-    // Filter based on category and/or subcategory
+    // Filter by category/subcategory
     if (category) filter.category = category;
     if (subcategory) filter.subcategory = subcategory;
 
-    //price filtering logic
-if (price && price.length > 0) {
-  const priceFilters = Array.isArray(price) ? price : [price];
-  filter.variants = {
-    $elemMatch: {
-      $or: priceFilters.map(range => {
-        const [min, max] = range.split('-').map(Number);
-        return { price: { $gte: min, $lte: max } };
-      })
-    }
-  };
-}
-    //sorting...
-let sort = req.query.sort || []; 
-if (!Array.isArray(sort)) {
-      sort = [sort];
+    // Price filtering logic
+    if (price && price.length > 0) {
+      const priceFilters = Array.isArray(price) ? price : [price];
+      filter.variants = {
+        $elemMatch: {
+          isDeleted: false,
+          $or: priceFilters.map(range => {
+            const [min, max] = range.split('-').map(Number);
+            return { price: { $gte: min, $lte: max } };
+          })
+        }
+      };
     }
 
-const sortOption = {};
-    sort.slice().reverse().forEach((val) => {
+    // Sorting
+    let sort = req.query.sort || [];
+    if (!Array.isArray(sort)) sort = [sort];
+
+    const sortOption = {};
+    sort.slice().reverse().forEach(val => {
       if (val === 'priceAsc') sortOption['variants.price'] = 1;
       else if (val === 'priceDesc') sortOption['variants.price'] = -1;
       else if (val === 'nameAsc') sortOption['name'] = 1;
       else if (val === 'nameDesc') sortOption['name'] = -1;
     });
-//////////////////
-if (search) {
-  const searchWords = search.trim().split(/\s+/);
 
-  const catMatch = await Category.find({
-    name: { $in: searchWords.map(w => new RegExp(w, 'i')) },
-    isListed: true,
-    isDeleted: false
-  }).select('_id');
+    // Search Logic
+    if (search) {
+      const searchWords = search.trim().split(/\s+/);
 
-  const subcatMatch = await Subcategory.find({
-    name: { $in: searchWords.map(w => new RegExp(w, 'i')) },
-    isListed: true,
-    isDeleted: false
-  }).select('_id');
+      const catMatch = await Category.find({
+        name: { $in: searchWords.map(w => new RegExp(w, 'i')) },
+        isListed: true,
+        isDeleted: false
+      }).select('_id');
 
-  const categoryIds = catMatch.map(c => c._id);
-  const subcategoryIds = subcatMatch.map(sc => sc._id);
+      const subcatMatch = await Subcategory.find({
+        name: { $in: searchWords.map(w => new RegExp(w, 'i')) },
+        isListed: true,
+        isDeleted: false
+      }).select('_id');
 
-  // Build filters per word
-  const orFilters = searchWords.map(word => {
-    const regex = new RegExp(word, 'i');
+      const categoryIds = catMatch.map(c => c._id);
+      const subcategoryIds = subcatMatch.map(sc => sc._id);
 
-    const categoryFilter = category ? [] : [{ category: { $in: categoryIds } }];
-    const subcategoryFilter = subcategory ? [] : [{ subcategory: { $in: subcategoryIds } }];
+      const orFilters = searchWords.map(word => {
+        const regex = new RegExp(word, 'i');
+        const categoryFilter = category ? [] : [{ category: { $in: categoryIds } }];
+        const subcategoryFilter = subcategory ? [] : [{ subcategory: { $in: subcategoryIds } }];
 
-    return {
-      $or: [
-        { name: regex },
-        { description: regex },
-        { 'variants.color': regex },
-        { highlights: regex },
-        { couponNote: regex },
-        ...categoryFilter,
-        ...subcategoryFilter
-      ]
-    };
-  });
+        return {
+          $or: [
+            { name: regex },
+            { description: regex },
+            { 'variants.color': regex },
+            { highlights: regex },
+            { couponNote: regex },
+            ...categoryFilter,
+            ...subcategoryFilter
+          ]
+        };
+      });
 
-  filter.$and = orFilters;
-}
+      filter.$and = orFilters;
+    }
 
-//pagination
-   const page = parseInt(req.query.page) || 1;
-  const limit = 3; // Products per page
-  const skip = (page - 1) * limit;
-  
-    
-// Fetch products with filtering
-    const products = await Product.find(filter)
-  .populate({
-    path: 'category',
-    match: { isListed: true, isDeleted: false }
-  })
-  .populate({
-    path: 'subcategory',
-    match: { isListed: true, isDeleted: false }
-  })
-  .sort(sortOption)
-  .skip(skip)
-  .limit(limit)
-  .lean();
-  const filteredProducts = products.filter(prod => prod.category && prod.subcategory);
-   const totalProducts = await Product.countDocuments({ isDeleted: false, isListed: true });
-   
-const totalPages = Math.ceil(totalProducts / limit);
+    // Pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = 6;
+    const skip = (page - 1) * limit;
 
-    // Fetch all categories and subcategories
+    // Fetch all matching products (initially all)
+    const allMatchingProducts = await Product.find(filter)
+      .populate({
+        path: 'category',
+        match: { isListed: true, isDeleted: false }
+      })
+      .populate({
+        path: 'subcategory',
+        match: { isListed: true, isDeleted: false }
+      })
+      .sort(sortOption)
+      .lean();
+
+    // Filter out products without valid category or subcategory
+    const trulyFiltered = allMatchingProducts.filter(prod => prod.category && prod.subcategory);
+
+    const totalProducts = trulyFiltered.length;
+    const totalPages = Math.ceil(totalProducts / limit);
+
+    // Slice paginated products
+    const paginatedProducts = trulyFiltered.slice(skip, skip + limit);
+
+    // Fetch categories and subcategories for filter display
     const categories = await Category.find({ isListed: true, isDeleted: false }).lean();
     const subcategories = await Subcategory.find({ isListed: true, isDeleted: false }).lean();
 
-    // Group subcategories under each category
-    const categoryMap = categories.map(cat => {
-      return {
-        ...cat,
-        subcategories: subcategories.filter(sub => sub.category.toString() === cat._id.toString())
-      };
-    });
+    const categoryMap = categories.map(cat => ({
+      ...cat,
+      subcategories: subcategories.filter(sub => sub.category.toString() === cat._id.toString())
+    }));
 
-    // Render the page
     res.render('user/product', {
       userName: req.session.user ? req.session.user.firstName : '',
-      products:filteredProducts,
+      products: paginatedProducts,
       search,
       sort,
       price,
       category: req.query.category,
-  subcategory: req.query.subcategory,
+      subcategory: req.query.subcategory,
       categories: categoryMap,
       currentPage: page,
-    totalPages,
+      totalPages,
       layout: 'user/normalLayout'
     });
   } catch (err) {
@@ -135,7 +132,6 @@ const totalPages = Math.ceil(totalProducts / limit);
     res.status(500).send('Internal Server Error');
   }
 };
-
 
 exports.loadProductDetails = async (req, res) => {
   try {

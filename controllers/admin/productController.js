@@ -9,7 +9,7 @@ const loadProductList = async (req, res) => {
   try {
     const searchQuery = req.query.search || '';
     const page = parseInt(req.query.page) || 1;
-    const limit = 3;
+    const limit = 6;
     const skip = (page - 1) * limit;
 
     const filter = {
@@ -20,13 +20,23 @@ const loadProductList = async (req, res) => {
     const totalProducts = await Product.countDocuments(filter);
     const totalPages = Math.ceil(totalProducts / limit);
 
-    const products = await Product.find(filter)
-      .populate('category subcategory')
+    let products = await Product.find(filter)
+      .populate({
+        path: 'category',
+        match: { isDeleted: false }
+      })
+      .populate({
+        path: 'subcategory',
+        match: { isDeleted: false }
+      })
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .lean();
 
-      
+    // ❌ Filter out products where category or subcategory is not found (i.e., deleted)
+    products = products.filter(p => p.category && p.subcategory);
+
     res.render('admin/product', {
       products,
       searchQuery,
@@ -39,6 +49,7 @@ const loadProductList = async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 };
+
 
 const loadAddProductPage = async (req, res) => {
   try {

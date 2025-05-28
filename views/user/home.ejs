@@ -46,7 +46,7 @@
         <div class="cat-item d-flex flex-column border mb-4" style="padding: 30px;">
           <p class="text-right"><%= category.productCount %> Products</p>
           <a href="/product?category=<%= category._id %>" class="cat-img position-relative overflow-hidden mb-3">
-            <img class="img-fluid" src="<%= category.image %>" alt="<%= category.name %>">
+            <img class="img-fluid" src="/product-images/<%= category.image %>" alt="<%= category.name %>">
           </a>
           <h5 class="font-weight-semi-bold m-0"><%= category.name %></h5>
         </div>
@@ -83,21 +83,7 @@
             </div>
         </div>
     </div>
-    <!-- Offer End -->
-
-
-    <!-- Products Start -->
     
-              
-    <!-- Products End -->
-
-
-    <!-- Subscribe Start -->
-    
-    <!-- Subscribe End -->
-
-
-    <!-- Products Start -->
     <div class="container-fluid pt-5">
         <div class="text-center mb-4">
             <h2 class="section-title px-5"><span class="px-2">Just Arrived</span></h2>
