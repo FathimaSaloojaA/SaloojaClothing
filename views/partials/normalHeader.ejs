@@ -123,6 +123,10 @@
         Apply Filters
       </button>
     </div>
+    <a href="/product" class="clear-filter-btn">
+   
+      Clear Filters
+   </a>
   </form>
 </div>
 
@@ -161,7 +165,7 @@
                     </a>
                     <div class="dropdown-menu position-absolute bg-secondary border-0 rounded-0 w-100 m-0">
                         <% category.subcategories.forEach(sub => { %>
-                            <a href="/product?category=<%= category._id %>&subcategory=<%= sub._id %>" class="dropdown-item">
+                            <a href="/product?category=<%= category._id %>&subcategory=<%= sub._id %><% if (search) { %>&search=<%= search %><% } %><% if (sort) { %>&sort=<%= sort %><% } %><% if (price) { %><% price.forEach(p => { %>&price=<%= p %><% }) %><% } %>" class="dropdown-item">
                                 <%= sub.name %>
                             </a>
                         <% }) %>

@@ -113,7 +113,9 @@ exports.loadShopPage = async (req, res) => {
       ...cat,
       subcategories: subcategories.filter(sub => sub.category.toString() === cat._id.toString())
     }));
-
+console.log('Is authenticated?', req.isAuthenticated());
+  console.log('User:', req.user);
+  
     res.render('user/product', {
       userName: req.session.user ? req.session.user.firstName : '',
       products: paginatedProducts,
@@ -136,7 +138,7 @@ exports.loadShopPage = async (req, res) => {
 exports.loadProductDetails = async (req, res) => {
   try {
     const productId = req.params.id;
-    const { category, subcategory, price } = req.query;
+    const { category, subcategory, price ,search} = req.query;
 
     const filter = { isListed: true, isDeleted: false };
 
@@ -233,6 +235,46 @@ exports.loadProductDetails = async (req, res) => {
       else if (val === 'nameAsc') sortOption['name'] = 1;
       else if (val === 'nameDesc') sortOption['name'] = -1;
     });
+    // Search Logic
+    if (search) {
+      const searchWords = search.trim().split(/\s+/);
+
+      const catMatch = await Category.find({
+        name: { $in: searchWords.map(w => new RegExp(w, 'i')) },
+        isListed: true,
+        isDeleted: false
+      }).select('_id');
+
+      const subcatMatch = await Subcategory.find({
+        name: { $in: searchWords.map(w => new RegExp(w, 'i')) },
+        isListed: true,
+        isDeleted: false
+      }).select('_id');
+
+      const categoryIds = catMatch.map(c => c._id);
+      const subcategoryIds = subcatMatch.map(sc => sc._id);
+
+      const orFilters = searchWords.map(word => {
+        const regex = new RegExp(word, 'i');
+        const categoryFilter = category ? [] : [{ category: { $in: categoryIds } }];
+        const subcategoryFilter = subcategory ? [] : [{ subcategory: { $in: subcategoryIds } }];
+
+        return {
+          $or: [
+            { name: regex },
+            { description: regex },
+            { 'variants.color': regex },
+            { highlights: regex },
+            { couponNote: regex },
+            ...categoryFilter,
+            ...subcategoryFilter
+          ]
+        };
+      });
+
+      filter.$and = orFilters;
+    }
+
 
     // Render product details
     res.render('user/productDetails', {
@@ -240,6 +282,7 @@ exports.loadProductDetails = async (req, res) => {
       products,
       price,
       sort,
+      search,
       category,
       subcategory,
       relatedProducts,

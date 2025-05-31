@@ -101,4 +101,8 @@
     });
     
 })(jQuery);
-
+function clearFilters() {
+    console.log(window.location.href);
+    const baseUrl = '/product';
+    window.location.href = baseUrl;
+  }

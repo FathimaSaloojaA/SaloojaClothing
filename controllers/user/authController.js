@@ -115,11 +115,20 @@ resendOtp: async (req, res) => {
 },
 
 googleCallback: (req, res) => {
-    // User is attached to req.user by passport on success
-    res.redirect('/product');  // or wherever you want to redirect after login
-  },
+  req.session.user = req.user;
+  req.session.save((err) => {
+    if (err) {
+      console.error('Session save error:', err);
+      return res.redirect('/login'); // or show error
+    }
+    
+    res.redirect('/product');
+  });
+},
+
 
   showLoginPage: (req, res) => {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     res.render('user/login',{error:"welcome",layout:false});
   },
 
@@ -224,7 +233,7 @@ logoutUser: async (req, res) => {
       
       return res.status(500).send('Logout failed.');
     }
-    res.clearCookie('connect.sid'); // Clear session cookie
+    res.clearCookie('user.sid'); // Clear session cookie
     res.redirect('/'); // Redirect to login or landing page
   })
 }

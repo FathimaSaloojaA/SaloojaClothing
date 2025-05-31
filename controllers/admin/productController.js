@@ -13,29 +13,22 @@ const loadProductList = async (req, res) => {
     const skip = (page - 1) * limit;
 
     const filter = {
-      isDeleted: false,
+      
       name: { $regex: searchQuery, $options: 'i' },
     };
 
     const totalProducts = await Product.countDocuments(filter);
     const totalPages = Math.ceil(totalProducts / limit);
 
-    let products = await Product.find(filter)
-      .populate({
-        path: 'category',
-        match: { isDeleted: false }
-      })
-      .populate({
-        path: 'subcategory',
-        match: { isDeleted: false }
-      })
+    const products = await Product.find(filter)
+      .populate('category') // show category even if soft-deleted
+      .populate('subcategory') // same for subcategory
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .lean();
-
-    // ❌ Filter out products where category or subcategory is not found (i.e., deleted)
-    products = products.filter(p => p.category && p.subcategory);
+    
+    
 
     res.render('admin/product', {
       products,
@@ -84,6 +77,26 @@ const addProduct = async (req, res) => {
     } = req.body;
 
     let images = [];
+
+    const existingProduct = await Product.findOne({
+  name: name.trim(),
+  category,
+  subcategory
+});
+
+if (existingProduct) {
+  // You can either:
+  // - return with an error message to the form (preferred for UX)
+  // - or throw an error
+  return res.render('admin/addProduct', {
+    error: 'Product name already exists under this category and subcategory.',
+    categories: await Category.find({ isDeleted: false }),
+    subcategories: await Subcategory.find({ category, isDeleted: false }),
+    layout: 'admin/adminLayout'
+    // Also send back form fields to refill inputs if needed
+  });
+}
+
 
     for (const file of req.files) {
       const fileName = `product_${Date.now()}_${file.originalname}`;
@@ -303,5 +316,19 @@ const softDeleteProduct = async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 };
+const restoreProduct = async (req, res) => {
+  try {
+    const productId = req.params.id;
 
-module.exports= {loadProductList,loadAddProductPage,addProduct,loadEditProductPage,editProduct,softDeleteProduct}
+    // Restore: set isDeleted = false
+    await Product.findByIdAndUpdate(productId, { isDeleted: false });
+
+    res.redirect('/admin/products');
+  } catch (err) {
+    console.error('Error restoring product:', err);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+
+module.exports= {loadProductList,loadAddProductPage,addProduct,loadEditProductPage,editProduct,softDeleteProduct,restoreProduct}

@@ -925,3 +925,18 @@ button[type="button"] {
 button[type="button"] {
   margin-bottom: 20px;
 }
+.restore-btn {
+  display: inline-block;
+  padding: 6px 12px;
+  background-color: #4caf50; /* Green */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.restore-btn:hover {
+  background-color: #45a049;
+}

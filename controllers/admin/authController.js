@@ -6,7 +6,8 @@ const mongoose = require('mongoose');
 const sessionCollection = mongoose.connection.collection('sessions');
 
 const loadLogin = (req, res) => {
-  res.render('admin/login',{error:"Any error will be shown here",layout:false}); // EJS view
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.render('admin/login',{error:null,layout:false}); // EJS view
 };
 
 const verifyLogin = async (req, res) => {
@@ -24,6 +25,7 @@ const verifyLogin = async (req, res) => {
   }
 
   req.session.admin = user._id;
+  req.session.isAdmin = true;
   res.redirect('/admin/dashboard');
 };
 
@@ -43,8 +45,17 @@ const loadDashboard = async(req, res) => {
 };
 
 const logout = (req, res) => {
-  req.session.destroy();
-  res.redirect('/admin/');
+  req.session.destroy((err) => {
+      
+      
+      if (err) {
+        console.error('Error destroying session:', err);
+        
+        return res.status(500).send('Logout failed.');
+      }
+      res.clearCookie('admin.sid'); // Clear session cookie
+      res.redirect('/admin/'); // Redirect to login or landing page
+    })
 };
 
 module.exports = {

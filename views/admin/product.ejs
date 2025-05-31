@@ -35,20 +35,25 @@
           %>
             <tr>
               <td><%= product.name %></td>
-              <td><%= product.category?.name || 'N/A' %></td>
-              <td><%= product.subcategory?.name || 'N/A' %></td>
+              <td><%= product.category?.name || 'Deleted' %></td>
+              <td><%= product.subcategory?.name || 'Deleted' %></td>
               <td><%= product.totalStock || 0 %></td>
               <td>₹<%= minPrice %> - ₹<%= maxPrice || 0 %></td>
               <td>
-                <% if (product.isListed) { %>
-                  <span class="listed">Yes</span>
-                <% } else { %>
+                <% if (product.isDeleted) { %>
                   <span class="unlisted">No</span>
+                <% } else { %>
+                  <span class="listed">Yes</span>
                 <% } %>
               </td>
               <td>
                 <a href="/admin/products/edit/<%= product._id %>" class="edit-btn">Edit</a>
-                <a href="/admin/products/delete/<%= product._id %>" class="delete-btn" onclick="return confirm('Are you sure you want to delete this product?')">Delete</a>
+                 <% if (!product.isDeleted) { %>
+  <a href="/admin/products/delete/<%= product._id %>" class="delete-btn" onclick="return confirm('Are you sure you want to delete this product?')">Delete</a>
+<% } else { %>
+  <a href="/admin/products/restore/<%= product._id %>" class="restore-btn"  onclick="return confirm('Restore this product?')">Restore</a>
+<% } %>
+
               </td>
             </tr>
           <% }) %>

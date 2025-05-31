@@ -1,6 +1,6 @@
 
 const User = require('../models/userModel');
-
+const passport = require('passport');
 
 exports.isUserLoggedIn = (req, res, next) => {
   if (req.session.user) {
@@ -10,11 +10,13 @@ exports.isUserLoggedIn = (req, res, next) => {
   }
 };
 exports.isAdminLoggedIn = (req, res, next) => {
-  if (req.session.admin) {
+  console.log('Session:', req.session);
+  if (req.session && req.session.isAdmin) {
     return next();
   }
-  return res.redirect('/admin/login');
+  return res.redirect('/admin/');
 };
+
 
 exports.checkUserBlocked = async (req, res, next) => {
   try {
@@ -43,9 +45,9 @@ exports.checkUserBlocked = async (req, res, next) => {
   }
 };
 
-/*exports.isGuestOnly = (req, res, next) => {
-  if (req.session.user) {
-    return res.redirect('/home'); // or wherever you want to send them
+exports.ensureAuthenticated=async(req, res, next)=> {
+  if (req.isAuthenticated()) {
+    return next();
   }
-  next();
-};*/
+  res.redirect('/login');
+}

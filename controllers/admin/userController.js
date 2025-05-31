@@ -9,7 +9,7 @@ const loadUserList = async (req, res) => {
     const limit = 1; // Users per page
     const skip = (page - 1) * limit;
 
-    let filter = {};
+    let filter = {isAdmin: false};
     if (searchQuery) {
       // Case-insensitive partial match on firstName or email
       filter = {

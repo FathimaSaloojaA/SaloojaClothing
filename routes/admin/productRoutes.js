@@ -3,6 +3,9 @@ const express = require('express');
 const router = express.Router();
 const productController = require('../../controllers/admin/productController');
 const upload = require('../../middlewares/multer');
+const {isAdminLoggedIn} = require('../../middlewares/authMiddleware');
+const noCache = require('../../middlewares/nocache');
+router.use(isAdminLoggedIn)
 
 router.get('/products', productController.loadProductList);
 
@@ -20,4 +23,5 @@ router.post('/products/edit/:id',
 );
 
 router.get('/products/delete/:id', productController.softDeleteProduct);
+router.get('/products/restore/:id', productController.restoreProduct);
 module.exports=router

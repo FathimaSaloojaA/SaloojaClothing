@@ -34,36 +34,49 @@
             <% categories.forEach(category => { %>
               <tr>
                 <td>
-                  <details>
-                    <summary><strong><%= category.name %></strong></summary>
-                    <% if (category.subcategories && category.subcategories.length > 0) { %>
-                      <ul class="subcategory-list">
-                        <% category.subcategories.forEach(sub => { %>
-                          <li>
-                            - <%= sub.name %>
-                            
-                            <form action="/admin/subcategories/delete/<%= sub._id %>" method="POST" class="inline-form">
-                              <button type="submit" onclick="return confirm('Delete this subcategory?')">Delete</button>
-                            </form>
-                          </li>
-                        <% }) %>
-                      </ul>
-                    <% } else { %>
-                      <p class="no-sub">No subcategories</p>
-                    <% } %>
-                    
-                  </details>
-                </td>
+  <details>
+    <summary><strong><%= category.name %></strong></summary>
+
+    <% if (category.subcategories && category.subcategories.length > 0) { %>
+      <ul class="subcategory-list">
+        <% category.subcategories.forEach(sub => { %>
+          <li>
+            - <%= sub.name %>
+
+            <% if (!sub.isDeleted) { %>
+              <form action="/admin/subcategories/delete/<%= sub._id %>" method="POST" class="inline-form">
+                <button type="submit" onclick="return confirm('Delete this subcategory?')">Delete</button>
+              </form>
+            <% } else { %>
+              <form action="/admin/subcategories/restore/<%= sub._id %>" method="POST" class="inline-form">
+                <button type="submit">Restore</button>
+              </form>
+            <% } %>
+          </li>
+        <% }) %>
+      </ul>
+    <% } else { %>
+      <p class="no-sub">No subcategories</p>
+    <% } %>
+  </details>
+</td>
                 <td class="<%= category.isListed ? 'status-active' : 'status-blocked' %>">
-                  <%= category.isListed ? 'Listed' : 'Unlisted' %>
-                </td>
-                <td><%= category.createdAt.toLocaleDateString() %></td>
-                <td>
-                  <a href="/admin/category/edit/<%= category._id %>" class="edit-btn">Edit</a>
-                  <form action="/admin/category/delete/<%= category._id %>" method="POST" style="display:inline;">
-                    <button type="submit" class="delete-btn" onclick="return confirm('Are you sure you want to delete this category? All associated subcategories will also be deleted.')">Delete</button>
-                  </form>
-                </td>
+  <%= category.isDeleted ? 'UnListed' : 'Listed' %>
+</td>
+<td><%= category.createdAt.toLocaleDateString() %></td>
+<td>
+  <a href="/admin/category/edit/<%= category._id %>" class="edit-btn">Edit</a>
+
+  <% if (!category.isDeleted) { %>
+    <form action="/admin/category/delete/<%= category._id %>" method="POST" style="display:inline;">
+      <button type="submit" class="delete-btn" onclick="return confirm('Are you sure you want to delete this category? All associated subcategories will also be marked deleted.')">Delete</button>
+    </form>
+  <% } else { %>
+    <form action="/admin/category/restore/<%= category._id %>" method="POST" style="display:inline;">
+      <button type="submit" class="restore-btn">Restore</button>
+    </form>
+  <% } %>
+</td>
               </tr>
             <% }) %>
           <% } else { %>

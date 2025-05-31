@@ -5,7 +5,7 @@ const router = express.Router();
 const authController = require('../../controllers/user/authController');
 const passport = require('../../middlewares/passport'); // if using passport
 //const otpMiddleware = require('../../middlewares/otpMiddleware'); // optional
-
+const noCache = require('../../middlewares/nocache');
 // Show Register Page
 router.get('/register', authController.showRegisterPage);
 

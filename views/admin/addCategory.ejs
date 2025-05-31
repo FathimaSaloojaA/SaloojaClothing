@@ -1,6 +1,15 @@
 <div class="category-container">
   <form method="POST" action="/admin/categories/add" class="category-form glass-effect">
     <h2 class="form-heading">Add Category</h2>
+<% if (typeof error !== 'undefined') { %>
+  <div class="error-message" style="color: #e74c3c;
+  background-color: #fcebea;
+  border: 1px solid #e0b4b4;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 5px;
+  font-weight: 500;" ><%= error %></div>
+<% } %>
 
     <label for="categoryName" class="form-label">Category Name</label>
     <input type="text" name="name" id="categoryName" class="form-input" required />
