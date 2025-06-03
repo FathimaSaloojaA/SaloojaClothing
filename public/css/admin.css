@@ -368,7 +368,10 @@ body {
       }
 }
 .category-table-section .content {
-  padding: 2rem;
+  padding-left: 220px; /* adjust if your sidebar width differs */
+  padding-right: 20px;
+  padding-top: 20px;
+  box-sizing: border-box;
   background: #fff;
   border-radius: 10px;
   box-shadow: 0 0 8px rgba(0,0,0,0.1);
@@ -727,9 +730,12 @@ body {
 
 
 .product-container {
-  padding: 2rem;
   
-  background: rgba(255, 255, 255, 0.2);
+  padding-left: 220px; /* adjust if your sidebar width differs */
+  padding-right: 20px;
+  padding-top: 20px;
+  box-sizing: border-box;
+  background: rgba(224, 220, 220, 0.2);
   border-radius: 20px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
@@ -786,8 +792,8 @@ body {
 
 .product-table {
   width: 80%;
-  
-  background: white;
+  box-sizing: border-box;
+  background: rgb(250, 239, 239);
   border-radius: 12px;
   overflow: hidden;
 }

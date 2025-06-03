@@ -177,9 +177,20 @@ const loadAddCategoryForm = (req, res) => {
 
 const addCategory = async (req, res) => {
   try {
-    const { name, subcategories } = req.body;
+    let { name, subcategories } = req.body;
 
-    // Check if category already exists (case-insensitive)
+    // ✅ Trim the category name
+    name = name.trim();
+
+    // ✅ Reject if category name is empty after trimming
+    if (!name) {
+      return res.render('admin/addCategory', {
+        error: 'Category name cannot be empty or just spaces.',
+        layout: 'admin/adminLayout'
+      });
+    }
+
+    // ✅ Check if category already exists (case-insensitive)
     const existingCategory = await Category.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') } });
     if (existingCategory) {
       return res.render('admin/addCategory', {
@@ -188,29 +199,40 @@ const addCategory = async (req, res) => {
       });
     }
 
-    // Create category
+    // ✅ Create category
     const category = new Category({ name });
     await category.save();
 
     if (subcategories && subcategories.length > 0) {
+      // Normalize into array and trim each entry
       const subArray = Array.isArray(subcategories) ? subcategories : [subcategories];
 
-      // ✅ Convert all subcategory names to lowercase for comparison
-      const lowerCaseNames = subArray.map(sub => sub.trim().toLowerCase());
+      const trimmedSubs = subArray.map(sub => sub.trim()).filter(sub => sub !== '');
 
-      // ✅ Check for duplicates in the submitted subcategories
+      // ✅ Ensure no empty subcategory after trimming
+      if (trimmedSubs.length === 0) {
+        await Category.findByIdAndDelete(category._id); // optional cleanup
+        return res.render('admin/addCategory', {
+          error: 'Subcategory names cannot be empty or just spaces.',
+          layout: 'admin/adminLayout'
+        });
+      }
+
+      // ✅ Check for duplicates (case-insensitive)
+      const lowerCaseNames = trimmedSubs.map(name => name.toLowerCase());
       const hasDuplicate = new Set(lowerCaseNames).size !== lowerCaseNames.length;
+
       if (hasDuplicate) {
-        await Category.findByIdAndDelete(category._id); // Optional cleanup
+        await Category.findByIdAndDelete(category._id); // optional cleanup
         return res.render('admin/addCategory', {
           error: 'Duplicate subcategories are not allowed under the same category.',
           layout: 'admin/adminLayout'
         });
       }
 
-      // ✅ Create and insert subcategories
-      const subcategoryDocs = subArray.map(sub => ({
-        name: sub.trim(),
+      // ✅ Save subcategories
+      const subcategoryDocs = trimmedSubs.map(sub => ({
+        name: sub,
         category: category._id
       }));
 
@@ -246,14 +268,21 @@ const getEditCategory = async (req, res) => {
 
 const updateCategory = async (req, res) => {
   const categoryId = req.params.id;
-  const { categoryName, existingSubcategories, newSubcategories = [] } = req.body;
+  const {
+    categoryName,
+    existingSubcategories,
+    newSubcategories = [],
+    deleteSubcategories = [] // ⬅️ GET deleted subcategories
+  } = req.body;
 
   try {
     const currentCategory = await Category.findById(categoryId);
     const allCategories = await Category.find({ _id: { $ne: categoryId } });
 
     // 1. Check for duplicate category name
-    const duplicateCategory = allCategories.find(cat => cat.name.trim().toLowerCase() === categoryName.trim().toLowerCase());
+    const duplicateCategory = allCategories.find(
+      cat => cat.name.trim().toLowerCase() === categoryName.trim().toLowerCase()
+    );
     if (duplicateCategory) {
       return res.render('admin/editCategory', {
         category: currentCategory,
@@ -263,13 +292,14 @@ const updateCategory = async (req, res) => {
       });
     }
 
-    // 2. Combine all subcategory names to check for duplicates
-    const existingNames = existingSubcategories ? Object.values(existingSubcategories).map(name => name.trim().toLowerCase()) : [];
+    // 2. Prepare names and check for duplicates
+    const existingNames = existingSubcategories
+      ? Object.values(existingSubcategories).map(name => name.trim().toLowerCase())
+      : [];
     const newNames = newSubcategories.map(name => name.trim().toLowerCase()).filter(name => name !== '');
 
     const allSubNames = [...existingNames, ...newNames];
     const hasDuplicates = new Set(allSubNames).size !== allSubNames.length;
-
     if (hasDuplicates) {
       return res.render('admin/editCategory', {
         category: currentCategory,
@@ -282,14 +312,20 @@ const updateCategory = async (req, res) => {
     // 3. Update category name
     await Category.findByIdAndUpdate(categoryId, { name: categoryName.trim() });
 
-    // 4. Update existing subcategories
+    // 4. Soft delete subcategories
+    const deleteArray = Array.isArray(deleteSubcategories) ? deleteSubcategories : [deleteSubcategories];
+    for (const subcatId of deleteArray) {
+      await Subcategory.findByIdAndUpdate(subcatId, { isDeleted: true });
+    }
+
+    // 5. Update existing subcategories
     if (existingSubcategories) {
       for (const [subcatId, subcatName] of Object.entries(existingSubcategories)) {
         await Subcategory.findByIdAndUpdate(subcatId, { name: subcatName.trim() });
       }
     }
 
-    // 5. Add new subcategories
+    // 6. Add new subcategories
     const newSubcatDocs = newSubcategories
       .filter(name => name && name.trim() !== '')
       .map(name => ({
@@ -307,5 +343,6 @@ const updateCategory = async (req, res) => {
     res.status(500).send('Something went wrong while updating the category.');
   }
 };
+
 
 module.exports = { loadCategoryList,softDeleteCategory,restoreCategory,softDeleteSubcategory,restoreSubcategory,loadAddCategoryForm,addCategory,getEditCategory,updateCategory};

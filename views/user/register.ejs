@@ -31,7 +31,10 @@
             <div class="card-body p-5 shadow-5 text-center">
               <h2 class="fw-bold mb-5">Sign up now</h2>
 
-              <form action="/register" method="POST">
+              <form action="/register" method="POST" id="registerForm">
+
+                <div id="errorMsg" class="alert alert-danger d-none"></div>
+
                 <div class="row">
                   <div class="col-md-6 mb-4">
                     <div class="form-outline">
@@ -56,6 +59,11 @@
                   <input type="password" name="password" id="password" class="form-control" required />
                   <label class="form-label" for="password">Password</label>
                 </div>
+
+                <div class="form-outline mb-4">
+  <input type="password" name="confirmPassword" id="confirmPassword" class="form-control" required />
+  <label class="form-label" for="confirmPassword">Confirm Password</label>
+</div>
 
                 
 
@@ -83,5 +91,116 @@
 
   <!-- Bootstrap JS (if needed) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function getElement(id) {
+    return document.getElementById(id);
+  }
+
+  function showError(input, message) {
+    input.classList.add('is-invalid');
+    input.classList.remove('is-valid');
+
+    if (!input.nextElementSibling || !input.nextElementSibling.classList.contains('invalid-feedback')) {
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'invalid-feedback';
+      errorDiv.innerText = message;
+      input.parentNode.appendChild(errorDiv);
+    } else {
+      input.nextElementSibling.innerText = message;
+    }
+  }
+
+  function clearError(input) {
+    input.classList.remove('is-invalid');
+    input.classList.add('is-valid');
+
+    if (input.nextElementSibling && input.nextElementSibling.classList.contains('invalid-feedback')) {
+      input.nextElementSibling.remove();
+    }
+  }
+
+  function validateField(input, name) {
+    const value = input.value.trim();
+    if (value === '' || /\s/.test(value)) {
+      showError(input, `${name} cannot be empty or contain spaces`);
+      return false;
+    }
+    clearError(input);
+    return true;
+  }
+
+  function validateEmail(emailInput) {
+    const email = emailInput.value.trim();
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!regex.test(email)) {
+      showError(emailInput, 'Please enter a valid email');
+      return false;
+    }
+    clearError(emailInput);
+    return true;
+  }
+
+  function validatePasswords(passwordInput, confirmPasswordInput) {
+    const password = passwordInput.value.trim();
+    const confirmPassword = confirmPasswordInput.value.trim();
+
+    clearError(passwordInput);
+    clearError(confirmPasswordInput);
+
+    if (/\s/.test(password)) {
+      showError(passwordInput, 'Password cannot contain spaces');
+      return false;
+    }
+
+    if (password.length < 6) {
+      showError(passwordInput, 'Password must be at least 6 characters');
+      return false;
+    }
+
+    if (password !== confirmPassword) {
+      showError(confirmPasswordInput, 'Passwords do not match');
+      return false;
+    }
+
+    return true;
+  }
+
+  function handleRegisterValidation(event) {
+    const firstName = getElement('firstName');
+    const lastName = getElement('lastName');
+    const email = getElement('email');
+    const password = getElement('password');
+    const confirmPassword = getElement('confirmPassword');
+    const submitBtn = document.querySelector('button[type="submit"]');
+
+    let isValid = true;
+
+    if (!validateField(firstName, 'First name')) isValid = false;
+    if (!validateField(lastName, 'Last name')) isValid = false;
+    if (!validateEmail(email)) isValid = false;
+    if (!validatePasswords(password, confirmPassword)) isValid = false;
+
+    if (!isValid) {
+      event.preventDefault(); // prevent form submission
+      return;
+    }
+
+    // ✅ Only disable if validation passes
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Processing...';
+  }
+
+  function attachValidation() {
+    const form = getElement('registerForm');
+    if (form) {
+      form.addEventListener('submit', handleRegisterValidation);
+    }
+  }
+
+  window.onload = attachValidation;
+</script>
+
+  
 </body>
 </html>

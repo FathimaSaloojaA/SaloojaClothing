@@ -5,6 +5,7 @@ const router = express.Router();
 const authController = require('../../controllers/user/authController');
 const passport = require('../../middlewares/passport'); // if using passport
 //const otpMiddleware = require('../../middlewares/otpMiddleware'); // optional
+const {redirectIfAuthenticated}= require('../../middlewares/authMiddleware');
 const noCache = require('../../middlewares/nocache');
 // Show Register Page
 router.get('/register', authController.showRegisterPage);
@@ -29,7 +30,7 @@ router.get('/auth/google/callback',
   authController.googleCallback
 );
 // Show Login Page
-router.get('/login', authController.showLoginPage);
+router.get('/login', redirectIfAuthenticated,authController.showLoginPage);
 
 // Handle Login Form Submission
 router.post('/login', authController.postLogin);

@@ -106,3 +106,4 @@ function clearFilters() {
     const baseUrl = '/product';
     window.location.href = baseUrl;
   }
+  

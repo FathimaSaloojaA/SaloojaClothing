@@ -106,7 +106,7 @@ const loadHome = async (req, res) => {
     const categoryMap = categories.map(cat => {
       return {
         ...cat,
-        subcategories: subcategories.filter(sub => sub.category.toString() === cat._id.toString())
+        subcategories: subcategories.filter(sub => sub.category.toString() === cat._id.toString()&& sub.isDeleted === false)
       };
     });
 
@@ -135,28 +135,30 @@ const loadHome = async (req, res) => {
     );
 
     const newArrivals = await Product.find({ isDeleted: false, isListed: true })
-      .populate({
-        path: 'category',
-        match: { isListed: true, isDeleted: false }
-      })
-      .populate({
-        path: 'subcategory',
-        match: { isListed: true, isDeleted: false }
-      })
-      .sort({ createdAt: -1 })
-      .limit(6)
-      .lean();
+  .populate({
+    path: 'category',
+    match: { isListed: true, isDeleted: false }
+  })
+  .populate({
+    path: 'subcategory',
+    match: { isListed: true, isDeleted: false }
+  })
+  .sort({ createdAt: -1 })
+  .limit(6)
+  .lean();
 
-    const newArrivalsWithImages = newArrivals.map(product => {
-      const firstVariant = product.variants?.[0];
-      const image = (firstVariant?.images?.[0] || '').replace(/^\/?product-images\//, '') || 'default.jpg';
-      return {
-        _id: product._id,
-        name: product.name,
-        price: firstVariant?.price,
-        image
-      };
-    });
+const filteredNewArrivals = newArrivals.filter(prod => prod.category && prod.subcategory);
+
+const newArrivalsWithImages = filteredNewArrivals.map(product => {
+  const firstVariant = product.variants?.[0];
+  const image = (firstVariant?.images?.[0] || '').replace(/^\/?product-images\//, '') || 'default.jpg';
+  return {
+    _id: product._id,
+    name: product.name,
+    price: firstVariant?.price,
+    image
+  };
+});
 
     // Render the page
     res.render('user/home', {

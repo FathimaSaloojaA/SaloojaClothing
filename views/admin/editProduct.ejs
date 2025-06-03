@@ -18,9 +18,7 @@
 
     <label style="display:block; margin-top: 1rem;">Subcategory</label>
     <select name="subcategory" style="width:100%; padding: 10px; border:1px solid #ccc; border-radius: 8px;">
-      <% subcategories.forEach(sub => { %>
-        <option value="<%= sub._id %>" <%= product.subcategory && product.subcategory.equals(sub._id) ? 'selected' : '' %>><%= sub.name %></option>
-      <% }) %>
+      <option value="">Select Subcategory</option>
     </select>
 
     <label style="display:block; margin-top: 1rem;">Highlights (comma-separated)</label>
@@ -76,7 +74,126 @@
     <h3 style="margin-top: 2rem;">New Variants</h3>
     <div id="newVariantsContainer"></div>
     <button type="button" onclick="addNewVariant()" style="margin-top: 1rem; background: #007bff; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer;">Add Variant</button>
+    <div id="formError" style="color: red; margin-top: 1rem; font-weight: 500;"></div>
+
 
     <button type="submit" style="margin-top: 2rem; width: 100%; padding: 12px; background-color: #28a745; color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer;">Update Product</button>
   </form>
 </main>
+<script>
+  document.querySelector('form').addEventListener('submit', function (e) {
+    if (!validateEditProductForm()) {
+      e.preventDefault();
+    }
+  });
+
+// Pass subcategories grouped by category as JSON
+  const subcategoriesByCategory = <%- JSON.stringify(subcategoriesByCategory) %>;
+
+  const categorySelect = document.querySelector('select[name="category"]');
+  const subcategorySelect = document.querySelector('select[name="subcategory"]');
+
+  // Function to update subcategory options based on selected category
+  function updateSubcategories() {
+    const selectedCategory = categorySelect.value;
+    const subs = subcategoriesByCategory[selectedCategory] || [];
+
+    // Clear existing options
+    subcategorySelect.innerHTML = '';
+
+    // Add default option
+    subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
+
+    subs.forEach(sub => {
+      const option = document.createElement('option');
+      option.value = sub._id;
+      option.textContent = sub.name;
+      // Preselect if matches product's current subcategory
+      if ('<%= product.subcategory ? product.subcategory._id.toString() : "" %>' === sub._id) {
+        option.selected = true;
+      }
+      subcategorySelect.appendChild(option);
+    });
+  }
+
+  // Update subcategories on page load
+  updateSubcategories();
+
+  // Update subcategories whenever category changes
+  categorySelect.addEventListener('change', () => {
+    updateSubcategories();
+  });
+  function showError(message) {
+    const errorBox = document.getElementById("formError");
+    errorBox.textContent = message;
+    errorBox.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  function validateEditProductForm() {
+    const name = document.querySelector('input[name="name"]').value.trim();
+    const description = document.querySelector('textarea[name="description"]').value.trim();
+    const highlights = document.querySelector('input[name="highlights"]').value.trim();
+    const couponNote = document.querySelector('input[name="couponNote"]').value.trim();
+    const discount = parseFloat(document.querySelector('input[name="discountPercentage"]').value);
+
+    if (!name || !description || !highlights || !couponNote) {
+      showError("Fields cannot be empty or contain only spaces.");
+      return false;
+    }
+
+    if (isNaN(discount) || discount >= 100) {
+      showError("Discount must be a valid number less than 100.");
+      return false;
+    }
+
+    const variantMap = new Map();
+
+    // Existing variants
+    const existingSizes = document.getElementsByName('existingVariantSizes[]');
+    const existingColors = document.getElementsByName('existingVariantColors[]');
+
+    for (let i = 0; i < existingSizes.length; i++) {
+      const size = existingSizes[i].value.trim().toLowerCase();
+      const color = existingColors[i].value.trim().toLowerCase();
+      if (!size || !color) {
+        showError("Existing variant size and color cannot be empty or only spaces.");
+        return false;
+      }
+      const key = `${size}-${color}`;
+      if (variantMap.has(key)) {
+        showError(`Duplicate variant found: Size "${size}", Color "${color}"`);
+        return false;
+      }
+      variantMap.set(key, true);
+    }
+
+    // New variants
+    const newSizes = document.getElementsByName('newVariantSizes[]');
+    const newColors = document.getElementsByName('newVariantColors[]');
+
+    for (let i = 0; i < newSizes.length; i++) {
+      const size = newSizes[i].value.trim().toLowerCase();
+      const color = newColors[i].value.trim().toLowerCase();
+      if (!size || !color) {
+        showError("New variant size and color cannot be empty or only spaces.");
+        return false;
+      }
+      const key = `${size}-${color}`;
+      if (variantMap.has(key)) {
+        showError(`Duplicate variant found (new or existing): Size "${size}", Color "${color}"`);
+        return false;
+      }
+      variantMap.set(key, true);
+    }
+
+    document.getElementById("formError").textContent = ""; // Clear any previous error
+    return true;
+  }
+
+  // Attach submit listener
+  document.querySelector('form').addEventListener('submit', function (e) {
+    if (!validateEditProductForm()) {
+      e.preventDefault();
+    }
+  });
+</script>

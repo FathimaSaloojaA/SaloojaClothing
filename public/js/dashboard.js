@@ -38,23 +38,7 @@ function toggleSidebar() {
     const sidebar = document.querySelector('.sidebar');
     sidebar.classList.toggle('hidden');
   }
-  function confirmToggle(userId, isBlocked) {
-    const action = isBlocked ? 'Unblock' : 'Block';
-    if (confirm(`Are you sure you want to ${action} this user?`)) {
-      fetch(`/admin/users/${userId}/${isBlocked ? 'unblock' : 'block'}`, {
-        method: 'POST',
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          location.reload();
-        } else {
-          alert('Something went wrong!');
-        }
-      })
-      .catch(() => alert('Server error occurred!'));
-    }
-  }
+  
   
    function clearSearch() {
   const searchInput = document.getElementById('searchInput');
@@ -95,13 +79,16 @@ function addSubcategoryField() {
   }
 
   function removeExistingSubcategory(subcatId, btn) {
-    const input = document.createElement("input");
-    input.type = "hidden";
-    input.name = "deleteSubcategories[]";
-    input.value = subcatId;
-    btn.closest(".subcategory-row").appendChild(input);
-    btn.closest(".subcategory-row").style.display = "none";
-  }
+  const input = document.createElement("input");
+  input.type = "hidden";
+  input.name = "deleteSubcategories[]";
+  input.value = subcatId;
+
+  const form = btn.closest("form");
+  form.appendChild(input); // append to form, not inside hidden row
+
+  btn.closest(".subcategory-row").remove(); // remove row from DOM
+}
 
   function addVariant() {
   const section = document.getElementById('variantSection');
@@ -110,16 +97,16 @@ function addSubcategoryField() {
   const html = `
     <div class="form-group">
       <label>Size:</label>
-      <input type="text" name="variantSizes" required>
+      <input type="text" name="variantSizes" class="variant-size" required>
 
       <label>Color:</label>
-      <input type="text" name="variantColors" required>
+      <input type="text" name="variantColors" class="variant-color" required>
 
       <label>Price:</label>
       <input type="number" name="variantPrices" required>
 
       <label>Stock:</label>
-      <input type="number" name="variantStocks" required>
+      <input type="number" name="variantStocks" class="variant-stock" required>
 
       <label>Image:</label>
       <input type="file" name="productImages" accept="image/*" required>
@@ -128,6 +115,8 @@ function addSubcategoryField() {
 
   section.insertAdjacentHTML('beforeend', html);
 }
+
+
 const removedIds = [];
 
   function removeExistingVariant(button, id) {
@@ -160,3 +149,5 @@ const removedIds = [];
   function removeVariantBlock(btn) {
     btn.parentElement.remove();
   }
+
+  

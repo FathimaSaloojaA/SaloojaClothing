@@ -3,14 +3,14 @@ const User = require('../models/userModel');
 const passport = require('passport');
 
 exports.isUserLoggedIn = (req, res, next) => {
-  if (req.session.user) {
+  if (req.session && req.session.user) {
     next(); // Allow access
   } else {
     res.redirect('/login'); // Block and redirect
   }
 };
 exports.isAdminLoggedIn = (req, res, next) => {
-  console.log('Session:', req.session);
+  
   if (req.session && req.session.isAdmin) {
     return next();
   }
@@ -51,3 +51,17 @@ exports.ensureAuthenticated=async(req, res, next)=> {
   }
   res.redirect('/login');
 }
+exports. redirectIfAuthenticated=async(req, res, next)=> {
+  if (req.session.user||(req.isAuthenticated && req.isAuthenticated())) {
+    return res.redirect('/product'); // or wherever your user lands
+  }
+  next();
+}
+
+exports. redirectIfAdminAuthenticated=async(req, res, next)=> {
+  if (req.session.admin) {
+    return res.redirect('/admin/dashboard');
+  }
+  next();
+}
+

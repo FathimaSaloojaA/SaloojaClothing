@@ -2,7 +2,7 @@
   <h2 class="edit-category-heading">Edit Category</h2>
   
 
-  <form method="POST" action="/admin/category/edit/<%= category._id %>" class="edit-category-form">
+  <form method="POST" action="/admin/category/edit/<%= category._id %>" class="edit-category-form" onsubmit="return validateEditCategoryForm()"  >
    <% if (typeof error !== 'undefined') { %>
   <div class="error-message" style="color: #e74c3c;
   background-color: #fcebea;
@@ -39,3 +39,49 @@
   </form>
 </main>
 
+<script>
+  function validateEditCategoryForm() {
+    const categoryInput = document.querySelector('input[name="categoryName"]');
+    const categoryName = categoryInput.value.trim();
+
+    if (!categoryName) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Empty Category',
+        text: 'Category name cannot be empty or just spaces.',
+      });
+      return false;
+    }
+    categoryInput.value = categoryName;
+
+    const existingSubInputs = document.querySelectorAll('input[name^="existingSubcategories"]');
+    for (const input of existingSubInputs) {
+      const trimmed = input.value.trim();
+      if (!trimmed) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Empty Subcategory',
+          text: 'Existing subcategory cannot be empty or just spaces.',
+        });
+        return false;
+      }
+      input.value = trimmed;
+    }
+
+    const newSubInputs = document.querySelectorAll('input[name="newSubcategories[]"]');
+    for (const input of newSubInputs) {
+      const trimmed = input.value.trim();
+      if (!trimmed) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Empty Subcategory',
+          text: 'New subcategory cannot be empty or just spaces.',
+        });
+        return false;
+      }
+      input.value = trimmed;
+    }
+
+    return true; // allow form to submit
+  }
+</script>

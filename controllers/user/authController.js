@@ -20,16 +20,18 @@ module.exports = {
   // 2️⃣ Handle Registration and Send OTP
   handleRegisterPost: async (req, res) => {
     try {
-      const { firstName, lastName, email, password } = req.body;
+      const { firstName, lastName, email, password,confirmPassword } = req.body;
 
       // Check if user already exists
       const existingUser = await User.findOne({ email });
       if (existingUser) {
         return res.render('user/register', { error: 'User already exists',layout:false });
       }
-
+if (password !== confirmPassword) {
+      return res.render('user/register', { error: 'Passwords do not match' ,layout:false});
+    }
       // Save data temporarily in session
-      req.session.tempUser = { firstName, lastName, email, password };
+      req.session.tempUser = { firstName, lastName, email, password,confirmPassword };
 
       // Generate OTP using your utility
       const otpCode = generateOtp();
@@ -42,7 +44,7 @@ module.exports = {
       await mailer.sendEmail(
   email,
   'Your OTP Code',
-  `Your OTP code is ${otpCode}. It expires in 5 minutes.`
+  `Your OTP code is ${otpCode}. It expires in 1 minutes.`
 );
 
 
@@ -56,10 +58,28 @@ module.exports = {
   },
   // Show OTP Verification Page
 // 3️⃣ Show OTP Page
-showOtpPage: (req, res) => {
-  res.render('user/verify-otp', { error:'Any Error will be shown here', layout: false })
+showOtpPage: async (req, res) => {
+  try {
+    const tempUser = req.session.tempUser;
+    if (!tempUser) return res.redirect('/register');
 
+    const latestOtp = await Otp.findOne({ email: tempUser.email }).sort({ createdAt: -1 });
+
+    res.render('user/verify-otp', {
+      error: null,
+      layout: false,
+      otpCreatedAt: latestOtp?.createdAt?.toISOString() || new Date().toISOString()
+    });
+  } catch (err) {
+    console.error('OTP Page Error:', err);
+    res.render('user/verify-otp', {
+      error: 'Failed to load OTP page',
+      layout: false,
+      otpCreatedAt: new Date().toISOString()
+    });
+  }
 },
+
 // 4️⃣ Handle OTP Verification
 verifyOtp: async (req, res) => {
   try {
@@ -70,10 +90,19 @@ verifyOtp: async (req, res) => {
       return res.redirect('/register');
     }
 
+    // Get the latest OTP for the email
     const otpDoc = await Otp.findOne({ email: tempUser.email }).sort({ createdAt: -1 });
 
-    if (!otpDoc || otpDoc.code !== userOtp) {
-      return res.render('user/verify-otp', { error: 'Invalid or expired OTP', layout: false });
+    const now = new Date();
+    const expiresIn = 1 * 60 * 1000; // 1 minute
+    const isExpired = otpDoc && (now - otpDoc.createdAt > expiresIn);
+
+    if (!otpDoc || otpDoc.code !== userOtp || isExpired) {
+      return res.render('user/verify-otp', {
+        error: 'Invalid or expired OTP',
+        layout: false,
+        otpCreatedAt: otpDoc?.createdAt?.toISOString() || new Date().toISOString()
+      });
     }
 
     // Register the user
@@ -89,7 +118,7 @@ verifyOtp: async (req, res) => {
 
     // Clear temp data
     req.session.tempUser = null;
-    await Otp.deleteMany({ email: tempUser.email }); // optional
+    //await Otp.deleteMany({ email: tempUser.email }); // optional
 
     res.redirect('/login');
 
@@ -98,21 +127,46 @@ verifyOtp: async (req, res) => {
     res.render('user/verify-otp', { error: 'Something went wrong', layout: false });
   }
 },
+
 resendOtp: async (req, res) => {
   try {
     const tempUser = req.session.tempUser;
     if (!tempUser) return res.redirect('/register');
 
+    // Generate a new OTP
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-    await Otp.create({ email: tempUser.email, code: otpCode, createdAt: new Date() });
-    
 
-    res.redirect('/verify-otp');
+    // Store it in DB with new timestamp
+    const newOtp = await Otp.create({
+      email: tempUser.email,
+      code: otpCode,
+      createdAt: new Date()
+    });
+
+    // Send OTP email
+    await mailer.sendEmail(
+      tempUser.email,
+      'Your New OTP Code',
+      `Your new OTP code is ${otpCode}. It expires in 1 minute.`
+    );
+
+    // Show the OTP page again with updated timestamp
+    res.render('user/verify-otp', {
+      layout: false,
+      error: null,
+      otpCreatedAt: newOtp.createdAt.toISOString()
+    });
+
   } catch (err) {
     console.error('Resend OTP Error:', err);
-    res.render('user/verify-otp', { error: 'Failed to resend OTP', layout: false });
+    res.render('user/verify-otp', {
+      layout: false,
+      error: 'Failed to resend OTP',
+      otpCreatedAt: new Date().toISOString()
+    });
   }
 },
+
 
 googleCallback: (req, res) => {
   req.session.user = req.user;
@@ -129,7 +183,7 @@ googleCallback: (req, res) => {
 
   showLoginPage: (req, res) => {
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-    res.render('user/login',{error:"welcome",layout:false});
+    res.render('user/login',{error:null,layout:false});
   },
 
   postLogin:async(req,res)=>{

@@ -131,50 +131,12 @@
 </div>
 
 
-        <div class="col-lg-3 col-6 text-right">
-            <a href="" class="btn border">
-                <i class="fas fa-heart text-primary"></i>
-                <span class="badge">0</span>
-            </a>
-            <a href="" class="btn border">
-                <i class="fas fa-shopping-cart text-primary"></i>
-                <span class="badge">0</span>
-            </a>
-        </div>
+        
     </div>
 
     <div class="row border-top px-xl-5" style="margin-bottom: 0; padding-bottom: 0;">
         
-     <div class="col-lg-3 d-none d-lg-block">
-    <a href="/product" class="btn btn-secondary w-100 mb-2">All Products</a>
-
-    <a class="btn shadow-none d-flex align-items-center justify-content-between bg-primary text-white w-100"
-        data-toggle="collapse" href="#navbar-vertical"
-        style="height: 65px; margin-top: -1px; padding: 0 30px;">
-        <h6 class="m-0">Categories</h6>
-        <i class="fa fa-angle-down text-dark"></i>
-    </a>
-
-    <nav class="collapse show navbar navbar-vertical navbar-light align-items-start p-0 border border-top-0 border-bottom-0"
-        id="navbar-vertical" style="margin-bottom: 0; padding-bottom: 0;">
-        <div class="navbar-nav w-100 overflow-auto" style="max-height: 410px; margin-bottom: 0; padding-bottom: 0;">
-            <% categories.forEach(category => { %>
-                <div class="nav-item dropdown">
-                    <a href="/product?category=<%= category._id %>" class="nav-link" data-toggle="dropdown">
-                        <%= category.name %> <i class="fa fa-angle-down float-right mt-1"></i>
-                    </a>
-                    <div class="dropdown-menu position-absolute bg-secondary border-0 rounded-0 w-100 m-0">
-                        <% category.subcategories.forEach(sub => { %>
-                            <a href="/product?category=<%= category._id %>&subcategory=<%= sub._id %><% if (search) { %>&search=<%= search %><% } %><% if (sort) { %>&sort=<%= sort %><% } %><% if (price) { %><% price.forEach(p => { %>&price=<%= p %><% }) %><% } %>" class="dropdown-item">
-                                <%= sub.name %>
-                            </a>
-                        <% }) %>
-                    </div>
-                </div>
-            <% }) %>
-        </div>
-    </nav>
-</div>
+     
 
         <div class="col-lg-9" style="margin-bottom: 0; padding-bottom: 0;">
             <nav class="navbar navbar-expand-lg bg-light navbar-light py-3 py-lg-0 px-0"
@@ -201,7 +163,22 @@
                         </div>
                         <a href="" class="nav-item nav-link">Contact</a>
                     </div>
+                    
+                    <div class="col-lg-11 col-6 text-right">
+            <a href="" class="btn border">
+                <i class="fas fa-heart text-primary"></i>
+                <span class="badge">0</span>
+            </a>
+            <a href="" class="btn border">
+                <i class="fas fa-shopping-cart text-primary"></i>
+                <span class="badge">0</span>
+            </a>
+            </div>
+        </div>
+    </div>
                     <div class="navbar-nav ml-auto py-0 d-flex align-items-center">
+
+                        
                         <span
                             style="margin-right: 15px; font-weight: 500; display: flex; align-items: center;">
                             <i class="fas fa-user-circle" style="font-size: 20px; margin-right: 5px;"></i>
@@ -213,12 +190,18 @@
                                 Logout
                             </button>
                         </form>
-                    </div>
 
-                </div>
+                        
+                    </div>
+                    
+
+                
+                
+                
             </nav>
+            
         </div>
     </div>
 
     
-</div>
+

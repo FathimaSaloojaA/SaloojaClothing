@@ -9,7 +9,7 @@ const loadProductList = async (req, res) => {
   try {
     const searchQuery = req.query.search || '';
     const page = parseInt(req.query.page) || 1;
-    const limit = 6;
+    const limit = 5;
     const skip = (page - 1) * limit;
 
     const filter = {
@@ -47,7 +47,9 @@ const loadProductList = async (req, res) => {
 const loadAddProductPage = async (req, res) => {
   try {
     const categories = await Category.find({ isDeleted: false });
-    const subcategories = await Subcategory.find({ isDeleted: false });
+    //const subcategories = await Subcategory.find({ isDeleted: false });
+    const subcategories = await Subcategory.find({ isDeleted: false }).populate('category', '_id');
+
 
     res.render('admin/addProduct', {
       categories,
@@ -76,28 +78,52 @@ const addProduct = async (req, res) => {
       variantStocks
     } = req.body;
 
-    let images = [];
+    const trimmedName = name?.trim();
+    if (!trimmedName) {
+      return renderWithError('Product name cannot be empty or just spaces.');
+    }
 
+    if (discountPercentage && parseFloat(discountPercentage) >= 100) {
+      return renderWithError('Discount percentage must be less than 100.');
+    }
+
+    // Ensure these are arrays even if single values are submitted
+    const variantSizesArr = Array.isArray(variantSizes) ? variantSizes : [variantSizes];
+    const variantColorsArr = Array.isArray(variantColors) ? variantColors : [variantColors];
+    const variantPricesArr = Array.isArray(variantPrices) ? variantPrices : [variantPrices];
+    const variantStocksArr = Array.isArray(variantStocks) ? variantStocks : [variantStocks];
+
+    // Validate stocks
+    for (const stock of variantStocksArr) {
+      const parsedStock = parseInt(stock);
+      if (isNaN(parsedStock) || parsedStock < 0) {
+        return renderWithError('Stock values must be valid non-negative numbers.');
+      }
+    }
+
+    // Validate for duplicate variants
+    const variantKeySet = new Set();
+    for (let i = 0; i < variantSizesArr.length; i++) {
+      const key = `${variantSizesArr[i].toLowerCase()}-${variantColorsArr[i].toLowerCase()}`;
+      if (variantKeySet.has(key)) {
+        return renderWithError(`Duplicate variant found: Size "${variantSizesArr[i]}", Color "${variantColorsArr[i]}"`);
+      }
+      variantKeySet.add(key);
+    }
+
+    // Check if product already exists
     const existingProduct = await Product.findOne({
-  name: name.trim(),
-  category,
-  subcategory
-});
+      name: trimmedName,
+      category,
+      subcategory
+    });
 
-if (existingProduct) {
-  // You can either:
-  // - return with an error message to the form (preferred for UX)
-  // - or throw an error
-  return res.render('admin/addProduct', {
-    error: 'Product name already exists under this category and subcategory.',
-    categories: await Category.find({ isDeleted: false }),
-    subcategories: await Subcategory.find({ category, isDeleted: false }),
-    layout: 'admin/adminLayout'
-    // Also send back form fields to refill inputs if needed
-  });
-}
+    if (existingProduct) {
+      return renderWithError('Product name already exists under this category and subcategory.');
+    }
 
-
+    // Process image uploads
+    let images = [];
     for (const file of req.files) {
       const fileName = `product_${Date.now()}_${file.originalname}`;
       const outputPath = path.join(__dirname, '../../public/product-images', fileName);
@@ -109,28 +135,22 @@ if (existingProduct) {
       images.push(`/product-images/${fileName}`);
     }
 
-    // Ensure these are arrays even if single values are submitted
-    const variantSizesArr = Array.isArray(variantSizes) ? variantSizes : [variantSizes];
-    const variantColorsArr = Array.isArray(variantColors) ? variantColors : [variantColors];
-    const variantPricesArr = Array.isArray(variantPrices) ? variantPrices : [variantPrices];
-    const variantStocksArr = Array.isArray(variantStocks) ? variantStocks : [variantStocks];
-
+    // Build variants
     const variants = [];
-
     for (let i = 0; i < variantSizesArr.length; i++) {
       variants.push({
         size: variantSizesArr[i],
         color: variantColorsArr[i],
         price: variantPricesArr[i],
         stock: variantStocksArr[i],
-        images: [images[i]] // associate one image per variant
+        images: [images[i]]
       });
     }
 
     const totalStock = variantStocksArr.reduce((sum, stock) => sum + parseInt(stock), 0);
 
     const product = new Product({
-      name,
+      name: trimmedName,
       description,
       category,
       subcategory,
@@ -143,11 +163,23 @@ if (existingProduct) {
 
     await product.save();
     res.redirect('/admin/products');
+
+    // Reusable error rendering function
+    async function renderWithError(errorMessage) {
+      return res.render('admin/addProduct', {
+        error: errorMessage,
+        categories: await Category.find({ isDeleted: false }),
+        subcategories: await Subcategory.find({ category, isDeleted: false }),
+        layout: 'admin/adminLayout'
+      });
+    }
+
   } catch (error) {
     console.error('Add Product Error:', error);
     res.status(500).send('Internal Server Error');
   }
 };
+
 
 const loadEditProductPage = async (req, res) => {
   try {
@@ -155,12 +187,24 @@ const loadEditProductPage = async (req, res) => {
     const product = await Product.findById(productId).populate('category subcategory');
 
     const categories = await Category.find({ isDeleted: false });
+
+    // Get subcategories grouped by category
     const subcategories = await Subcategory.find({ isDeleted: false });
+
+    // Group subcategories by category ID
+    const subcategoriesByCategory = {};
+    subcategories.forEach(subcat => {
+      const catId = subcat.category.toString();
+      if (!subcategoriesByCategory[catId]) {
+        subcategoriesByCategory[catId] = [];
+      }
+      subcategoriesByCategory[catId].push(subcat);
+    });
 
     res.render('admin/editProduct', {
       product,
       categories,
-      subcategories,
+      subcategoriesByCategory,
       layout: 'admin/adminLayout',
     });
   } catch (error) {
@@ -194,77 +238,130 @@ const editProduct = async (req, res) => {
       newVariantStocks = []
     } = req.body;
 
-    // Find the product
+    // === 1. Validate & Trim Basic Fields ===
+    const trimmedName = name?.trim();
+    const trimmedDesc = description?.trim();
+    const trimmedHighlights = highlights?.trim();
+    const trimmedCouponNote = couponNote?.trim();
+    const discount = parseFloat(discountPercentage);
+
+    if (!trimmedName || !trimmedDesc || !trimmedHighlights || !trimmedCouponNote) {
+      return res.status(400).send('Fields cannot be empty or contain only spaces.');
+    }
+
+    if (isNaN(discount) || discount >= 100) {
+      return res.status(400).send('Discount must be a valid number less than 100.');
+    }
+
+    // === 2. Validate & Deduplicate Variants ===
+    const variantKeySet = new Set();
+
+    // Check existing variants
+    for (let i = 0; i < existingVariantIds.length; i++) {
+      const id = existingVariantIds[i];
+      if (removedVariantIds.includes(id)) continue;
+
+      const size = existingVariantSizes[i]?.trim().toLowerCase();
+      const color = existingVariantColors[i]?.trim().toLowerCase();
+      const price = parseFloat(existingVariantPrices[i]);
+      const stock = parseInt(existingVariantStocks[i]);
+
+      if (!size || !color) {
+        return res.status(400).send('Existing variant size and color cannot be empty.');
+      }
+
+      if (isNaN(price) || price < 0 || isNaN(stock) || stock < 0) {
+        return res.status(400).send('Existing variant price and stock must be non-negative numbers.');
+      }
+
+      const key = `${size}-${color}`;
+      if (variantKeySet.has(key)) {
+        return res.status(400).send(`Duplicate existing variant: Size "${size}", Color "${color}"`);
+      }
+      variantKeySet.add(key);
+    }
+
+    // Check new variants
+    for (let i = 0; i < newVariantSizes.length; i++) {
+      const size = newVariantSizes[i]?.trim().toLowerCase();
+      const color = newVariantColors[i]?.trim().toLowerCase();
+      const price = parseFloat(newVariantPrices[i]);
+      const stock = parseInt(newVariantStocks[i]);
+
+      if (!size || !color) {
+        return res.status(400).send('New variant size and color cannot be empty.');
+      }
+
+      if (isNaN(price) || price < 0 || isNaN(stock) || stock < 0) {
+        return res.status(400).send('New variant price and stock must be non-negative numbers.');
+      }
+
+      const key = `${size}-${color}`;
+      if (variantKeySet.has(key)) {
+        return res.status(400).send(`Duplicate variant detected: Size "${size}", Color "${color}"`);
+      }
+      variantKeySet.add(key);
+    }
+
+    // === 3. Find Product ===
     const product = await Product.findById(productId);
     if (!product) {
       return res.status(404).send('Product not found');
     }
 
-    // 1. Update basic fields
-    product.name = name;
-    product.description = description;
+    // === 4. Update Basic Fields ===
+    product.name = trimmedName;
+    product.description = trimmedDesc;
     product.category = category;
     product.subcategory = subcategory;
-    product.couponNote = couponNote;
-    product.discountPercentage = discountPercentage;
-    product.highlights = highlights ? highlights.split(',').map(h => h.trim()) : [];
+    product.couponNote = trimmedCouponNote;
+    product.discountPercentage = discount;
+    product.highlights = trimmedHighlights.split(',').map(h => h.trim());
 
-    // 2. Prepare file arrays for easier indexing (handle cases where no files uploaded)
+    // === 5. Handle Variants ===
     const existingFiles = req.files.existingVariantImages || [];
     const newFiles = req.files.newVariantImages || [];
 
-    // 3. Handle existing variants (update or soft-delete)
     const updatedVariants = product.variants.map((variant, index) => {
       const idStr = variant._id.toString();
       const idxInForm = existingVariantIds.indexOf(idStr);
 
       if (idxInForm === -1 || removedVariantIds.includes(idStr)) {
-        // Soft delete this variant
         return { ...variant.toObject(), isDeleted: true };
       }
 
-      // Prepare updated variant object
       const updatedVariant = {
         ...variant.toObject(),
-        size: existingVariantSizes[idxInForm],
-        color: existingVariantColors[idxInForm],
+        size: existingVariantSizes[idxInForm].trim(),
+        color: existingVariantColors[idxInForm].trim(),
         price: existingVariantPrices[idxInForm],
         stock: existingVariantStocks[idxInForm],
         isDeleted: false,
       };
 
-      // If new image uploaded for this existing variant, process & update images array
       if (existingFiles[idxInForm]) {
-        // Process image with sharp
         const file = existingFiles[idxInForm];
         const fileName = `product_${Date.now()}_${file.originalname}`;
         const outputPath = path.join(__dirname, '../../public/product-images', fileName);
-
-        // Note: await must be used, so wrap this in an async IIFE or Promise.all later
-        // For now, assuming top-level await is not possible, let's collect promises
         updatedVariant.newImageFile = { file, fileName, outputPath };
       }
 
       return updatedVariant;
     });
 
-    // 4. Process all images for existing variants asynchronously (sharp)
+    // === 6. Process Image for Existing Variants ===
     for (const variant of updatedVariants) {
       if (variant.newImageFile) {
         const { file, fileName, outputPath } = variant.newImageFile;
         await sharp(file.buffer)
           .resize(600, 600)
           .toFile(outputPath);
-
-        // Replace the variant's images array with new image URL
         variant.images = [`/product-images/${fileName}`];
-
-        // Clean up temporary prop
         delete variant.newImageFile;
       }
     }
 
-    // 5. Add new variants with images
+    // === 7. Add New Variants ===
     for (let i = 0; i < newVariantSizes.length; i++) {
       const imageFile = newFiles[i];
       let imagePath = [];
@@ -279,8 +376,8 @@ const editProduct = async (req, res) => {
       }
 
       updatedVariants.push({
-        size: newVariantSizes[i],
-        color: newVariantColors[i],
+        size: newVariantSizes[i].trim(),
+        color: newVariantColors[i].trim(),
         price: newVariantPrices[i],
         stock: newVariantStocks[i],
         images: imagePath,
@@ -288,14 +385,13 @@ const editProduct = async (req, res) => {
       });
     }
 
-    // 6. Update variants and totalStock
+    // === 8. Save Updates ===
     product.variants = updatedVariants;
     product.totalStock = updatedVariants.reduce((sum, v) => {
       return v.isDeleted ? sum : sum + parseInt(v.stock);
     }, 0);
 
     await product.save();
-
     res.redirect('/admin/products');
   } catch (error) {
     console.error('Edit Product Error:', error);

@@ -1,5 +1,5 @@
 <div class="category-container">
-  <form method="POST" action="/admin/categories/add" class="category-form glass-effect">
+  <form method="POST" action="/admin/categories/add" class="category-form glass-effect" onsubmit="return validateCategoryForm()" >
     <h2 class="form-heading">Add Category</h2>
 <% if (typeof error !== 'undefined') { %>
   <div class="error-message" style="color: #e74c3c;
@@ -24,3 +24,37 @@
     <button type="submit" class="btn submit-btn">Submit</button>
   </form>
 </div>
+<script>
+  function validateCategoryForm() {
+    const categoryInput = document.getElementById('categoryName');
+    const subcategoryInputs = document.querySelectorAll('input[name="subcategories"]');
+
+    const categoryNameTrimmed = categoryInput.value.trim();
+    if (!categoryNameTrimmed) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Empty Category',
+        text: 'Category name cannot be empty or just spaces.',
+      });
+      return false;
+    }
+    // Update input with trimmed value
+    categoryInput.value = categoryNameTrimmed;
+
+    for (const input of subcategoryInputs) {
+      const subTrimmed = input.value.trim();
+      if (!subTrimmed) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Empty Subcategory',
+          text: 'Subcategory name cannot be empty or just spaces.',
+        });
+        return false;
+      }
+      // Update input with trimmed value
+      input.value = subTrimmed;
+    }
+
+    return true; // allow submission
+  }
+</script>

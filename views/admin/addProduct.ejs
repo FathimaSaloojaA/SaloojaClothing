@@ -20,23 +20,26 @@
       <textarea name="description" id="description" rows="4" required></textarea>
     </div>
 
-    <div class="form-group">
-      <label for="category">Category:</label>
-      <select name="category" id="category" required>
-        <% categories.forEach(cat => { %>
-          <option value="<%= cat._id %>"><%= cat.name %></option>
-        <% }) %>
-      </select>
-    </div>
+    
+    
+<div class="form-group">
+  <label for="category">Category:</label>
+  <select name="category" id="category" onchange="handleCategoryChange()" required>
+    <option value="">-- Select Category --</option>
+    <% categories.forEach(cat => { %>
+      <option value="<%= cat._id %>"><%= cat.name %></option>
+    <% }) %>
+  </select>
+</div>
 
-    <div class="form-group">
-      <label for="subcategory">Subcategory:</label>
-      <select name="subcategory" id="subcategory" required>
-        <% subcategories.forEach(sub => { %>
-          <option value="<%= sub._id %>"><%= sub.name %></option>
-        <% }) %>
-      </select>
-    </div>
+<div class="form-group">
+  <label for="subcategory">Subcategory:</label>
+  <select name="subcategory" id="subcategory" required>
+    <option value="">-- Select Subcategory --</option>
+  </select>
+</div>
+
+
 
     <div class="form-group">
       <label for="highlights">Highlights (comma-separated):</label>
@@ -61,4 +64,108 @@
       <button type="submit">Add Product</button>
     </div>
   </form>
+
 </div>
+<script>
+  const allSubcategories = <%- JSON.stringify(subcategories) %>;
+
+  function getElement(id) {
+    return document.getElementById(id);
+  }
+
+  function clearDropdown(selectElement) {
+    selectElement.innerHTML = '<option value="">-- Select Subcategory --</option>';
+  }
+
+  function populateSubcategories(subcategories) {
+    const subcategoryDropdown = getElement('subcategory');
+    clearDropdown(subcategoryDropdown);
+
+    subcategories.forEach(sub => {
+      const option = document.createElement('option');
+      option.value = sub._id;
+      option.textContent = sub.name;
+      subcategoryDropdown.appendChild(option);
+    });
+  }
+
+  function filterSubcategoriesByCategory(categoryId) {
+    return allSubcategories.filter(sub => {
+      return String(sub.category?._id || sub.category) === String(categoryId);
+    });
+  }
+
+  function handleCategoryChange() {
+    const selectedCategoryId = getElement('category').value;
+    const filtered = filterSubcategoriesByCategory(selectedCategoryId);
+    populateSubcategories(filtered);
+  }
+
+const form = document.getElementById('addProductForm');
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();  // prevent default submit initially
+
+    const nameInput = document.getElementById('name');
+    const discountInput = document.getElementById('discountPercentage');
+
+    const productName = nameInput.value.trim();
+
+    if (!productName) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'Product name cannot be empty or spaces only.',
+      });
+      return;
+    }
+
+    const discount = discountInput.value ? parseFloat(discountInput.value) : 0;
+    if (discount >100 ) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Discount',
+        text: 'Discount percentage must be less than 100.',
+      });
+      return;
+    }
+
+    // Validate stock inputs
+    const stocks = document.querySelectorAll('.variant-stock');
+    for (const stockInput of stocks) {
+      const stockVal = parseInt(stockInput.value);
+      if (isNaN(stockVal) || stockVal < 0) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Invalid Stock',
+          text: 'Stock quantity cannot be negative or empty.',
+        });
+        return;
+      }
+    }
+
+    // Validate duplicate variants
+    const sizes = Array.from(document.querySelectorAll('.variant-size')).map(input => input.value.trim().toLowerCase());
+    const colors = Array.from(document.querySelectorAll('.variant-color')).map(input => input.value.trim().toLowerCase());
+
+    const variantSet = new Set();
+    for (let i = 0; i < sizes.length; i++) {
+      const key = sizes[i] + '|' + colors[i];
+      if (variantSet.has(key)) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Duplicate Variant',
+          text: `Duplicate variant found: Size "${sizes[i]}" and Color "${colors[i]}"`,
+        });
+        return;
+      }
+      variantSet.add(key);
+    }
+
+    // If all validations pass, submit the form
+    form.submit();
+  });
+
+</script>
+
+

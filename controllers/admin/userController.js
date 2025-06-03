@@ -6,7 +6,7 @@ const loadUserList = async (req, res) => {
 
     const searchQuery = req.query.search || '';
     const page = parseInt(req.query.page) || 1; // Current page number
-    const limit = 1; // Users per page
+    const limit = 3; // Users per page
     const skip = (page - 1) * limit;
 
     let filter = {isAdmin: false};

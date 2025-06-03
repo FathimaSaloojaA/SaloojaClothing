@@ -37,21 +37,30 @@
   </div>
 
   <script>
-    let timeLeft = 60; // 5 minutes in seconds
-    const timerEl = document.getElementById('timer');
-    const resendBtn = document.getElementById('resendBtn');
+  const otpCreatedAt = new Date('<%= otpCreatedAt || new Date().toISOString() %>').getTime();
+  const now = Date.now();
+  const expiresIn = 1 * 60 * 1000; // 5 minutes
+  let timeLeft = Math.floor((otpCreatedAt + expiresIn - now) / 1000); // in seconds
 
-    const timer = setInterval(() => {
-      const minutes = Math.floor(timeLeft / 60);
-      const seconds = timeLeft % 60;
-      timerEl.textContent = `Time left: ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-      timeLeft--;
+  const timerEl = document.getElementById('timer');
+  const resendBtn = document.getElementById('resendBtn');
 
-      if (timeLeft < 0) {
-        clearInterval(timer);
-        resendBtn.classList.remove('resend-disabled');
-      }
-    }, 1000);
-  </script>
+  const timer = setInterval(() => {
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+
+    if (timeLeft < 0) {
+      clearInterval(timer);
+      timerEl.textContent = 'OTP expired';
+      resendBtn.classList.remove('resend-disabled');
+      return;
+    }
+
+    timerEl.textContent = `Time left: ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    timeLeft--;
+  }, 1000);
+  
+</script>
+
 </body>
 </html>
