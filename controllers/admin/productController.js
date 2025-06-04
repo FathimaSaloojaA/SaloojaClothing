@@ -83,8 +83,8 @@ const addProduct = async (req, res) => {
       return renderWithError('Product name cannot be empty or just spaces.');
     }
 
-    if (discountPercentage && parseFloat(discountPercentage) >= 100) {
-      return renderWithError('Discount percentage must be less than 100.');
+    if (discountPercentage && parseFloat(discountPercentage) > 90) {
+      return renderWithError('Discount percentage must be less than 90.');
     }
 
     // Ensure these are arrays even if single values are submitted
@@ -245,12 +245,12 @@ const editProduct = async (req, res) => {
     const trimmedCouponNote = couponNote?.trim();
     const discount = parseFloat(discountPercentage);
 
-    if (!trimmedName || !trimmedDesc || !trimmedHighlights || !trimmedCouponNote) {
+    if (!trimmedName || !trimmedDesc) {
       return res.status(400).send('Fields cannot be empty or contain only spaces.');
     }
 
-    if (isNaN(discount) || discount >= 100) {
-      return res.status(400).send('Discount must be a valid number less than 100.');
+    if (isNaN(discount) || discount >= 90) {
+      return res.status(400).send('Discount must be a valid number less than 90.');
     }
 
     // === 2. Validate & Deduplicate Variants ===

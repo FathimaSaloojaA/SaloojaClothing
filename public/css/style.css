@@ -62,6 +62,12 @@ body {
   color: #1b1a1a;
   text-align: left;
   background-color: #fff;
+  background-image: url('https://static.vecteezy.com/system/resources/thumbnails/017/709/604/small_2x/background-with-beautiful-white-bokeh-light-effect-free-vector.jpg'); /* update the path */
+  background-size: cover;         /* scales the image to cover the container */
+  background-position: center;    /* centers the image */
+  background-repeat: no-repeat;   /* prevents tiling */
+  background-color: rgba(224, 220, 220, 0.2); /* fallback or overlay */
+
 }
 
 [tabindex="-1"]:focus:not(:focus-visible) {
@@ -9587,5 +9593,245 @@ a.text-dark:hover, a.text-dark:focus {
   }
   100% {
     transform: translateY(-15px);
+  }
+}
+
+/* === 🧁 Premium Search-Sort-Filter Bar === */
+form[action="/product"] {
+  background: rgba(255, 255, 255, 0.3) !important;
+  border: 1px solid rgba(255, 192, 203, 0.4) !important;
+  border-radius: 18px !important;
+  padding: 10px !important;
+  box-shadow: 0 8px 20px rgba(236, 143, 197, 0.25), inset 0 0 1px rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(8px) !important;
+  transition: all 0.4s ease !important;
+  transform: perspective(1000px) !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 1.5rem !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+
+/* === 🔍 Input Field === */
+form[action="/product"] input[type="text"] {
+  flex: 1 1 250px !important;
+  min-width: 200px !important;
+  max-width: 350px !important;
+  padding: 10px 16px !important;
+  font-size: 1rem !important;
+  border: none !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06), inset 0 1px 3px rgba(255, 255, 255, 0.4) !important;
+  transition: box-shadow 0.3s, transform 0.2s !important;
+  background-color: #fff !important;
+}
+
+form[action="/product"] input[type="text"]:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 4px rgba(255, 182, 193, 0.3), inset 0 2px 6px rgba(236, 143, 197, 0.3) !important;
+  transform: scale(1.02) !important;
+}
+
+/* === Search Icon Button === */
+form[action="/product"] button[type="submit"] {
+  background-color: #fff0f5 !important;
+  border: none !important;
+  border-radius: 50% !important;
+  padding: 10px !important;
+  cursor: pointer !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1) !important;
+  transition: transform 0.2s ease, background 0.3s ease !important;
+}
+
+form[action="/product"] button[type="submit"]:hover {
+  transform: scale(1.15) !important;
+  background-color: #ffe0ef !important;
+}
+
+form[action="/product"] i.fa-search {
+  font-size: 1.2rem !important;
+  color: #ec8fc5 !important;
+}
+
+/* === 🎀 Clear Button === */
+form[action="/product"] a[href="/product"] {
+  background: linear-gradient(135deg, #e08fc5, #f8a9d4) !important;
+  color: #fff !important;
+  border-radius: 8px !important;
+  padding: 8px 16px !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  transition: all 0.3s ease !important;
+}
+
+form[action="/product"] a[href="/product"]:hover {
+  background: #e36ba0 !important;
+  transform: translateY(-1px) !important;
+}
+
+/* === 📊 Sort Dropdown === */
+form[action="/product"] select {
+  border-radius: 10px !important;
+  padding: 10px 12px !important;
+  font-size: 1rem !important;
+  border: none !important;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1) !important;
+  transition: all 0.3s ease !important;
+  background-color: #fff !important;
+}
+
+form[action="/product"] select:focus {
+  box-shadow: 0 0 0 3px rgba(236, 143, 197, 0.3) !important;
+  outline: none !important;
+}
+
+/* === 💰 Price Filters === */
+form[action="/product"] label {
+  background: #fff !important;
+  padding: 6px 12px !important;
+  border-radius: 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-weight: 500 !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05) !important;
+  transition: background 0.3s ease !important;
+}
+
+form[action="/product"] label:hover {
+  background: #ffe4f0 !important;
+}
+
+/* === 🎯 Apply Filters Button === */
+form[action="/product"] button[type="submit"].apply-btn {
+  background: linear-gradient(to right, #ec8fc5, #fcb7d4) !important;
+  color: white !important;
+  font-size: 1rem !important;
+  padding: 10px 24px !important;
+  border: none !important;
+  border-radius: 12px !important;
+  box-shadow: 0 5px 12px rgba(236, 143, 197, 0.3) !important;
+  font-weight: 700 !important;
+  transition: all 0.3s ease-in-out !important;
+}
+
+form[action="/product"] button[type="submit"].apply-btn:hover {
+  transform: translateY(-2px) scale(1.02) !important;
+  box-shadow: 0 8px 20px rgba(236, 143, 197, 0.45) !important;
+}
+
+/* === 💡 Responsive === */
+@media (max-width: 768px) {
+  form[action="/product"] {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 1.2rem !important;
+  }
+
+  form[action="/product"] .clear-filter-btn {
+    margin-top: 12px !important;
+    align-self: flex-end !important;
+  }
+}
+/* === 💫 Fade In Animation === */
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+form[action="/product"] {
+  animation: fadeSlideIn 0.7s ease-out both;
+}
+
+/* === 📌 Sticky Floating Filter Bar on Scroll === */
+.sticky-filter-bar {
+  position: sticky;
+  top: 10px;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.3) !important;
+  border-radius: 18px !important;
+  backdrop-filter: blur(10px) !important;
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+}
+/* General responsive defaults */
+form[action="/product"] {
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* Make all sections stack on small screens but with tight spacing */
+@media (max-width: 768px) {
+  form[action="/product"] {
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 12px 12px;
+  }
+
+  form[action="/product"] > div,
+  form[action="/product"] > a,
+  form[action="/product"] button[type="submit"] {
+    flex: 1 1 100% !important;
+    max-width: 100% !important;
+  }
+
+  form[action="/product"] input[type="text"],
+  form[action="/product"] select {
+    width: 100% !important;
+    font-size: 0.95rem;
+    padding: 8px 10px;
+  }
+
+  form[action="/product"] .clear-filter-btn {
+    display: block;
+    text-align: center;
+    padding: 8px 12px;
+    margin-top: 6px;
+    width: 100%;
+    font-size: 0.85rem;
+    color: #444;
+    text-decoration: underline;
+  }
+  form[action="/product"] .apply-btn {
+    display: block;
+    text-align: center;
+    padding: 8px 12px;
+    margin-top: 6px;
+    width: 100%;
+    font-size: 0.85rem;
+    color: #444;
+    text-decoration: none;
+  }
+
+  /* Hide dropdown box shadow clutter on small screens */
+  form[action="/product"] .dropdown-menu {
+    position: static !important;
+    box-shadow: none !important;
+    color: #bd726b !important ;
+  }
+}
+
+/* Super small devices */
+@media (max-width: 480px) {
+  form[action="/product"] {
+    padding: 10px 8px;
+    gap: 0.5rem;
+  }
+
+  form[action="/product"] input[type="text"],
+  form[action="/product"] select {
+    font-size: 0.9rem;
+  }
+
+  form[action="/product"] button[type="submit"] {
+    font-size: 0.95rem;
+    padding: 10px 14px;
   }
 }

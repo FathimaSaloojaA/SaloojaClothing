@@ -136,13 +136,17 @@
     const couponNote = document.querySelector('input[name="couponNote"]').value.trim();
     const discount = parseFloat(document.querySelector('input[name="discountPercentage"]').value);
 
-    if (!name || !description || !highlights || !couponNote) {
-      showError("Fields cannot be empty or contain only spaces.");
+    if (!name ) {
+      showError("Name field cannot be empty or contain only spaces.");
+      return false;
+    }
+    if ( !description ) {
+      showError("Description field cannot be empty or contain only spaces.");
       return false;
     }
 
-    if (isNaN(discount) || discount >= 100) {
-      showError("Discount must be a valid number less than 100.");
+    if (isNaN(discount) || discount >= 90) {
+      showError("Discount must be a valid number less than 90.");
       return false;
     }
 

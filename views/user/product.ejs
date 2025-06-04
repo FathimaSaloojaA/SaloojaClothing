@@ -1,6 +1,6 @@
 
 
-<div class="container-fluid pt-5">
+<div class="container-fluid pt-4">
         <div class="row px-xl-5">
             <!-- Shop Sidebar Start -->
             <div class="col-lg-3 col-md-12">
@@ -19,19 +19,31 @@
         id="navbar-vertical" style="margin-bottom: 0; padding-bottom: 0;">
         <div class="navbar-nav w-100 overflow-right" style="max-height: 410px; margin-bottom: 0; padding-bottom: 0;">
             <% categories.forEach(category => { %>
-                <div class="nav-item dropdown">
-                    <a href="/product?category=<%= category._id %>" class="nav-link" data-toggle="dropdown">
-                        <%= category.name %> <i class="fa fa-angle-down float-right mt-1"></i>
-                    </a>
-                    <div class="dropdown-menu position-absolute bg-secondary border-0 rounded-0 w-100 m-0">
-                        <% category.subcategories.forEach(sub => { %>
-                            <a href="/product?category=<%= category._id %>&subcategory=<%= sub._id %><% if (search) { %>&search=<%= search %><% } %><% if (sort) { %>&sort=<%= sort %><% } %><% if (price) { %><% price.forEach(p => { %>&price=<%= p %><% }) %><% } %>" class="dropdown-item">
-                                <%= sub.name %>
-                            </a>
-                        <% }) %>
-                    </div>
-                </div>
-            <% }) %>
+  <div class="nav-item dropdown position-relative">
+    <!-- Actual Category link (loads category products) -->
+    <a href="/product?category=<%= category._id %><% if (search) { %>&search=<%= search %><% } %><% if (sort) { %>&sort=<%= sort %><% } %><% if (price) { %><% price.forEach(p => { %>&price=<%= p %><% }) %><% } %>" 
+       class="nav-link d-inline-block w-75">
+      <%= category.name %>
+    </a>
+
+    <!-- Dropdown toggle icon -->
+    <a href="#" class="dropdown-toggle-icon d-inline-block w-25 text-right" data-toggle="dropdown" 
+       style="padding-right: 10px;">
+      <i class="fa fa-angle-down"></i>
+    </a>
+
+    <!-- Subcategory Dropdown -->
+    <div class="dropdown-menu position-absolute bg-secondary border-0 rounded-0 w-100 m-0">
+      <% category.subcategories.forEach(sub => { %>
+        <a href="/product?category=<%= category._id %>&subcategory=<%= sub._id %><% if (search) { %>&search=<%= search %><% } %><% if (sort) { %>&sort=<%= sort %><% } %><% if (price) { %><% price.forEach(p => { %>&price=<%= p %><% }) %><% } %>" 
+           class="dropdown-item">
+          <%= sub.name %>
+        </a>
+      <% }) %>
+    </div>
+  </div>
+<% }) %>
+
         </div>
     </nav>
 </div>

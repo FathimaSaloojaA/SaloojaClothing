@@ -121,11 +121,11 @@ const form = document.getElementById('addProductForm');
     }
 
     const discount = discountInput.value ? parseFloat(discountInput.value) : 0;
-    if (discount >100 ) {
+    if (discount >90 ) {
       Swal.fire({
         icon: 'error',
         title: 'Invalid Discount',
-        text: 'Discount percentage must be less than 100.',
+        text: 'Discount percentage must be less than 90.',
       });
       return;
     }
