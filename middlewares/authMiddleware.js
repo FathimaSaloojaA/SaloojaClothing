@@ -4,6 +4,7 @@ const passport = require('passport');
 
 exports.isUserLoggedIn = (req, res, next) => {
   if (req.session && req.session.user) {
+    req.user = { _id: req.session.user };
     next(); // Allow access
   } else {
     res.redirect('/login'); // Block and redirect

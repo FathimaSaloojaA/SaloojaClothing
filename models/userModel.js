@@ -1,5 +1,13 @@
 const mongoose = require('mongoose');
 
+const addressSchema = new mongoose.Schema({
+  street: String,
+  city: String,
+  state: String,
+  zip: String,
+  country: String,
+});
+
 const userSchema = new mongoose.Schema({
   firstName: {
     type: String,
@@ -35,12 +43,21 @@ const userSchema = new mongoose.Schema({
     default: Date.now
   },
   resetToken: { type: String },
-resetTokenExpire: { type: Date },
+  resetTokenExpire: { type: Date },
+  emailVerifyToken: { type: String },
+emailTemp: { type: String },
 
   isAdmin: {
     type: Boolean,
     default: false
-  }
-})
+  },
+
+  // ✅ NEWLY ADDED FIELDS
+  profileImage: {
+    type: String, // Store image URL or filename
+    default: ''
+  },
+  addresses: [addressSchema]
+});
 
 module.exports = mongoose.model('User', userSchema);

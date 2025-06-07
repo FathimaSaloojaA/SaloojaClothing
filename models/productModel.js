@@ -1,15 +1,4 @@
-// models/productModel.js
-
 const mongoose = require('mongoose');
-
-const variantSchema = new mongoose.Schema({
-  size: { type: String },       // e.g., 'S', 'M', 'L'
-  color: { type: String },      // e.g., 'Red', 'Blue'
-  price: { type: Number, required: true },
-  stock: { type: Number, required: true },
-  images: [String]  ,// Array of image URLs
-  isDeleted: { type: Boolean, default: false }            
-});
 
 const reviewSchema = new mongoose.Schema({
   user: {
@@ -24,37 +13,27 @@ const reviewSchema = new mongoose.Schema({
 
 const productSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
   description: { type: String, required: true },
-  highlights:[String],
-  variants: [variantSchema],   // Array of product variants
-  totalStock: { type: Number, required: true },  // Optional if you want total separate
+  category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
+  subcategory: { type: mongoose.Schema.Types.ObjectId, ref: 'SubCategory' },
+
+  price: { type: Number, required: true },
+  stock: { type: Number, required: true },
+  images: [String], // Up to 3 image URLs
+
+  highlights: [String],
+  discountPercentage: { type: Number, default: 0 },
+  couponNote: { type: String, default: null },
+
   averageRating: { type: Number, default: 0 },
   numReviews: { type: Number, default: 0 },
-  reviews: [reviewSchema],     // Embedded reviews
+  reviews: [reviewSchema],
+
   isListed: { type: Boolean, default: true },
   isDeleted: { type: Boolean, default: false },
   isBlocked: { type: Boolean, default: false },
-  createdAt: { type: Date, default: Date.now },
-  
-  subcategory: {
-  type: mongoose.Schema.Types.ObjectId,
-  ref: 'SubCategory'
-},
-discountPercentage: {
-  type: Number,
-  default: 0,
-},
-couponNote: {
-  type: String,
-  default: null,
-}
 
+  createdAt: { type: Date, default: Date.now }
 });
-
-
-
-
-
 
 module.exports = mongoose.model('Product', productSchema);

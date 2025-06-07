@@ -30,85 +30,45 @@
     <label style="display:block; margin-top: 1rem;">Discount (%)</label>
     <input type="number" name="discountPercentage" value="<%= product.discountPercentage %>" style="width:100%; padding: 10px; border:1px solid #ccc; border-radius: 8px;">
 
-    <!-- Existing Variants -->
-    <h3 style="margin-top: 2rem;">Existing Variants</h3>
-    <% product.variants.forEach((variant, index) => { %>
-      <% if (!variant.isDeleted) { %>
-        <div class="variant-block" style="margin-top: 1rem; padding: 1rem; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9;">
-          <input type="hidden" name="existingVariantIds[]" value="<%= variant._id %>">
+    <label style="display:block; margin-top: 1rem;">Price</label>
+    <input type="number" name="price" value="<%= product.price %>" required style="width:100%; padding: 10px; border:1px solid #ccc; border-radius: 8px;">
 
-          <label style="display:block;">Size</label>
-          <input type="text" name="existingVariantSizes[]" value="<%= variant.size %>" required style="width:100%; padding: 8px; border:1px solid #ccc; border-radius: 6px;">
+    <label style="display:block; margin-top: 1rem;">Stock</label>
+    <input type="number" name="stock" value="<%= product.stock %>" required style="width:100%; padding: 10px; border:1px solid #ccc; border-radius: 8px;">
 
-          <label style="display:block; margin-top: 0.5rem;">Color</label>
-          <input type="text" name="existingVariantColors[]" value="<%= variant.color %>" required style="width:100%; padding: 8px; border:1px solid #ccc; border-radius: 6px;">
+    <label style="display:block; margin-top: 1.5rem;">Current Images & Replacements</label>
+    <div class="image-replace-group" style="display: flex; gap: 20px; flex-wrap: wrap;">
 
-          <label style="display:block; margin-top: 0.5rem;">Price</label>
-          <input type="number" name="existingVariantPrices[]" value="<%= variant.price %>" required style="width:100%; padding: 8px; border:1px solid #ccc; border-radius: 6px;">
-
-          <label style="display:block; margin-top: 0.5rem;">Stock</label>
-       
-          <input type="number" name="existingVariantStocks[]" value="<%= variant.stock %>" required style="width:100%; padding: 8px; border:1px solid #ccc; border-radius: 6px;">
-
-          
-          
-          <% if (variant.images && variant.images.length > 0) { %>
-        <div style="margin-top: 0.5rem;">
-          <label>Current Image:</label><br>
-          <img src="<%= variant.images[0] %>" alt="Variant Image" style="max-width: 150px; max-height: 150px; border-radius: 6px; border: 1px solid #ccc; margin-top: 5px;">
+      <% product.images.forEach((img, index) => { %>
+        <div style="flex: 1 1 30%; text-align: center;">
+          <img src="<%= img %>" alt="Image <%= index + 1 %>" style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; border: 1px solid #ccc;">
+          <label style="display:block; margin-top: 0.5rem;">Replace Image <%= index + 1 %></label>
+          <input type="file" name="replaceImage<%= index %>" accept="image/*">
+          <input type="hidden" name="existingImages[]" value="<%= img %>">
         </div>
-      <% } %>
+      <% }) %>
 
-
-          <label style="display:block; margin-top: 0.5rem;">Replace Image (optional)</label>
-          <input type="file" name="existingVariantImages" accept="image/*" style="width:100%; padding: 6px; border-radius: 6px; border: 1px solid #ccc;">
-
-          <button type="button" onclick="removeExistingVariant(this, '<%= variant._id %>')" style="margin-top: 0.8rem; background: #dc3545; color: white; padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer;">Remove</button>
-        </div>
-      <% } %>
-    <% }) %>
-
-    <input type="hidden" name="removedVariantIds[]" id="removedVariantIds">
-
-    <!-- New Variants -->
-    <h3 style="margin-top: 2rem;">New Variants</h3>
-    <div id="newVariantsContainer"></div>
-    <button type="button" onclick="addNewVariant()" style="margin-top: 1rem; background: #007bff; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer;">Add Variant</button>
+    </div>
     <div id="formError" style="color: red; margin-top: 1rem; font-weight: 500;"></div>
-
 
     <button type="submit" style="margin-top: 2rem; width: 100%; padding: 12px; background-color: #28a745; color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer;">Update Product</button>
   </form>
 </main>
+
 <script>
-  document.querySelector('form').addEventListener('submit', function (e) {
-    if (!validateEditProductForm()) {
-      e.preventDefault();
-    }
-  });
-
-// Pass subcategories grouped by category as JSON
+  // Subcategories logic
   const subcategoriesByCategory = <%- JSON.stringify(subcategoriesByCategory) %>;
-
   const categorySelect = document.querySelector('select[name="category"]');
   const subcategorySelect = document.querySelector('select[name="subcategory"]');
 
-  // Function to update subcategory options based on selected category
   function updateSubcategories() {
     const selectedCategory = categorySelect.value;
     const subs = subcategoriesByCategory[selectedCategory] || [];
-
-    // Clear existing options
-    subcategorySelect.innerHTML = '';
-
-    // Add default option
     subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
-
     subs.forEach(sub => {
       const option = document.createElement('option');
       option.value = sub._id;
       option.textContent = sub.name;
-      // Preselect if matches product's current subcategory
       if ('<%= product.subcategory ? product.subcategory._id.toString() : "" %>' === sub._id) {
         option.selected = true;
       }
@@ -116,13 +76,10 @@
     });
   }
 
-  // Update subcategories on page load
   updateSubcategories();
+  categorySelect.addEventListener('change', updateSubcategories);
 
-  // Update subcategories whenever category changes
-  categorySelect.addEventListener('change', () => {
-    updateSubcategories();
-  });
+  // Validation
   function showError(message) {
     const errorBox = document.getElementById("formError");
     errorBox.textContent = message;
@@ -132,69 +89,47 @@
   function validateEditProductForm() {
     const name = document.querySelector('input[name="name"]').value.trim();
     const description = document.querySelector('textarea[name="description"]').value.trim();
-    const highlights = document.querySelector('input[name="highlights"]').value.trim();
-    const couponNote = document.querySelector('input[name="couponNote"]').value.trim();
     const discount = parseFloat(document.querySelector('input[name="discountPercentage"]').value);
+    const price = parseFloat(document.querySelector('input[name="price"]').value);
+    const stock = parseInt(document.querySelector('input[name="stock"]').value);
+    const imageInput = document.querySelector('input[name="images"]');
 
-    if (!name ) {
-      showError("Name field cannot be empty or contain only spaces.");
+    if (!name) {
+      showError("Name cannot be empty or only spaces.");
       return false;
     }
-    if ( !description ) {
-      showError("Description field cannot be empty or contain only spaces.");
+    if (!description) {
+      showError("Description cannot be empty or only spaces.");
       return false;
     }
-
     if (isNaN(discount) || discount >= 90) {
       showError("Discount must be a valid number less than 90.");
       return false;
     }
+    if (isNaN(price) || price < 0) {
+      showError("Price must be a non-negative number.");
+      return false;
+    }
+    if (isNaN(stock) || stock < 0) {
+      showError("Stock must be a non-negative integer.");
+      return false;
+    }
+    
+// Validate each replaced image (optional, allow 0–3 replacements)
+    const totalImages = document.querySelectorAll('input[name^="replaceImage"]').length;
+    const uploaded = Array.from(document.querySelectorAll('input[name^="replaceImage"]')).filter(i => i.files.length > 0);
 
-    const variantMap = new Map();
-
-    // Existing variants
-    const existingSizes = document.getElementsByName('existingVariantSizes[]');
-    const existingColors = document.getElementsByName('existingVariantColors[]');
-
-    for (let i = 0; i < existingSizes.length; i++) {
-      const size = existingSizes[i].value.trim().toLowerCase();
-      const color = existingColors[i].value.trim().toLowerCase();
-      if (!size || !color) {
-        showError("Existing variant size and color cannot be empty or only spaces.");
-        return false;
-      }
-      const key = `${size}-${color}`;
-      if (variantMap.has(key)) {
-        showError(`Duplicate variant found: Size "${size}", Color "${color}"`);
-        return false;
-      }
-      variantMap.set(key, true);
+    if (uploaded.some(fileInput => fileInput.files.length > 1)) {
+      return showError("Only one image can be uploaded for each replacement."), false;
     }
 
-    // New variants
-    const newSizes = document.getElementsByName('newVariantSizes[]');
-    const newColors = document.getElementsByName('newVariantColors[]');
+    // Optional: ensure after replacements we still end up with exactly 3
+    // (handled in controller server-side more safely)
 
-    for (let i = 0; i < newSizes.length; i++) {
-      const size = newSizes[i].value.trim().toLowerCase();
-      const color = newColors[i].value.trim().toLowerCase();
-      if (!size || !color) {
-        showError("New variant size and color cannot be empty or only spaces.");
-        return false;
-      }
-      const key = `${size}-${color}`;
-      if (variantMap.has(key)) {
-        showError(`Duplicate variant found (new or existing): Size "${size}", Color "${color}"`);
-        return false;
-      }
-      variantMap.set(key, true);
-    }
-
-    document.getElementById("formError").textContent = ""; // Clear any previous error
+    document.getElementById("formError").textContent = "";
     return true;
   }
 
-  // Attach submit listener
   document.querySelector('form').addEventListener('submit', function (e) {
     if (!validateEditProductForm()) {
       e.preventDefault();

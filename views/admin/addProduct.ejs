@@ -45,6 +45,21 @@
       <label for="highlights">Highlights (comma-separated):</label>
       <input type="text" name="highlights" id="highlights">
     </div>
+    <div class="form-group">
+  <label for="price">Price:</label>
+  <input type="number" name="price" id="price" min="0" required>
+</div>
+
+<div class="form-group">
+  <label for="stock">Stock:</label>
+  <input type="number" name="stock" id="stock" min="0" required>
+</div>
+
+<div class="form-group">
+  <label for="images">Product Images (Max 3):</label>
+  <input type="file" name="productImages" id="images" multiple accept="image/*" required>
+</div>
+
 
     <div class="form-group">
       <label for="couponNote">Coupon Note:</label>
@@ -56,9 +71,8 @@
       <input type="number" name="discountPercentage" id="discountPercentage" min="0" max="100">
     </div>
 
-    <div id="variantSection"></div>
-
-    <button type="button" onclick="addVariant()">Add Variant</button>
+    
+<button type="submit" id="realSubmitBtn" style="display: none;"></button>
 
     <div class="form-group">
       <button type="submit">Add Product</button>
@@ -68,6 +82,8 @@
 </div>
 <script>
   const allSubcategories = <%- JSON.stringify(subcategories) %>;
+  
+
 
   function getElement(id) {
     return document.getElementById(id);
@@ -106,64 +122,34 @@ const form = document.getElementById('addProductForm');
   form.addEventListener('submit', function(e) {
     e.preventDefault();  // prevent default submit initially
 
-    const nameInput = document.getElementById('name');
-    const discountInput = document.getElementById('discountPercentage');
+    const name = document.getElementById('name').value.trim();
+  const price = parseFloat(document.getElementById('price').value);
+  const stock = parseInt(document.getElementById('stock').value);
+  const discount = parseFloat(document.getElementById('discountPercentage').value || '0');
 
-    const productName = nameInput.value.trim();
+  if (!name) {
+    return Swal.fire('Error', 'Product name cannot be empty.', 'error');
+  }
 
-    if (!productName) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Oops...',
-        text: 'Product name cannot be empty or spaces only.',
-      });
-      return;
-    }
+  if (isNaN(price) || price < 0) {
+    return Swal.fire('Error', 'Price must be a non-negative number.', 'error');
+  }
 
-    const discount = discountInput.value ? parseFloat(discountInput.value) : 0;
-    if (discount >90 ) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Invalid Discount',
-        text: 'Discount percentage must be less than 90.',
-      });
-      return;
-    }
+  if (isNaN(stock) || stock < 0) {
+    return Swal.fire('Error', 'Stock must be a non-negative number.', 'error');
+  }
 
-    // Validate stock inputs
-    const stocks = document.querySelectorAll('.variant-stock');
-    for (const stockInput of stocks) {
-      const stockVal = parseInt(stockInput.value);
-      if (isNaN(stockVal) || stockVal < 0) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Invalid Stock',
-          text: 'Stock quantity cannot be negative or empty.',
-        });
-        return;
-      }
-    }
+  if (discount >= 100) {
+    return Swal.fire('Error', 'Discount should be less than 100%.', 'error');
+  }
 
-    // Validate duplicate variants
-    const sizes = Array.from(document.querySelectorAll('.variant-size')).map(input => input.value.trim().toLowerCase());
-    const colors = Array.from(document.querySelectorAll('.variant-color')).map(input => input.value.trim().toLowerCase());
-
-    const variantSet = new Set();
-    for (let i = 0; i < sizes.length; i++) {
-      const key = sizes[i] + '|' + colors[i];
-      if (variantSet.has(key)) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Duplicate Variant',
-          text: `Duplicate variant found: Size "${sizes[i]}" and Color "${colors[i]}"`,
-        });
-        return;
-      }
-      variantSet.add(key);
-    }
+  const imageInput = document.getElementById('images');
+  if (!imageInput.files.length || imageInput.files.length > 3) {
+    return Swal.fire('Error', 'Upload 1 to 3 product images.', 'error');
+  }
 
     // If all validations pass, submit the form
-    form.submit();
+    form.submit()
   });
 
 </script>

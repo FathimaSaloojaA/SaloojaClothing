@@ -15,16 +15,13 @@ const loadHome = async (req, res) => {
 
     // price filtering logic
     if (price && price.length > 0) {
-      const priceFilters = Array.isArray(price) ? price : [price];
-      filter.variants = {
-        $elemMatch: {
-          $or: priceFilters.map(range => {
-            const [min, max] = range.split('-').map(Number);
-            return { price: { $gte: min, $lte: max } };
-          })
-        }
-      };
-    }
+  const priceFilters = Array.isArray(price) ? price : [price];
+  filter.$or = priceFilters.map(range => {
+    const [min, max] = range.split('-').map(Number);
+    return { price: { $gte: min, $lte: max } };
+  });
+}
+
 
     // sorting logic
     let sort = req.query.sort || [];
@@ -34,8 +31,8 @@ const loadHome = async (req, res) => {
 
     const sortOption = {};
     sort.slice().reverse().forEach((val) => {
-      if (val === 'priceAsc') sortOption['variants.price'] = 1;
-      else if (val === 'priceDesc') sortOption['variants.price'] = -1;
+      if (val === 'priceAsc') sortOption['price'] = 1;
+      else if (val === 'priceDesc') sortOption['price'] = -1;
       else if (val === 'nameAsc') sortOption['name'] = 1;
       else if (val === 'nameDesc') sortOption['name'] = -1;
     });
@@ -70,7 +67,7 @@ const loadHome = async (req, res) => {
           $or: [
             { name: regex },
             { description: regex },
-            { 'variants.color': regex },
+          
             { highlights: regex },
             { couponNote: regex },
             ...categoryFilter,
@@ -118,12 +115,11 @@ const loadHome = async (req, res) => {
         const productCount = products.length;
 
         let image = '';
-        if (products.length > 0 && products[0].variants.length > 0) {
-          //image = '/product-images/' + products[0].variants[0].images[0] ;
-          const rawImage = products[0].variants[0].images[0] || '';
-           image = rawImage.replace(/^\/?product-images\//, '');
+if (products.length > 0 && products[0].images && products[0].images.length > 0) {
+  const rawImage = products[0].images[0] || '';
+  image = rawImage.replace(/^\/?product-images\//, '');
+}
 
-        }
 
         return {
           _id: category._id,
@@ -150,15 +146,18 @@ const loadHome = async (req, res) => {
 const filteredNewArrivals = newArrivals.filter(prod => prod.category && prod.subcategory);
 
 const newArrivalsWithImages = filteredNewArrivals.map(product => {
-  const firstVariant = product.variants?.[0];
-  const image = (firstVariant?.images?.[0] || '').replace(/^\/?product-images\//, '') || 'default.jpg';
+  const image = (product.images && product.images.length > 0)
+    ? product.images[0].replace(/^\/?product-images\//, '')
+    : 'default.jpg';
+  
   return {
     _id: product._id,
     name: product.name,
-    price: firstVariant?.price,
+    price: product.price,
     image
   };
 });
+
 
     // Render the page
     res.render('user/home', {

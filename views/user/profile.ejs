@@ -1,0 +1,96 @@
+
+<div class="profile-container">
+<div class="profile-card">
+    <div class="profile-header">
+      <% if (user.profileImage) { %>
+        <img class="profile-img" src="/product-images/<%= user.profileImage %>" alt="Profile Image">
+      <% } else { %>
+        <img class="profile-img" src="https://via.placeholder.com/150?text=No+Image" alt="No Image">
+      <% } %>
+      <div>
+        <div class="profile-name">Welcome, <%= user.firstName %> <%= user.lastName %></div>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <div class="info-label">Email:</div>
+      <div class="info-value"><%= user.email %></div>
+
+      <div class="info-label">Account Created:</div>
+      <div class="info-value"><%= user.createdAt.toDateString() %></div>
+    </div>
+
+    <div class="info-section">
+      <div class="info-label">Saved Addresses:</div>
+      <% if (user.addresses.length > 0) { %>
+        <% user.addresses.forEach((addr, idx) => { %>
+          <div class="address-box">
+            <p><strong>Address <%= idx + 1 %>:</strong> <br>
+              <%= addr.street %>, <%= addr.city %>, <%= addr.state %> - <%= addr.zip %>, <%= addr.country %>
+            </p>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <div class="info-value">No address added</div>
+      <% } %>
+    </div>
+    <div style="margin-top: 30px; display: flex; flex-wrap: wrap; gap: 15px;">
+  <a href="/edit-profile" class="profile-btn">
+    <i class="fas fa-user-edit"></i> Edit Profile
+  </a>
+
+  <a href="/change-password" class="profile-btn">
+    <i class="fas fa-key"></i> Change Password
+  </a>
+
+  <a href="/add-address" class="profile-btn">
+    <i class="fas fa-map-marker-alt"></i> Add Address
+  </a>
+</div>
+
+  </div>
+  </div>
+  <div class="info-section">
+  <h3>Your Recent Orders</h3>
+  <% if (orders.length > 0) { %>
+    <table class="orders-table">
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Total Price</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% orders.forEach(order => { %>
+          <tr>
+            <td><%= order.orderID %></td>
+            <td><%= order.status.charAt(0).toUpperCase() + order.status.slice(1) %></td>
+            <td><%= new Date(order.orderDate).toLocaleDateString() %></td>
+            <td>₹ <%= order.totalPrice.toFixed(2) %></td>
+            <td>
+              <a href="/user/orders/<%= order.orderID %>" class="btn btn-sm btn-primary" style="padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 0.9rem;
+  background-color: #d6336c; /* pink */
+  color: white;"  >View Details</a>
+              <% if (order.status === 'pending') { %>
+                <form action="/user/orders/<%= order.orderID %>/cancel" method="POST" style="display:inline;">
+                  <button type="submit" class="btn btn-sm btn-danger"  style="background-color: #b02a37; /* dark red */
+  color: white;" >Cancel</button>
+                </form>
+              <% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } else { %>
+    <p>No orders placed yet.</p>
+  <% } %>
+</div>

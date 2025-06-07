@@ -1,0 +1,18 @@
+<div class="edit-container">
+    <h2>Edit Profile</h2>
+    <form action="/edit-profile" class="editForm"  method="POST" enctype="multipart/form-data">
+      <label>First Name</label>
+      <input type="text" name="firstName" value="<%= user.firstName %>" required>
+
+      <label>Last Name</label>
+      <input type="text" name="lastName" value="<%= user.lastName %>" required>
+
+      <label>Email</label>
+      <input type="email" name="email" value="<%= user.email %>" required>
+
+      <label>Profile Image</label>
+      <input type="file" name="profileImage" accept="image/*">
+
+      <button class="submit-btn" type="submit">Save Changes</button>
+    </form>
+  </div>

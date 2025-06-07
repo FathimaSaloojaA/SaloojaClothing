@@ -90,64 +90,6 @@ function addSubcategoryField() {
   btn.closest(".subcategory-row").remove(); // remove row from DOM
 }
 
-  function addVariant() {
-  const section = document.getElementById('variantSection');
-  const index = section.children.length;
-
-  const html = `
-    <div class="form-group">
-      <label>Size:</label>
-      <input type="text" name="variantSizes" class="variant-size" required>
-
-      <label>Color:</label>
-      <input type="text" name="variantColors" class="variant-color" required>
-
-      <label>Price:</label>
-      <input type="number" name="variantPrices" required>
-
-      <label>Stock:</label>
-      <input type="number" name="variantStocks" class="variant-stock" required>
-
-      <label>Image:</label>
-      <input type="file" name="productImages" accept="image/*" required>
-    </div>
-  `;
-
-  section.insertAdjacentHTML('beforeend', html);
-}
-
-
-const removedIds = [];
-
-  function removeExistingVariant(button, id) {
-    button.parentElement.remove();
-    removedIds.push(id);
-    document.getElementById('removedVariantIds').value = removedIds.join(',');
-  }
-
-  function addNewVariant() {
-    const container = document.getElementById('newVariantsContainer');
-    const div = document.createElement('div');
-    div.classList.add('variant-block');
-    div.style = "margin-top: 1rem; padding: 1rem; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9;";
-    div.innerHTML = `
-      <label>Size</label>
-      <input type="text" name="newVariantSizes[]" required style="width:100%; padding: 8px; border:1px solid #ccc; border-radius: 6px;">
-      <label style="margin-top: 0.5rem;">Color</label>
-      <input type="text" name="newVariantColors[]" required style="width:100%; padding: 8px; border:1px solid #ccc; border-radius: 6px;">
-      <label style="margin-top: 0.5rem;">Price</label>
-      <input type="number" name="newVariantPrices[]" required style="width:100%; padding: 8px; border:1px solid #ccc; border-radius: 6px;">
-      <label style="margin-top: 0.5rem;">Stock</label>
-      <input type="number" name="newVariantStocks[]" required style="width:100%; padding: 8px; border:1px solid #ccc; border-radius: 6px;">
-      <label style="margin-top: 0.5rem;">Image</label>
-      <input type="file" name="newVariantImages" accept="image/*" required style="width:100%; padding: 6px; border-radius: 6px; border: 1px solid #ccc;">
-      <button type="button" onclick="removeVariantBlock(this)" style="margin-top: 0.8rem; background: #dc3545; color: white; padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer;">Remove</button>
-    `;
-    container.appendChild(div);
-  }
-
-  function removeVariantBlock(btn) {
-    btn.parentElement.remove();
-  }
+  
 
   

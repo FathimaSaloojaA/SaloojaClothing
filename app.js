@@ -8,7 +8,7 @@ const adminAuthRoutes = require('./routes/admin/authRoutes');
 const adminUserRoutes = require('./routes/admin/userRoutes');
 const adminCategoryRoutes = require('./routes/admin/categoryRoutes');
 const adminProductRoutes = require('./routes/admin/productRoutes');
-
+const profileRoutes = require('./routes/user/profileRoutes');
 const path = require("path");
 const indexRoutes = require('./routes/user/indexRoutes')
 const passport = require('./middlewares/passport');
@@ -93,6 +93,9 @@ app.use('/', authRoutes);
 app.use('/', indexRoutes);
 const productRoutes = require('./routes/user/productRoutes');
 app.use('/',productRoutes)
+app.use('/',profileRoutes)
+
+
  // mount under "/"
 app.use('/admin', adminAuthRoutes);
 

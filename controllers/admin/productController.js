@@ -1,6 +1,8 @@
 const Category = require('../../models/categoryModel');
 const Subcategory = require('../../models/subCategoryModel');
 const Product=require('../../models/productModel');
+const mongoose = require('mongoose');
+
 const sharp = require('sharp');
 const fs = require('fs');
 const path = require('path');
@@ -72,59 +74,49 @@ const addProduct = async (req, res) => {
       highlights,
       couponNote,
       discountPercentage,
-      variantSizes,
-      variantColors,
-      variantPrices,
-      variantStocks
+      price,
+      stock
     } = req.body;
-
+console.log("FILES:", req.files);
+    console.log("BODY:", req.body);
     const trimmedName = name?.trim();
     if (!trimmedName) {
       return renderWithError('Product name cannot be empty or just spaces.');
     }
 
-    if (discountPercentage && parseFloat(discountPercentage) > 90) {
-      return renderWithError('Discount percentage must be less than 90.');
+    if (discountPercentage && parseFloat(discountPercentage) >= 100) {
+      return renderWithError('Discount percentage must be less than 100.');
     }
 
-    // Ensure these are arrays even if single values are submitted
-    const variantSizesArr = Array.isArray(variantSizes) ? variantSizes : [variantSizes];
-    const variantColorsArr = Array.isArray(variantColors) ? variantColors : [variantColors];
-    const variantPricesArr = Array.isArray(variantPrices) ? variantPrices : [variantPrices];
-    const variantStocksArr = Array.isArray(variantStocks) ? variantStocks : [variantStocks];
-
-    // Validate stocks
-    for (const stock of variantStocksArr) {
-      const parsedStock = parseInt(stock);
-      if (isNaN(parsedStock) || parsedStock < 0) {
-        return renderWithError('Stock values must be valid non-negative numbers.');
-      }
+    if (isNaN(price) || price < 0) {
+      return renderWithError('Price must be a valid non-negative number.');
     }
 
-    // Validate for duplicate variants
-    const variantKeySet = new Set();
-    for (let i = 0; i < variantSizesArr.length; i++) {
-      const key = `${variantSizesArr[i].toLowerCase()}-${variantColorsArr[i].toLowerCase()}`;
-      if (variantKeySet.has(key)) {
-        return renderWithError(`Duplicate variant found: Size "${variantSizesArr[i]}", Color "${variantColorsArr[i]}"`);
-      }
-      variantKeySet.add(key);
+    if (isNaN(stock) || stock < 0) {
+      return renderWithError('Stock must be a valid non-negative number.');
     }
+    const categoryId = new mongoose.Types.ObjectId(category);
+const subcategoryId = new mongoose.Types.ObjectId(subcategory);
 
-    // Check if product already exists
+    // Check for existing product under same category/subcategory
     const existingProduct = await Product.findOne({
       name: trimmedName,
-      category,
-      subcategory
+      category:categoryId,
+      subcategory:subcategoryId
     });
 
     if (existingProduct) {
       return renderWithError('Product name already exists under this category and subcategory.');
     }
 
-    // Process image uploads
-    let images = [];
-    for (const file of req.files) {
+    // Process images
+    const imageFiles = req.files || [];
+    if (imageFiles.length === 0 || imageFiles.length > 3) {
+      return renderWithError('Please upload between 1 to 3 product images.');
+    }
+
+    const imagePaths = [];
+    for (const file of imageFiles) {
       const fileName = `product_${Date.now()}_${file.originalname}`;
       const outputPath = path.join(__dirname, '../../public/product-images', fileName);
 
@@ -132,39 +124,27 @@ const addProduct = async (req, res) => {
         .resize(600, 600)
         .toFile(outputPath);
 
-      images.push(`/product-images/${fileName}`);
+      imagePaths.push(`/product-images/${fileName}`);
     }
-
-    // Build variants
-    const variants = [];
-    for (let i = 0; i < variantSizesArr.length; i++) {
-      variants.push({
-        size: variantSizesArr[i],
-        color: variantColorsArr[i],
-        price: variantPricesArr[i],
-        stock: variantStocksArr[i],
-        images: [images[i]]
-      });
-    }
-
-    const totalStock = variantStocksArr.reduce((sum, stock) => sum + parseInt(stock), 0);
 
     const product = new Product({
       name: trimmedName,
       description,
-      category,
-      subcategory,
+      category :categoryId,
+      subcategory:subcategoryId,
       highlights: highlights ? highlights.split(',').map(h => h.trim()) : [],
       couponNote,
       discountPercentage,
-      variants,
-      totalStock,
+      price,
+      stock,
+      totalStock: stock,
+      images: imagePaths
     });
 
     await product.save();
     res.redirect('/admin/products');
 
-    // Reusable error rendering function
+    // Helper
     async function renderWithError(errorMessage) {
       return res.render('admin/addProduct', {
         error: errorMessage,
@@ -180,24 +160,23 @@ const addProduct = async (req, res) => {
   }
 };
 
-
 const loadEditProductPage = async (req, res) => {
   try {
     const productId = req.params.id;
     const product = await Product.findById(productId).populate('category subcategory');
 
-    const categories = await Category.find({ isDeleted: false });
+    if (!product) {
+      return res.status(404).send('Product not found');
+    }
 
-    // Get subcategories grouped by category
+    const categories = await Category.find({ isDeleted: false });
     const subcategories = await Subcategory.find({ isDeleted: false });
 
     // Group subcategories by category ID
     const subcategoriesByCategory = {};
     subcategories.forEach(subcat => {
       const catId = subcat.category.toString();
-      if (!subcategoriesByCategory[catId]) {
-        subcategoriesByCategory[catId] = [];
-      }
+      if (!subcategoriesByCategory[catId]) subcategoriesByCategory[catId] = [];
       subcategoriesByCategory[catId].push(subcat);
     });
 
@@ -205,6 +184,7 @@ const loadEditProductPage = async (req, res) => {
       product,
       categories,
       subcategoriesByCategory,
+      error: null,
       layout: 'admin/adminLayout',
     });
   } catch (error) {
@@ -212,8 +192,6 @@ const loadEditProductPage = async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 };
-
-
 
 const editProduct = async (req, res) => {
   try {
@@ -226,176 +204,133 @@ const editProduct = async (req, res) => {
       highlights,
       couponNote,
       discountPercentage,
-      existingVariantIds = [],
-      existingVariantSizes = [],
-      existingVariantColors = [],
-      existingVariantPrices = [],
-      existingVariantStocks = [],
-      removedVariantIds = [],
-      newVariantSizes = [],
-      newVariantColors = [],
-      newVariantPrices = [],
-      newVariantStocks = []
+      price,
+      stock,
+      existingImages // get from req.body here!
     } = req.body;
 
-    // === 1. Validate & Trim Basic Fields ===
+    let existingImgs = existingImages || [];
+    if (!Array.isArray(existingImgs)) {
+      existingImgs = [existingImgs];
+    }
+
     const trimmedName = name?.trim();
     const trimmedDesc = description?.trim();
     const trimmedHighlights = highlights?.trim();
     const trimmedCouponNote = couponNote?.trim();
     const discount = parseFloat(discountPercentage);
+    const parsedPrice = parseFloat(price);
+    const parsedStock = parseInt(stock);
 
     if (!trimmedName || !trimmedDesc) {
-      return res.status(400).send('Fields cannot be empty or contain only spaces.');
+      return renderWithError('Product name and description cannot be empty or spaces only.');
+    }
+
+    if (isNaN(parsedPrice) || parsedPrice < 0) {
+      return renderWithError('Price must be a non-negative number.');
+    }
+
+    if (isNaN(parsedStock) || parsedStock < 0) {
+      return renderWithError('Stock must be a non-negative number.');
     }
 
     if (isNaN(discount) || discount >= 90) {
-      return res.status(400).send('Discount must be a valid number less than 90.');
+      return renderWithError('Discount must be a valid number less than 90.');
     }
 
-    // === 2. Validate & Deduplicate Variants ===
-    const variantKeySet = new Set();
-
-    // Check existing variants
-    for (let i = 0; i < existingVariantIds.length; i++) {
-      const id = existingVariantIds[i];
-      if (removedVariantIds.includes(id)) continue;
-
-      const size = existingVariantSizes[i]?.trim().toLowerCase();
-      const color = existingVariantColors[i]?.trim().toLowerCase();
-      const price = parseFloat(existingVariantPrices[i]);
-      const stock = parseInt(existingVariantStocks[i]);
-
-      if (!size || !color) {
-        return res.status(400).send('Existing variant size and color cannot be empty.');
-      }
-
-      if (isNaN(price) || price < 0 || isNaN(stock) || stock < 0) {
-        return res.status(400).send('Existing variant price and stock must be non-negative numbers.');
-      }
-
-      const key = `${size}-${color}`;
-      if (variantKeySet.has(key)) {
-        return res.status(400).send(`Duplicate existing variant: Size "${size}", Color "${color}"`);
-      }
-      variantKeySet.add(key);
-    }
-
-    // Check new variants
-    for (let i = 0; i < newVariantSizes.length; i++) {
-      const size = newVariantSizes[i]?.trim().toLowerCase();
-      const color = newVariantColors[i]?.trim().toLowerCase();
-      const price = parseFloat(newVariantPrices[i]);
-      const stock = parseInt(newVariantStocks[i]);
-
-      if (!size || !color) {
-        return res.status(400).send('New variant size and color cannot be empty.');
-      }
-
-      if (isNaN(price) || price < 0 || isNaN(stock) || stock < 0) {
-        return res.status(400).send('New variant price and stock must be non-negative numbers.');
-      }
-
-      const key = `${size}-${color}`;
-      if (variantKeySet.has(key)) {
-        return res.status(400).send(`Duplicate variant detected: Size "${size}", Color "${color}"`);
-      }
-      variantKeySet.add(key);
-    }
-
-    // === 3. Find Product ===
     const product = await Product.findById(productId);
     if (!product) {
-      return res.status(404).send('Product not found');
+      return renderWithError('Product not found.');
     }
 
-    // === 4. Update Basic Fields ===
     product.name = trimmedName;
     product.description = trimmedDesc;
     product.category = category;
-    product.subcategory = subcategory;
-    product.couponNote = trimmedCouponNote;
+    product.subcategory = subcategory || null;
+    product.price = parsedPrice;
+    product.stock = parsedStock;
+    product.totalStock = parsedStock;
     product.discountPercentage = discount;
-    product.highlights = trimmedHighlights.split(',').map(h => h.trim());
+    product.couponNote = trimmedCouponNote || '';
+    product.highlights = trimmedHighlights
+      ? trimmedHighlights.split(',').map(h => h.trim())
+      : [];
 
-    // === 5. Handle Variants ===
-    const existingFiles = req.files.existingVariantImages || [];
-    const newFiles = req.files.newVariantImages || [];
+    const finalImages = [];
 
-    const updatedVariants = product.variants.map((variant, index) => {
-      const idStr = variant._id.toString();
-      const idxInForm = existingVariantIds.indexOf(idStr);
+    for (let i = 0; i < 3; i++) {
+      const existingImage = existingImgs[i];
+      const uploadedFile = req.files?.[`replaceImage${i}`]?.[0];
 
-      if (idxInForm === -1 || removedVariantIds.includes(idStr)) {
-        return { ...variant.toObject(), isDeleted: true };
-      }
-
-      const updatedVariant = {
-        ...variant.toObject(),
-        size: existingVariantSizes[idxInForm].trim(),
-        color: existingVariantColors[idxInForm].trim(),
-        price: existingVariantPrices[idxInForm],
-        stock: existingVariantStocks[idxInForm],
-        isDeleted: false,
-      };
-
-      if (existingFiles[idxInForm]) {
-        const file = existingFiles[idxInForm];
-        const fileName = `product_${Date.now()}_${file.originalname}`;
+      if (uploadedFile) {
+        const fileName = `product_${Date.now()}_${uploadedFile.originalname}`;
         const outputPath = path.join(__dirname, '../../public/product-images', fileName);
-        updatedVariant.newImageFile = { file, fileName, outputPath };
-      }
 
-      return updatedVariant;
-    });
-
-    // === 6. Process Image for Existing Variants ===
-    for (const variant of updatedVariants) {
-      if (variant.newImageFile) {
-        const { file, fileName, outputPath } = variant.newImageFile;
-        await sharp(file.buffer)
+        await sharp(uploadedFile.buffer)
           .resize(600, 600)
           .toFile(outputPath);
-        variant.images = [`/product-images/${fileName}`];
-        delete variant.newImageFile;
+
+        finalImages.push(fileName);
+      } else if (existingImage) {
+        finalImages.push(existingImage);
       }
     }
 
-    // === 7. Add New Variants ===
-    for (let i = 0; i < newVariantSizes.length; i++) {
-      const imageFile = newFiles[i];
-      let imagePath = [];
-
-      if (imageFile) {
-        const fileName = `product_${Date.now()}_${imageFile.originalname}`;
-        const outputPath = path.join(__dirname, '../../public/product-images', fileName);
-        await sharp(imageFile.buffer)
-          .resize(600, 600)
-          .toFile(outputPath);
-        imagePath = [`/product-images/${fileName}`];
-      }
-
-      updatedVariants.push({
-        size: newVariantSizes[i].trim(),
-        color: newVariantColors[i].trim(),
-        price: newVariantPrices[i],
-        stock: newVariantStocks[i],
-        images: imagePath,
-        isDeleted: false,
-      });
-    }
-
-    // === 8. Save Updates ===
-    product.variants = updatedVariants;
-    product.totalStock = updatedVariants.reduce((sum, v) => {
-      return v.isDeleted ? sum : sum + parseInt(v.stock);
-    }, 0);
+    product.images = finalImages;
 
     await product.save();
-    res.redirect('/admin/products');
+    return res.redirect('/admin/products');
+
+    // ================================
+    // Helper for rendering with error
+    // ================================
+    async function renderWithError(errorMessage) {
+      // Fetch categories and all subcategories again
+      const categories = await Category.find({ isDeleted: false });
+      const subcategories = await Subcategory.find({ isDeleted: false });
+
+      const subcategoriesByCategory = {};
+      subcategories.forEach(subcat => {
+        const catId = subcat.category.toString();
+        if (!subcategoriesByCategory[catId]) subcategoriesByCategory[catId] = [];
+        subcategoriesByCategory[catId].push(subcat);
+      });
+
+      // Construct a product-like object with current values so form keeps inputs
+      const productData = {
+        _id: productId,
+        name: trimmedName,
+        description: trimmedDesc,
+        category,
+        subcategory,
+        price: parsedPrice,
+        stock: parsedStock,
+        totalStock: parsedStock,
+        discountPercentage: discount,
+        couponNote: trimmedCouponNote,
+        highlights: trimmedHighlights ? trimmedHighlights.split(',').map(h => h.trim()) : [],
+        images: existingImgs,
+      };
+
+      return res.render('admin/editProduct', {
+        product: productData,
+        categories,
+        subcategoriesByCategory,
+        error: errorMessage,
+        layout: 'admin/adminLayout'
+      });
+    }
   } catch (error) {
     console.error('Edit Product Error:', error);
-    res.status(500).send('Internal Server Error');
+
+    // fallback render with minimal data to avoid crashing
+    return res.status(500).render('admin/editProduct', {
+      error: 'Internal Server Error',
+      product: {},
+      categories: [],
+      subcategoriesByCategory: {},
+      layout: 'admin/adminLayout'
+    });
   }
 };
 

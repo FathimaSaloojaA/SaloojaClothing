@@ -16,6 +16,7 @@
       <thead>
         <tr>
           <th>Product Name</th>
+          <th>Image</th>
           <th>Category</th>
           <th>Subcategory</th>
           <th>Total Stock</th>
@@ -28,35 +29,40 @@
         <% if (products.length === 0) { %>
           <tr><td colspan="7" class="no-products">No products found.</td></tr>
         <% } else { %>
-          <% products.forEach(product => { 
-               const prices = product.variants.map(v => v.price);
-               const minPrice = Math.min(...prices);
-               const maxPrice = Math.max(...prices);
-          %>
-            <tr>
-              <td><%= product.name %></td>
-              <td><%= product.category?.name || 'Deleted' %></td>
-              <td><%= product.subcategory?.name || 'Deleted' %></td>
-              <td><%= product.totalStock || 0 %></td>
-              <td>₹<%= minPrice %> - ₹<%= maxPrice || 0 %></td>
-              <td>
-                <% if (product.isDeleted) { %>
-                  <span class="unlisted">No</span>
-                <% } else { %>
-                  <span class="listed">Yes</span>
-                <% } %>
-              </td>
-              <td>
-  <a href="/admin/products/edit/<%= product._id %>" class="edit-btn">Edit</a>
-  <% if (!product.isDeleted) { %>
-    <button type="button" class="delete-btn" onclick="confirmDelete('<%= product._id %>')">Delete</button>
+          <% products.forEach(product => { %>
+  <tr>
+    <td><%= product.name %></td>
+    
+<td>
+  <% if (product.images && product.images.length > 0) { %>
+    <img src="<%= product.images[0] %>" alt="Product Image" style="width: 50px; height: 50px; object-fit: cover; margin-right: 8px;">
   <% } else { %>
-    <button type="button" class="restore-btn" onclick="confirmRestore('<%= product._id %>')">Restore</button>
+    <span>No Image</span>
   <% } %>
 </td>
 
-            </tr>
-          <% }) %>
+    <td><%= product.category?.name || 'Deleted' %></td>
+    <td><%= product.subcategory?.name || 'Deleted' %></td>
+    <td><%= product.stock || 0 %></td>
+    <td>₹<%= product.price || 0 %></td>
+    <td>
+      <% if (product.isDeleted) { %>
+        <span class="unlisted">No</span>
+      <% } else { %>
+        <span class="listed">Yes</span>
+      <% } %>
+    </td>
+    <td>
+      <a href="/admin/products/edit/<%= product._id %>" class="edit-btn">Edit</a>
+      <% if (!product.isDeleted) { %>
+        <button type="button" class="delete-btn" onclick="confirmDelete('<%= product._id %>')">Delete</button>
+      <% } else { %>
+        <button type="button" class="restore-btn" onclick="confirmRestore('<%= product._id %>')">Restore</button>
+      <% } %>
+    </td>
+  </tr>
+<% }) %>
+
         <% } %>
       </tbody>
     </table>

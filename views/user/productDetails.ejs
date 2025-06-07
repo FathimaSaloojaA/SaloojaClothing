@@ -10,187 +10,134 @@
     <!-- Navbar End -->
 
 
+
     <!-- Page Header Start -->
-    <div class="container-fluid bg-secondary mb-1">
-        <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 100px">
-            <h1 class="font-weight-semi-bold text-uppercase mb-3">Shop Detail</h1>
-            <div class="d-inline-flex">
-                <p class="m-0"><a href="">Home</a></p>
-                <p class="m-0 px-2">-</p>
-                <p class="m-0">Shop Detail</p>
+    <div class="container py-5">
+    <!-- Breadcrumbs -->
+    <div class="d-flex mb-4">
+        <a href="/" class="text-dark">Home</a>
+        <span class="px-2">/</span>
+        <a href="/product" class="text-dark">Shop</a>
+        <span class="px-2">/</span>
+        <span class="text-muted"><%= product.name %></span>
+    </div>
+
+    <div class="row">
+        <!-- Image Carousel -->
+        <div class="col-md-6">
+            <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+                <div class="carousel-inner">
+    <% if (product.images && Array.isArray(product.images)) { %>
+        <% product.images.slice(0, 3).forEach((img, idx) => { %>
+            <div class="carousel-item <%= idx === 0 ? 'active' : '' %>">
+                <img src="<%= img %>" class="d-block w-100" alt="...">
+            </div>
+        <% }) %>
+    <% } else { %>
+        <!-- Fallback if no images -->
+        <div class="carousel-item active">
+            <img src="/product-images/default-image.jpg" class="d-block w-100" alt="No image available">
+        </div>
+    <% } %>
+</div>
+
+                <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+                    <span class="carousel-control-prev-icon"></span>
+                </a>
+                <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+                    <span class="carousel-control-next-icon"></span>
+                </a>
+                
+            </div>
+            
+        </div>
+
+        <!-- Product Info -->
+        <div class="col-md-6">
+            <h3><%= product.name %></h3>
+
+            <!-- Rating -->
+            <div class="mb-2">
+                <% let full = Math.floor(product.averageRating || 0); %>
+                <% let half = (product.averageRating % 1 >= 0.5); %>
+                <% let empty = 5 - full - (half ? 1 : 0); %>
+                <% for (let i = 0; i < full; i++) { %><i class="fas fa-star text-warning"></i><% } %>
+                <% if (half) { %><i class="fas fa-star-half-alt text-warning"></i><% } %>
+                <% for (let i = 0; i < empty; i++) { %><i class="far fa-star text-warning"></i><% } %>
+                <small>(<%= product.numReviews || 0 %> reviews)</small>
+            </div>
+
+            <!-- Price & Discount -->
+            <% let price = product.price; %>
+            <% let discount = product.discountPercentage || 0; %>
+            <% let discounted = price - (price * discount / 100); %>
+            <% if (discount > 0) { %>
+                <h4 class="text-danger">₹<%= discounted.toFixed(2) %></h4>
+                <h6><del>₹<%= price %></del> <span class="text-success">You save <%= discount %>%</span></h6>
+            <% } else { %>
+                <h4>₹<%= price %></h4>
+            <% } %>
+
+            <% if (product.couponNote) { %>
+                <p class="text-warning"><%= product.couponNote %></p>
+            <% } %>
+
+            <!-- Stock Alert -->
+            <% let totalStock = product.stock %>
+            <% if (totalStock === 0) { %>
+                <p class="text-danger font-weight-bold">Sold Out</p>
+            <% } %>
+            
+
+            <!-- Form for Variant Selection -->
+            <form action="/cart/add-to-cart" method="POST">
+                <input type="hidden" name="productId" value="<%= product._id %>">
+
+                <!-- Color -->
+                
+
+                <!-- Size -->
+                
+
+                <!-- Quantity -->
+                <div class="form-group">
+                    <label for="quantity">Quantity</label>
+                    <input type="number" name="quantity" class="form-control w-25" min="1" value="1" required>
+                </div>
+
+                <button class="btn btn-primary" type="submit" <% if (totalStock === 0) { %>disabled<% } %>>
+                    Add to Cart
+                </button>
+            </form>
+
+            <!-- Highlights -->
+            <div class="mt-4">
+                <h5>Highlights</h5>
+                <% if (product.highlights && product.highlights.length) { %>
+                    <ul>
+                        <% product.highlights.forEach(h => { %><li><%= h %></li><% }) %>
+                    </ul>
+                <% } else { %>
+                    <p class="text-muted">No highlights available.</p>
+                <% } %>
             </div>
         </div>
     </div>
-    <!-- Page Header End -->
 
-
-
-
-    <!-- Shop Detail Start -->
-    <div class="container-fluid py-5">
-        <div class="row px-xl-5">
-           <div class="col-lg-5 pb-5">
-    <div id="product-carousel" class="carousel slide" data-ride="carousel">
-        <div class="carousel-inner border">
-            <% product.variants.forEach((variant, index) => { %>
-                <div class="carousel-item <%= index === 0 ? 'active' : '' %>">
-                    <% 
-  let imgPath = variant.images[0]; 
-  if (!imgPath.startsWith('/')) {
-    imgPath = '/product-images/' + imgPath;
-  } 
-%>
-                    <img class="w-100 h-100" src="<%= imgPath %>" alt="Image">
+    <!-- Description & Reviews -->
+    <div class="row mt-5">
+        <div class="col-md-12">
+            
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="desc">
+                    <p><%= product.description || 'No description available.' %></p>
                 </div>
-            <% }) %>
-        </div>
-        <a class="carousel-control-prev" href="#product-carousel" data-slide="prev">
-            <i class="fa fa-2x fa-angle-left text-dark"></i>
-        </a>
-        <a class="carousel-control-next" href="#product-carousel" data-slide="next">
-            <i class="fa fa-2x fa-angle-right text-dark"></i>
-        </a>
-    </div>
-</div>
-
-
-            <div class="col-lg-7 pb-5">
-    <h3 class="font-weight-semi-bold"><%= product.name %></h3>
-
-    <div class="d-flex mb-3">
-        <div class="text-primary mr-2">
-            <% 
-                let fullStars = Math.floor(product.averageRating || 0);
-                let halfStar = (product.averageRating % 1 >= 0.5);
-                let emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
-            %>
-            <% for (let i = 0; i < fullStars; i++) { %>
-                <small class="fas fa-star"></small>
-            <% } %>
-            <% if (halfStar) { %>
-                <small class="fas fa-star-half-alt"></small>
-            <% } %>
-            <% for (let i = 0; i < emptyStars; i++) { %>
-                <small class="far fa-star"></small>
-            <% } %>
-        </div>
-        <small class="pt-1">(<%= product.numReviews || 0 %> Reviews)</small>
-    </div>
-
-    
-
-    <% 
-  const price = product.variants[0].price;
-  const discount = product.discountPercentage || 0;
-  const discountedPrice = price - (price * discount / 100);
-    %>
-
-<% if (discount > 0) { %>
-  <h5 class="text-muted"><del>₹<%= price %></del></h5>
-  <h3 class="text-danger">₹<%= discountedPrice.toFixed(2) %></h3>
-  <p class="text-success mb-1">You save <%= discount %>%!</p>
-<% } else { %>
-  <h3 class="font-weight-semi-bold mb-4">₹<%= price %></h3>
-<% } %>
-
-<% if (product.couponNote) { %>
-  <p class="text-warning"><%= product.couponNote %></p>
-<% } %>
-
-
-
-
-<% if (product.variants && product.variants.length > 0) { %>
-  <div class="mb-3">
-    <h6 class="mb-2">Variant-wise Stock</h6>
-    <ul class="list-group">
-      <% product.variants.forEach(variant => { %>
-        <li class="list-group-item d-flex justify-content-between align-items-center px-2 py-1">
-          <span><%= variant.color %> / <%= variant.size %></span>
-          <% if (variant.stock > 0) { %>
-            <span class="badge badge-success badge-pill"><%= variant.stock %> in stock</span>
-          <% } else { %>
-            <span class="badge badge-danger badge-pill">Out of stock</span>
-          <% } %>
-        </li>
-      <% }) %>
-    </ul>
-  </div>
-<% } %>
-
-
-    <p class="mb-4"><%= product.description %></p>
-
-
-    <!--Highlights-->
-<div class="mt-4">
-    <h5 class="font-weight-bold mb-3">Product Highlights</h5>
-    <ul>
-        <% if (product.highlights && product.highlights.length > 0) { %>
-            <% product.highlights.forEach(function(point) { %>
-                <li><%= point %></li>
-            <% }); %>
-        <% } else { %>
-            <li>No highlights available for this product.</li>
-        <% } %>
-    </ul>
-</div>
-
-    <!-- Sizes -->
-    <div class="d-flex mb-3">
-        <p class="text-dark font-weight-medium mb-0 mr-3">Sizes:</p>
-        <form>
-            <% 
-                let sizes = [...new Set(product.variants.map(v => v.size))];
-                sizes.forEach((size, i) => { 
-            %>
-                <div class="custom-control custom-radio custom-control-inline">
-                    <input type="radio" class="custom-control-input" id="size-<%= i %>" name="size">
-                    <label class="custom-control-label" for="size-<%= i %>"><%= size %></label>
+                <div class="tab-pane fade" id="reviews">
+                    <p>No reviews yet. Be the first to review this product!</p>
                 </div>
-            <% }); %>
-        </form>
-    </div>
-
-    <!-- Colors -->
-    <div class="d-flex mb-4">
-        <p class="text-dark font-weight-medium mb-0 mr-3">Colors:</p>
-        <form>
-            <% 
-                let colors = [...new Set(product.variants.map(v => v.color))];
-                colors.forEach((color, i) => { 
-            %>
-                <div class="custom-control custom-radio custom-control-inline">
-                    <input type="radio" class="custom-control-input" id="color-<%= i %>" name="color">
-                    <label class="custom-control-label" for="color-<%= i %>"><%= color %></label>
-                </div>
-            <% }); %>
-        </form>
-    </div>
-
-    <!-- Quantity & Add to Cart -->
-    
-<form action="/cart/add-to-cart" method="POST" class="d-flex align-items-center mb-4 pt-2">
-    <div class="input-group quantity mr-3" style="width: 130px;">
-        <div class="input-group-btn">
-            <button type="button" class="btn btn-primary btn-minus">
-                <i class="fa fa-minus"></i>
-            </button>
-        </div>
-        <input type="number" name="quantity" class="form-control bg-secondary text-center" value="1" min="1">
-        <div class="input-group-btn">
-            <button type="button" class="btn btn-primary btn-plus">
-                <i class="fa fa-plus"></i>
-            </button>
+            </div>
         </div>
     </div>
-
-    
-    <button type="submit" class="btn btn-primary px-3">
-        <i class="fa fa-shopping-cart mr-1"></i> Add To Cart
-    </button>
-</form>
-
 
     
     <!-- Share Links -->
@@ -334,7 +281,19 @@
     </div>
   </div>
 </div>
+<script>
+  const carouselInner = document.querySelector('#carouselExampleIndicators .carousel-inner');
 
+  // Fallback if no images are rendered
+  if (!carouselInner.querySelector('.carousel-item')) {
+    carouselInner.innerHTML = `<div class="carousel-item active">
+      <img src="/images/no-image-available.png" class="d-block w-100" alt="No image available">
+    </div>`;
+  }
+</script>
+
+    
+  
 
     <!-- Shop Detail End -->
 

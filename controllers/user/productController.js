@@ -159,22 +159,19 @@ exports.loadShopPage = async (req, res) => {
     // Price filtering logic
     if (price && price.length > 0) {
       const priceFilters = price;
-      filter.variants = {
-        $elemMatch: {
-          isDeleted: false,
-          $or: priceFilters.map(range => {
-            const [min, max] = range.split('-').map(Number);
-            return { price: { $gte: min, $lte: max } };
-          }),
-        },
-      };
+      filter.$or = priceFilters.map(range => {
+  const [min, max] = range.split('-').map(Number);
+  return { price: { $gte: min, $lte: max } };
+});
+
+      
     }
 
     // Sorting
     const sortOption = {};
     sort.slice().reverse().forEach(val => {
-      if (val === 'priceAsc') sortOption['variants.price'] = 1;
-      else if (val === 'priceDesc') sortOption['variants.price'] = -1;
+      if (val === 'priceAsc') sortOption['price'] = 1;
+      else if (val === 'priceDesc') sortOption['price'] = -1;
       else if (val === 'nameAsc') sortOption['name'] = 1;
       else if (val === 'nameDesc') sortOption['name'] = -1;
     });
@@ -207,7 +204,7 @@ exports.loadShopPage = async (req, res) => {
           $or: [
             { name: regex },
             { description: regex },
-            { 'variants.color': regex },
+          
             { highlights: regex },
             { couponNote: regex },
             ...categoryFilter,
@@ -278,33 +275,23 @@ exports.loadShopPage = async (req, res) => {
 exports.loadProductDetails = async (req, res) => {
   try {
     const productId = req.params.id;
-    const { category, subcategory, price ,search} = req.query;
+    const { category, subcategory, price, search } = req.query;
 
     const filter = { isListed: true, isDeleted: false };
-
     if (category) filter.category = category;
     if (subcategory) filter.subcategory = subcategory;
 
-    // Fetch valid categories and subcategories
     const categories = await Category.find({ isListed: true, isDeleted: false }).lean();
     const subcategories = await Subcategory.find({ isListed: true, isDeleted: false }).lean();
 
-    // Group subcategories under each category
     const categoryMap = categories.map(cat => ({
       ...cat,
       subcategories: subcategories.filter(sub => sub.category.toString() === cat._id.toString())
     }));
 
-    // Fetch products and filter out any with deleted/unlisted category or subcategory
     const productsRaw = await Product.find(filter)
-      .populate({
-        path: 'category',
-        match: { isListed: true, isDeleted: false }
-      })
-      .populate({
-        path: 'subcategory',
-        match: { isListed: true, isDeleted: false }
-      })
+      .populate({ path: 'category', match: { isListed: true, isDeleted: false } })
+      .populate({ path: 'subcategory', match: { isListed: true, isDeleted: false } })
       .lean();
 
     const products = productsRaw.filter(p => p.category && p.subcategory);
@@ -315,69 +302,58 @@ exports.loadProductDetails = async (req, res) => {
       isListed: true,
       isDeleted: false
     })
-      .populate({
-        path: 'category',
-        match: { isListed: true, isDeleted: false }
-      })
-      .populate({
-        path: 'subcategory',
-        match: { isListed: true, isDeleted: false }
-      })
+      .populate({ path: 'category', match: { isListed: true, isDeleted: false } })
+      .populate({ path: 'subcategory', match: { isListed: true, isDeleted: false } })
       .lean();
 
     if (!product || product.isBlocked || !product.category || !product.subcategory) {
-      return res.redirect('/product'); // Invalid or hidden product
+      return res.redirect('/product');
     }
 
-    // Check stock
-    const allVariantsOutOfStock = product.variants.every(v => v.stock === 0);
-    if (allVariantsOutOfStock) {
-      return res.redirect('/product'); // Treat as unavailable
+    if (product.stock === 0) {
+      return res.redirect('/product');
     }
 
-    // Related products from same (still valid) category
+    // ✅ Corrected version: maintain original extension
+
+
+
+    // Related products
     const relatedRaw = await Product.find({
       _id: { $ne: productId },
       category: product.category._id,
       isBlocked: false,
       isDeleted: false
     })
-      .populate({
-        path: 'category',
-        match: { isListed: true, isDeleted: false }
-      })
-      .populate({
-        path: 'subcategory',
-        match: { isListed: true, isDeleted: false }
-      })
+      .populate({ path: 'category', match: { isListed: true, isDeleted: false } })
+      .populate({ path: 'subcategory', match: { isListed: true, isDeleted: false } })
       .limit(4)
       .lean();
 
     const relatedProducts = relatedRaw
-      .filter(p => p.category && p.subcategory)
-      .map(prod => {
-        const nonDeletedVariants = prod.variants.filter(v => !v.isDeleted);
-        const variantWithImage = prod.variants.find(v => v.images?.length);
-        return {
-          ...prod,
-          variants: nonDeletedVariants,
-          previewImage: variantWithImage?.images[0] || "default.jpg",
-          price: variantWithImage?.price || "N/A"
-        };
-      });
+  .filter(p => p.category && p.subcategory)
+  .map(prod => {
+    return {
+      ...prod,
+      previewImage: prod.images?.[0] || "default.jpg",
+      price: prod.price || "N/A"
+    };
+  });
 
-    // Sort handling
+
+    // Sorting
     let sort = req.query.sort || [];
     if (!Array.isArray(sort)) sort = [sort];
 
     const sortOption = {};
     sort.slice().reverse().forEach(val => {
-      if (val === 'priceAsc') sortOption['variants.price'] = 1;
-      else if (val === 'priceDesc') sortOption['variants.price'] = -1;
+      if (val === 'priceAsc') sortOption['price'] = 1;
+      else if (val === 'priceDesc') sortOption['price'] = -1;
       else if (val === 'nameAsc') sortOption['name'] = 1;
       else if (val === 'nameDesc') sortOption['name'] = -1;
     });
-    // Search Logic
+
+    // Search
     if (search) {
       const searchWords = search.trim().split(/\s+/);
 
@@ -405,7 +381,6 @@ exports.loadProductDetails = async (req, res) => {
           $or: [
             { name: regex },
             { description: regex },
-            { 'variants.color': regex },
             { highlights: regex },
             { couponNote: regex },
             ...categoryFilter,
@@ -417,10 +392,6 @@ exports.loadProductDetails = async (req, res) => {
       filter.$and = orFilters;
     }
 
-if (product && product.variants && Array.isArray(product.variants)) {
-  product.variants = product.variants.filter(variant => !variant.isDeleted);
-}
-    // Render product details
     res.render('user/productDetails', {
       product,
       products,
@@ -440,3 +411,4 @@ if (product && product.variants && Array.isArray(product.variants)) {
     res.status(500).send('Something went wrong');
   }
 };
+
