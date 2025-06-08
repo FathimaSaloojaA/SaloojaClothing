@@ -1,0 +1,42 @@
+<div class="orders-container">
+  <h2 class="page-title">📦 My Orders</h2>
+
+  <% if (orders.length === 0) { %>
+    <p class="empty-msg">You haven't placed any orders yet.</p>
+  <% } else { %>
+    <div class="orders-grid">
+      <% orders.forEach(order => { %>
+        <div class="order-card">
+          <div class="order-header">
+            <span>🧾 <strong>Order ID:</strong> <%= order.orderID %></span>
+            <span><strong>Date:</strong> <%= order.orderDate.toDateString() %></span>
+          </div>
+
+          <div class="order-body">
+            <ul>
+              <% order.products.forEach(prod => { %>
+                <li>
+                  <%= prod.name %> (x<%= prod.quantity %>) - ₹<%= (prod.quantity * prod.price).toFixed(2) %>
+                  <span class="status <%= prod.status %>">[<%= prod.status %>]</span>
+                </li>
+              <% }) %>
+            </ul>
+            <p class="total">💰 Total: ₹<%= order.totalPrice.toFixed(2) %></p>
+            <p class="status-label">Status: <%= order.status %></p>
+          </div>
+
+          <div class="order-actions">
+            <a href="/orders/<%= order._id %>" class="btn btn-primary">🔍 View Details</a>
+
+            <% if (order.status !== 'cancelled' && order.status !== 'delivered') { %>
+              <form action="/orders/<%= order._id %>/cancel" method="POST" onsubmit="return confirm('Cancel this order?');">
+                <input type="hidden" name="_method" value="PUT" />
+                <button type="submit" class="btn btn-danger">❌ Cancel Order</button>
+              </form>
+            <% } %>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</div>

@@ -6,6 +6,10 @@ const addressSchema = new mongoose.Schema({
   state: String,
   zip: String,
   country: String,
+  isDefault: {
+      type: Boolean,
+      default: false
+    }
 });
 
 const userSchema = new mongoose.Schema({
@@ -57,7 +61,20 @@ emailTemp: { type: String },
     type: String, // Store image URL or filename
     default: ''
   },
-  addresses: [addressSchema]
+  addresses: [addressSchema],
+  cart: [
+    {
+      productId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product'
+      },
+      quantity: {
+        type: Number,
+        default: 1,
+        min: 1
+      }
+    }
+  ]
 });
 
 module.exports = mongoose.model('User', userSchema);

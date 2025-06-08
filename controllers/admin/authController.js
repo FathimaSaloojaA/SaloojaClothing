@@ -16,12 +16,12 @@ const verifyLogin = async (req, res) => {
   const user = await User.findOne({ email });
 
   if (!user || !user.isAdmin) {
-    return res.render('admin/login', { error: 'Access denied!' });
+    return res.render('admin/login', { error: 'Access denied!' ,layout:false});
   }
 
   const match = await bcrypt.compare(password, user.password);
   if (!match) {
-    return res.render('admin/login', { error: 'Invalid credentials!' });
+    return res.render('admin/login', { error: 'Invalid credentials!',layout:false });
   }
 
   req.session.admin = user._id;

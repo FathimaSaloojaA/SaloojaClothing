@@ -1,0 +1,146 @@
+<div class="container my-5">
+  <h2 class="mb-4">Your Shopping Cart</h2>
+
+  <% if (cartItems.length === 0) { %>
+    <div class="alert alert-info">Your cart is empty.</div>
+  <% } else { %>
+    <table class="table table-bordered table-hover">
+      <thead class="thead-light">
+        <tr>
+          <th>Product</th>
+          <th>Image</th>
+          <th>Price</th>
+          <th>Quantity</th>
+          <th>Total</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% cartItems.forEach(item => { %>
+          <% const product = item.productId; %>
+          <tr>
+            <td><%= product.name %></td>
+            <td>
+              <img src="<%= product.images[0] %>" alt="<%= product.name %>" style="width: 60px; height: 60px; object-fit: cover;">
+            </td>
+            <td>₹<%= product.price.toFixed(2) %></td>
+            <td>
+  <div class="d-flex align-items-center">
+    <button class="btn btn-sm btn-outline-secondary qty-decrement" data-product-id="<%= product._id %>">−</button>
+    <input type="number" id="quantity-<%= product._id %>" value="<%= item.quantity %>" min="1" max="<%= product.stock %>" class="form-control mx-1" style="width: 60px; text-align: center;" readonly>
+    <button class="btn btn-sm btn-outline-secondary qty-increment" data-product-id="<%= product._id %>">+</button>
+  </div>
+</td>
+            <td>₹<%= (product.price * item.quantity).toFixed(2) %></td>
+            <td>
+  <button class="btn btn-sm btn-danger remove-from-cart" data-product-id="<%= product._id %>">Remove</button>
+</td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+
+    <div class="text-right">
+      <a href="/checkout" class="btn btn-success">Proceed to Checkout</a>
+    </div>
+  <% } %>
+</div>
+<script>
+
+
+
+  document.querySelectorAll('.qty-increment, .qty-decrement').forEach(button => {
+    button.addEventListener('click', async (e) => {
+      const productId = e.target.dataset.productId;
+      const input = document.querySelector(`#quantity-${productId}`);
+      let quantity = parseInt(input.value);
+
+      quantity = e.target.classList.contains('qty-increment') ? quantity + 1 : quantity - 1;
+
+      if (quantity < 1) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Invalid Quantity',
+          text: 'Quantity cannot be less than 1.'
+        });
+        return;
+      }
+
+      try {
+        const response = await fetch(`/cart/update-quantity/${productId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quantity })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          input.value = quantity;
+          // Optional: Notify success before reload
+          Swal.fire({
+            icon: 'success',
+            title: 'Updated!',
+            text: 'Quantity updated successfully.',
+            timer: 1000,
+            showConfirmButton: false
+          });
+          setTimeout(() => location.reload(), 1000);
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Update Failed',
+            text: result.message || 'Could not update quantity.'
+          });
+        }
+      } catch (err) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Something went wrong while updating.'
+        });
+      }
+    });
+  });
+
+  document.querySelectorAll('.remove-from-cart').forEach(button => {
+    button.addEventListener('click', async (e) => {
+      const productId = e.target.dataset.productId;
+
+      const result = await Swal.fire({
+        title: 'Are you sure?',
+        text: "This product will be removed from your cart.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, remove it!'
+      });
+
+      if (result.isConfirmed) {
+        const response = await fetch(`/cart/remove/${productId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          Swal.fire({
+            title: 'Removed!',
+            text: 'The product has been removed from your cart.',
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false
+          });
+          setTimeout(() => location.reload(), 1500);
+        } else {
+          Swal.fire('Error', result.message || 'Something went wrong.', 'error');
+        }
+      }
+    });
+  });
+
+
+  
+</script>

@@ -28,6 +28,23 @@
             <p><strong>Address <%= idx + 1 %>:</strong> <br>
               <%= addr.street %>, <%= addr.city %>, <%= addr.state %> - <%= addr.zip %>, <%= addr.country %>
             </p>
+            <% if (addr.isDefault) { %>
+    <span style="color: green; font-weight: bold;">Default Address</span>
+  <% } else { %>
+    <form action="/set-default-address/<%= addr._id %>" method="POST" style="display: inline;">
+      <button type="submit" class="btn btn-sm btn-primary">Set as Default</button>
+    </form>
+  <% } %>
+            
+            <a href="/edit-address/<%= addr._id %>" class="profile-btn" style="margin-right: 10px;">
+      <i class="fas fa-edit"></i> Edit
+    </a>
+<form action="/delete-address/<%= addr._id %>" method="POST" class="delete-address-form">
+      <button type="submit" class="btn-delete" style="background-color: #dc3545; color: white; padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer;">
+        Delete
+      </button>
+    </form>
+    
           </div>
         <% }) %>
       <% } else { %>
@@ -52,6 +69,15 @@
   </div>
   <div class="info-section">
   <h3>Your Recent Orders</h3>
+
+<a href="/orders" class="btn btn-outline-pink"  style="background: #ff69b4cb;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(255, 105, 180, 0.5);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;" >📦 View My Orders</a>
+
+
   <% if (orders.length > 0) { %>
     <table class="orders-table">
       <thead>
@@ -94,3 +120,44 @@
     <p>No orders placed yet.</p>
   <% } %>
 </div>
+
+
+<script>
+/* --------- 1.  CONFIRM before submit --------- */
+document.querySelectorAll('.delete-address-form').forEach(form =>{
+  form.addEventListener('submit', e=>{
+    e.preventDefault();                     // stop normal post
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'Do you really want to delete this address?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it!'
+    }).then(result=>{
+      if(result.isConfirmed){
+        form.submit();                     // proceed
+      }
+    });
+  });
+});
+
+/* --------- 2.  Toast after redirect --------- */
+const params   = new URLSearchParams(window.location.search);
+const type     = params.get('alert');   // 'success' | 'error' | null
+const message  = params.get('msg');     // encoded text
+
+if(type && message){
+  Swal.fire({
+    icon: type,
+    title: type==='success' ? 'Success!' : 'Error!',
+    text: decodeURIComponent(message),
+    timer: 2000,
+    showConfirmButton:false
+  });
+  // Clean the ?alert=… part from the bar without reloading
+  window.history.replaceState({}, '', window.location.pathname);
+}
+</script>
+

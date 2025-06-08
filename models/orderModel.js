@@ -16,7 +16,15 @@ const orderSchema = new Schema({
   totalPrice: Number,
   status: { type: String, default: 'pending' }, // overall order status
   orderDate: { type: Date, default: Date.now },
-  // Add other fields like shipping address, payment info, etc.
+  shippingAddress: {
+  street: String,
+  city: String,
+  state: String,
+  zip: String,
+  country: String
+},
+paymentMethod: { type: String, default: 'Cash on Delivery' } // For future methods
+
 });
 
 module.exports = mongoose.model('Order', orderSchema);

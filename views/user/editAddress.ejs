@@ -1,0 +1,28 @@
+<div class="address-form-container">
+  <div class="address-form-card">
+    <h2>Edit Address</h2>
+    <form action="/edit-address/<%= address._id %>" method="POST">
+      <div class="form-group">
+        <label for="street">Street</label>
+        <input type="text" id="street" name="street" value="<%= address.street %>" required>
+      </div>
+      <div class="form-group">
+        <label for="city">City</label>
+        <input type="text" id="city" name="city" value="<%= address.city %>" required>
+      </div>
+      <div class="form-group">
+        <label for="state">State</label>
+        <input type="text" id="state" name="state" value="<%= address.state %>" required>
+      </div>
+      <div class="form-group">
+        <label for="zip">Zip</label>
+        <input type="text" id="zip" name="zip" value="<%= address.zip %>" required>
+      </div>
+      <div class="form-group">
+        <label for="country">Country</label>
+        <input type="text" id="country" name="country" value="<%= address.country %>" required>
+      </div>
+      <button type="submit" class="submit-btn">Update Address</button>
+    </form>
+  </div>
+</div>

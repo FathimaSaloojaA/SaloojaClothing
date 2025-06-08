@@ -158,7 +158,8 @@ const getOrderDetails=async (req, res) => {
   try {
     const order = await Order.findOne({ orderID: req.params.orderID }).lean();
     if (!order) return res.status(404).send('Order not found');
-    res.render('user/orderDetail', { order });
+    res.render('user/orderDetail', { order,userName: req.session.user ? req.session.user.firstName : '',
+    layout: 'user/detailsLayout' });
   } catch (err) {
     res.status(500).send('Server error');
   }
@@ -178,9 +179,130 @@ const postCancelOrder=async (req, res) => {
 
     // TODO: Increase stock of products in inventory here
 
-    res.redirect('/user/profile');
+    res.redirect('/profile');
   } catch (err) {
     res.status(500).send('Server error');
+  }
+};
+
+const getAddAddressPage = (req, res) => {
+
+  res.render('user/addAddress', { user: req.session.user,userName: req.session.user ? req.session.user.firstName : '',
+    layout: 'user/detailsLayout' });
+};
+
+const postAddAddress = async (req, res) => {
+  try {
+    const { street, city, state, zip, country } = req.body;
+    const user = await User.findById(req.session.user._id);
+
+    user.addresses.push({ street, city, state, zip, country });
+    await user.save();
+
+    res.redirect('/profile');
+  } catch (err) {
+    console.error("Error adding address:", err);
+    res.status(500).send("Something went wrong");
+  }
+};
+
+const getEditAddressForm = async (req, res) => {
+  const userId = req.session.user._id;
+  const addressId = req.params.id;
+
+  try {
+    const user = await User.findById(userId);
+    const address = user.addresses.id(addressId); // Mongoose subdoc lookup
+
+    if (!address) {
+      return res.status(404).send('Address not found');
+    }
+
+    res.render('user/editAddress', { address,userName: req.session.user ? req.session.user.firstName : '',
+    layout: 'user/detailsLayout' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Server error');
+  }
+};
+
+const postEditAddress = async (req, res) => {
+  const userId = req.session.user._id;
+  const addressId = req.params.id;
+
+  const { street, city, state, zip, country } = req.body;
+
+  try {
+    const user = await User.findById(userId);
+    const address = user.addresses.id(addressId);
+
+    if (!address) return res.status(404).send('Address not found');
+
+    address.street = street;
+    address.city = city;
+    address.state = state;
+    address.zip = zip;
+    address.country = country;
+
+    await user.save();
+    res.redirect('/profile');
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Server error');
+  }
+};
+
+const deleteAddress = async (req, res) => {
+  const userId    = req.session.user._id;
+  const addressId = req.params.addressId;
+
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.redirect(
+        `/profile?alert=error&msg=${encodeURIComponent('User not found')}`
+      );
+    }
+
+    // remove the sub-document
+    user.addresses = user.addresses.filter(
+      a => a._id.toString() !== addressId
+    );
+    await user.save();
+
+    return res.redirect(
+      `/profile?alert=success&msg=${encodeURIComponent('Address deleted successfully')}`
+    );
+  } catch (err) {
+    console.error(err);
+    return res.redirect(
+      `/profile?alert=error&msg=${encodeURIComponent('Something went wrong')}`
+    );
+  }
+};
+
+const setDefaultAddress = async (req, res) => {
+  const userId = req.session.user._id;
+  const addressId = req.params.addressId;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.redirect('/profile?alert=error&msg=User not found');
+    }
+
+    // Set all addresses to isDefault: false
+    user.addresses.forEach(address => {
+      address.isDefault = address._id.toString() === addressId;
+    });
+
+    await user.save();
+
+    return res.redirect('/profile?alert=success&msg=Default address updated');
+  } catch (err) {
+    console.error(err);
+    return res.redirect('/profile?alert=error&msg=Something went wrong');
   }
 };
 
@@ -190,4 +312,5 @@ const postCancelOrder=async (req, res) => {
 
 
 
-module.exports = { getUserProfile,getEditProfile,postEditProfile,getVerifyNewEmail ,postVerifyNewEmail,getChangePassword,postChangePassword,getOrderDetails,postCancelOrder};
+
+module.exports = { getUserProfile,getEditProfile,postEditProfile,getVerifyNewEmail ,postVerifyNewEmail,getChangePassword,postChangePassword,getOrderDetails,postCancelOrder,getAddAddressPage,postAddAddress,getEditAddressForm,postEditAddress,deleteAddress,setDefaultAddress};

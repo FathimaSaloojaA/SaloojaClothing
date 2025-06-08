@@ -1,0 +1,177 @@
+<div class="checkout-container">
+  <h2 class="title">🛒 Checkout</h2>
+
+  <!-- 🔶 Address Section -->
+  <div class="section address-section">
+    <h3>Select Delivery Address</h3>
+    
+    <div class="address-list">
+      <% addresses.forEach(addr => { %>
+        <div class="address-card <%= addr._id.toString() === defaultAddressId ? 'selected' : '' %>">
+          <input type="radio" name="selectedAddress" value="<%= addr._id %>" 
+            <%= addr._id.toString() === defaultAddressId ? 'checked' : '' %> />
+          <div class="details">
+            <p><%= addr.street %>, <%= addr.city %></p>
+            <p><%= addr.state %> - <%= addr.zip %></p>
+            <p><%= addr.country %></p>
+          </div>
+          <button class="edit-btn" data-id="<%= addr._id %>">✏️ Edit</button>
+        </div>
+      <% }) %>
+    </div>
+
+    <!-- 🔶 Add Address Button -->
+    <button class="add-address-toggle">➕ Add New Address</button>
+
+    <!-- 🔶 Add Address Form (Hidden initially) -->
+    <form action="/checkout/add-address" method="POST" class="address-form hidden" id="addAddressForm">
+      <input type="text" name="street" placeholder="Street" required />
+      <input type="text" name="city" placeholder="City" required />
+      <input type="text" name="state" placeholder="State" required />
+      <input type="text" name="zip" placeholder="ZIP Code" required />
+      <input type="text" name="country" placeholder="Country" required />
+      <button type="submit">Save Address</button>
+    </form>
+
+    <!-- 🔶 Edit Address Form Placeholder (Rendered via JS) -->
+    <div id="editAddressContainer"></div>
+  </div>
+
+  <!-- 🛍️ Cart Summary -->
+  <div class="section cart-section">
+    <h3>Your Items</h3>
+    <div class="cart-table">
+      <% cartItems.forEach(item => { %>
+        <div class="cart-item">
+          <img src="<%= item.image %>" alt="<%= item.name %>">
+          <div class="info">
+            <h4><%= item.name %></h4>
+            <% if (item.discountPercent > 0) { %>
+              <p class="price">₹<%= item.discountedPrice.toFixed(2) %> 
+                <span class="original">₹<%= item.originalPrice.toFixed(2) %></span>
+              </p>
+            <% } else { %>
+              <p class="price">₹<%= item.originalPrice.toFixed(2) %></p>
+            <% } %>
+            <p>Qty: <%= item.quantity %></p>
+            <p>Total: ₹<%= item.itemTotal.toFixed(2) %></p>
+            <% if (item.couponNote) { %><small class="note">Coupon: <%= item.couponNote %></small><% } %>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+
+  <!-- 💰 Price Summary -->
+  <div class="section summary-section">
+    <h3>Price Details</h3>
+    <ul>
+      <li>Subtotal: ₹<%= subtotal.toFixed(2) %></li>
+      <li>Tax: ₹<%= tax.toFixed(2) %></li>
+      <li>Discount: - ₹<%= discount.toFixed(2) %></li>
+      <li>Shipping: ₹<%= shipping.toFixed(2) %></li>
+      <li class="final">Total: ₹<%= finalTotal.toFixed(2) %></li>
+    </ul>
+
+    <!-- 💳 Payment Method -->
+<div class="section payment-section">
+  <h3>Select Payment Method</h3>
+
+  <div class="payment-options">
+    <label class="payment-option selected">
+      <input type="radio" name="paymentMethod" value="Cash on Delivery" checked />
+      <div class="card">
+        <span class="emoji">💵</span>
+        <span class="text">Cash on Delivery</span>
+      </div>
+    </label>
+
+    <label class="payment-option disabled">
+      <input type="radio" name="paymentMethod" value="UPI" disabled />
+      <div class="card">
+        <span class="emoji">📱</span>
+        <span class="text">UPI (Coming Soon)</span>
+      </div>
+    </label>
+
+    <label class="payment-option disabled">
+      <input type="radio" name="paymentMethod" value="Card" disabled />
+      <div class="card">
+        <span class="emoji">💳</span>
+        <span class="text">Credit/Debit Card</span>
+      </div>
+    </label>
+  </div>
+</div>
+
+
+    <form action="/checkout/place-order" method="POST">
+      <input type="hidden" name="selectedAddress" value="<%= defaultAddressId %>" id="selectedAddressInput">
+      <button type="submit" class="place-order-btn">📦 Place Order - COD</button>
+    </form>
+  </div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+  const addAddressBtn = document.querySelector('.add-address-toggle');
+  const addAddressForm = document.getElementById('addAddressForm');
+  const editAddressContainer = document.getElementById('editAddressContainer');
+  const editButtons = document.querySelectorAll('.edit-btn');
+  const radioInputs = document.querySelectorAll('input[name="selectedAddress"]');
+  const selectedAddressInput = document.getElementById('selectedAddressInput');
+
+  // ✅ Toggle Add Address Form
+  addAddressBtn.addEventListener('click', () => {
+    addAddressForm.classList.toggle('hidden');
+    addAddressBtn.textContent = addAddressForm.classList.contains('hidden') ? '➕ Add New Address' : '✖️ Cancel';
+  });
+
+  // ✅ Update Selected Address Hidden Input
+  radioInputs.forEach(radio => {
+    radio.addEventListener('change', () => {
+      selectedAddressInput.value = radio.value;
+    });
+  });
+
+  // ✅ Handle Inline Edit Button
+  editButtons.forEach(button => {
+    button.addEventListener('click', async (e) => {
+      const addressId = button.getAttribute('data-id');
+
+      try {
+        // Fetch address details from server
+        const response = await fetch(`/checkout/address/${addressId}`);
+        const data = await response.json();
+
+        if (data.success) {
+          const address = data.address;
+
+          // Generate and insert editable form inline
+          editAddressContainer.innerHTML = `
+            <form action="/checkout/edit-address/${address._id}" method="POST" class="address-form" style="margin-top: 1rem;">
+              <input type="text" name="street" value="${address.street}" required />
+              <input type="text" name="city" value="${address.city}" required />
+              <input type="text" name="state" value="${address.state}" required />
+              <input type="text" name="zip" value="${address.zip}" required />
+              <input type="text" name="country" value="${address.country}" required />
+              <button type="submit">Update Address</button>
+              <button type="button" class="cancel-edit-btn" style="background:#ddd; color:#333; margin-left:10px;">Cancel</button>
+            </form>
+          `;
+
+          // Cancel button functionality
+          document.querySelector('.cancel-edit-btn').addEventListener('click', () => {
+            editAddressContainer.innerHTML = '';
+          });
+        } else {
+          alert("Couldn't fetch address data.");
+        }
+      } catch (error) {
+        console.error("Error fetching address:", error);
+        alert("Something went wrong.");
+      }
+    });
+  });
+});
+
+</script>

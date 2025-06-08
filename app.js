@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const dotenv = require("dotenv");
+
 const cookieParser = require("cookie-parser");
 const adminAuthRoutes = require('./routes/admin/authRoutes');
 const adminUserRoutes = require('./routes/admin/userRoutes');
@@ -34,6 +35,7 @@ mongoose.connect(process.env.MONGO_URI, {
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
+
 
 /*app.use(session({
   secret: process.env.SESSION_SECRET,
@@ -93,18 +95,23 @@ app.use('/', authRoutes);
 app.use('/', indexRoutes);
 const productRoutes = require('./routes/user/productRoutes');
 app.use('/',productRoutes)
-app.use('/',profileRoutes)
+
 
 
  // mount under "/"
 app.use('/admin', adminAuthRoutes);
 
 const cartRoutes = require('./routes/user/cartRoutes');
-app.use('/cart', cartRoutes);
+const checkoutRoutes = require('./routes/user/checkoutRoutes');
+const orderRoutes=require('./routes/user/orderRoutes');
 
 app.use('/admin', adminUserRoutes); // '/admin/users' now works
 app.use('/admin', adminCategoryRoutes)
 app.use('/admin', adminProductRoutes)
+app.use('/',profileRoutes)
+app.use('/cart', cartRoutes);
+app.use('/checkout', checkoutRoutes);
+app.use('/orders', orderRoutes);
 
 
 

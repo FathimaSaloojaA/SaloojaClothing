@@ -84,22 +84,17 @@
 
             <!-- Stock Alert -->
             <% let totalStock = product.stock %>
-            <% if (totalStock === 0) { %>
-                <p class="text-danger font-weight-bold">Sold Out</p>
-            <% } %>
-            
+            <% if (totalStock > 0) { %>
+    <p class="text-info font-weight-bold">In Stock: <%= totalStock %> item<%= totalStock > 1 ? 's' : '' %></p>
+<% } else { %>
+    <p class="text-danger font-weight-bold">Sold Out</p>
+<% } %>
 
-            <!-- Form for Variant Selection -->
+           
             <form action="/cart/add-to-cart" method="POST">
                 <input type="hidden" name="productId" value="<%= product._id %>">
 
-                <!-- Color -->
                 
-
-                <!-- Size -->
-                
-
-                <!-- Quantity -->
                 <div class="form-group">
                     <label for="quantity">Quantity</label>
                     <input type="number" name="quantity" class="form-control w-25" min="1" value="1" required>
@@ -282,6 +277,39 @@
   </div>
 </div>
 <script>
+
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('Product details script running');
+  const urlParams = new URLSearchParams(window.location.search);
+  const error = urlParams.get('error');
+  const success = urlParams.get('success');
+
+  if (error) {
+    console.log('Showing error alert:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Oops!',
+      text: decodeURIComponent(error),
+      confirmButtonColor: '#d33'
+    });
+  }
+
+  if (success) {
+    console.log('Showing success alert:', success);
+    Swal.fire({
+      icon: 'success',
+      title: 'Success!',
+      text: decodeURIComponent(success),
+      timer: 1500,
+      showConfirmButton: false
+    });
+  }
+
+  if (window.history.replaceState) {
+    window.history.replaceState(null, null, window.location.pathname);
+  }
+});
+
   const carouselInner = document.querySelector('#carouselExampleIndicators .carousel-inner');
 
   // Fallback if no images are rendered
@@ -290,6 +318,10 @@
       <img src="/images/no-image-available.png" class="d-block w-100" alt="No image available">
     </div>`;
   }
+
+
+
+  
 </script>
 
     
