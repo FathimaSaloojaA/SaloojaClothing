@@ -14,7 +14,9 @@ const orderSchema = new Schema({
     },
   ],
   totalPrice: Number,
-  status: { type: String, default: 'pending' }, // overall order status
+  status: { type: String, default: 'pending' }, 
+  cancelReason: { type: String, default: '' },
+// overall order status
   orderDate: { type: Date, default: Date.now },
   shippingAddress: {
   street: String,

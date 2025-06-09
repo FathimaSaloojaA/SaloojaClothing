@@ -2,6 +2,8 @@ const Product = require('../../models/productModel');
 const User = require('../../models/userModel');
 const Order = require('../../models/orderModel');
 const { v4: uuidv4 } = require('uuid');
+const mongoose = require('mongoose');
+
 
 const getCheckoutPage = async (req, res) => {
   try {
@@ -136,7 +138,8 @@ const postPlaceOrder = async (req, res) => {
       const discountedPrice = product.price * (1 - (product.discountPercentage || 0) / 100);
 
       return {
-        productId: product._id,
+        productId: new mongoose.Types.ObjectId(product._id),
+
         name: product.name,
         quantity: item.quantity,
         price: discountedPrice,
@@ -178,7 +181,7 @@ const postPlaceOrder = async (req, res) => {
 
 const getOrderSuccess = async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id).populate('products.productId');
     if (!order) return res.redirect('/');
 
     res.render('user/order-success', { order, userName: req.session.user ? req.session.user.firstName : '',

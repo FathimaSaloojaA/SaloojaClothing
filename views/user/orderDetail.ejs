@@ -1,0 +1,95 @@
+<div class="order-detail-container">
+  <h2 class="page-title">Order Details - 🧾 <%= order.orderID %></h2>
+  <p><strong>Order Date:</strong> <%= order.orderDate.toDateString() %></p>
+  <p><strong>Status:</strong> <span class="status <%= order.status %>"><%= order.status %></span></p>
+
+  <h3>Shipping Address</h3>
+  <div class="address-card pink-theme">
+    <p><%= order.shippingAddress.street %></p>
+    <p><%= order.shippingAddress.city %>, <%= order.shippingAddress.state %> - <%= order.shippingAddress.zip %></p>
+    <p><%= order.shippingAddress.country %></p>
+  </div>
+
+  <h3>Products</h3>
+<div class="order-product-cards">
+  <% order.products.forEach(prod => { 
+  const product = typeof prod.productId === 'object' && prod.productId?.images ? prod.productId : null;
+  const imagePath = product ? product.images[0] : 'default.jpg';
+%>
+  <div class="order-product-card">
+
+    
+    <img src="<%= imagePath.startsWith('/product-images') ? imagePath : '/product-images/' + imagePath %>" 
+         alt="Product Image" class="order-product-img" />
+         
+    <div class="order-product-info">
+      <h4><%= product ? product.name : prod.name %></h4>
+      <p>Quantity: <%= prod.quantity %></p>
+      <p>Price: ₹<%= prod.price.toFixed(2) %> each</p>
+      <span class="status <%= prod.status %>">[<%= prod.status %>]</span>
+      <a href="/product/<%= product ? product._id : prod.productId %>" class="btn btn-view">🔍 View Product</a>
+    </div>
+  </div>
+<% }) %>
+
+
+
+</div>
+
+
+  <p class="total">Total Price: ₹<%= order.totalPrice.toFixed(2) %></p>
+  <p><strong>Payment Method:</strong> <%= order.paymentMethod %></p>
+
+  <% if (order.status === 'cancelled' && order.cancelReason) { %>
+    <p><strong>Cancel Reason:</strong> <%= order.cancelReason %></p>
+  <% } %>
+
+  <div class="order-actions">
+    <a href="/orders" class="btn btn-secondary">⬅ Back to Orders</a>
+
+    <% if (order.status === 'delivered') { %>
+      <button id="returnBtn" class="btn btn-warning">🔄 Return Order</button>
+    <% } %>
+
+    <a href="/orders/invoice/<%= order.orderID %>" class="btn btn-primary">📄 Download Invoice</a>
+  </div>
+</div>
+<script>
+document.getElementById('returnBtn')?.addEventListener('click', () => {
+    Swal.fire({
+      title: 'Return this order?',
+      input: 'textarea',
+      inputLabel: 'Reason for return (required)',
+      inputPlaceholder: 'Enter your reason...',
+      inputAttributes: {
+        'aria-label': 'Reason for return'
+      },
+      showCancelButton: true,
+      confirmButtonText: 'Return Order',
+      cancelButtonText: 'Cancel',
+      preConfirm: (reason) => {
+        if (!reason) {
+          Swal.showValidationMessage('Reason is required!');
+        }
+        return reason;
+      }
+    }).then(result => {
+      if (result.isConfirmed) {
+        // Submit return reason to your backend (you'll implement this next)
+        fetch('/orders/return-order/<%= order.orderID %>', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason: result.value })
+        })
+        .then(res => {
+          if(res.ok) {
+            Swal.fire('Returned!', 'Your return request has been submitted.', 'success')
+              .then(() => location.reload());
+          } else {
+            Swal.fire('Error', 'Something went wrong.', 'error');
+          }
+        });
+      }
+    });
+  });
+</script>

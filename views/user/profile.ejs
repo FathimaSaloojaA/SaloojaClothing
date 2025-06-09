@@ -97,7 +97,7 @@
             <td><%= new Date(order.orderDate).toLocaleDateString() %></td>
             <td>₹ <%= order.totalPrice.toFixed(2) %></td>
             <td>
-              <a href="/user/orders/<%= order.orderID %>" class="btn btn-sm btn-primary" style="padding: 5px 10px;
+              <a href="/orders/viewDetails/<%= order.orderID %>" class="btn btn-sm btn-primary" style="padding: 5px 10px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -106,10 +106,11 @@
   background-color: #d6336c; /* pink */
   color: white;"  >View Details</a>
               <% if (order.status === 'pending') { %>
-                <form action="/user/orders/<%= order.orderID %>/cancel" method="POST" style="display:inline;">
-                  <button type="submit" class="btn btn-sm btn-danger"  style="background-color: #b02a37; /* dark red */
-  color: white;" >Cancel</button>
-                </form>
+                <form action="/orders/cancel-order/<%= order.orderID %>" method="POST" class="cancel-form">
+  <input type="hidden" name="_method" value="PUT" />
+  <!-- We'll insert the textarea dynamically from JS -->
+  <button type="submit" class="btn btn-danger cancel-btn"> Cancel </button>
+</form>
               <% } %>
             </td>
           </tr>
@@ -159,5 +160,38 @@ if(type && message){
   // Clean the ?alert=… part from the bar without reloading
   window.history.replaceState({}, '', window.location.pathname);
 }
+document.querySelectorAll('.cancel-form').forEach(form => {
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        Swal.fire({
+          title: 'Cancel this order?',
+          input: 'textarea',
+          inputLabel: 'Reason for cancellation (optional)',
+          inputPlaceholder: 'Type your reason here...',
+          inputAttributes: {
+            'aria-label': 'Reason for cancelling the order'
+          },
+          showCancelButton: true,
+          confirmButtonColor: '#ff4f81',
+          cancelButtonColor: '#aaa',
+          confirmButtonText: 'Yes, cancel it!'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Create hidden textarea to send the reason
+            const hiddenReason = document.createElement('textarea');
+            hiddenReason.name = 'reason';
+            hiddenReason.style.display = 'none';
+            hiddenReason.value = result.value || ''; // empty string if nothing typed
+
+            form.appendChild(hiddenReason);
+            form.submit();
+          }
+        });
+      });
+    });
+  ;
+
+
 </script>
 

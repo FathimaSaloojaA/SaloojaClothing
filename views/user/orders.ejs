@@ -4,6 +4,29 @@
   <% if (orders.length === 0) { %>
     <p class="empty-msg">You haven't placed any orders yet.</p>
   <% } else { %>
+    
+<form action="/orders" method="GET" class="order-search-form">
+  <input 
+    type="text" 
+    name="q" 
+    placeholder="Search by Order ID or Product Name" 
+    class="form-control"
+    value="<%= typeof q !== 'undefined' ? q : '' %>" 
+  />
+  <button type="submit" class="btn btn-pink">🔍 Search</button>
+  
+  <% if (typeof q !== 'undefined' && q.trim()) { %>
+    <a href="/orders" class="btn btn-secondary clear-btn"  style="background-color: #cccccc;
+  color: #333;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  text-decoration: none;"   >❌ Clear</a>
+  <% } %>
+</form>
+
+
+
     <div class="orders-grid">
       <% orders.forEach(order => { %>
         <div class="order-card">
@@ -26,17 +49,70 @@
           </div>
 
           <div class="order-actions">
-            <a href="/orders/<%= order._id %>" class="btn btn-primary">🔍 View Details</a>
+            <a href="/orders/viewDetails/<%= order.orderID %>" class="btn btn-primary">🔍 View Details</a>
 
             <% if (order.status !== 'cancelled' && order.status !== 'delivered') { %>
-              <form action="/orders/<%= order._id %>/cancel" method="POST" onsubmit="return confirm('Cancel this order?');">
-                <input type="hidden" name="_method" value="PUT" />
-                <button type="submit" class="btn btn-danger">❌ Cancel Order</button>
-              </form>
-            <% } %>
+  <form action="/orders/cancel-order/<%= order.orderID %>" method="POST" class="cancel-form">
+  <input type="hidden" name="_method" value="PUT" />
+  <!-- We'll insert the textarea dynamically from JS -->
+  <button type="submit" class="btn btn-danger cancel-btn">❌ Cancel Order</button>
+</form>
+
+<% } %>
+
+
           </div>
         </div>
       <% }) %>
     </div>
   <% } %>
+
+<% if (totalPages > 1) { %>
+  <div class="pagination">
+    <% for(let i = 1; i <= totalPages; i++) { %>
+      <a 
+        href="/orders?page=<%= i %><%= q ? '&q=' + encodeURIComponent(q) : '' %>" 
+        class="page-btn <%= i === currentPage ? 'active' : '' %>">
+        <%= i %>
+      </a>
+    <% } %>
+  </div>
+<% } %>
+
+
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.cancel-form').forEach(form => {
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        Swal.fire({
+          title: 'Cancel this order?',
+          input: 'textarea',
+          inputLabel: 'Reason for cancellation (optional)',
+          inputPlaceholder: 'Type your reason here...',
+          inputAttributes: {
+            'aria-label': 'Reason for cancelling the order'
+          },
+          showCancelButton: true,
+          confirmButtonColor: '#ff4f81',
+          cancelButtonColor: '#aaa',
+          confirmButtonText: 'Yes, cancel it!'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Create hidden textarea to send the reason
+            const hiddenReason = document.createElement('textarea');
+            hiddenReason.name = 'reason';
+            hiddenReason.style.display = 'none';
+            hiddenReason.value = result.value || ''; // empty string if nothing typed
+
+            form.appendChild(hiddenReason);
+            form.submit();
+          }
+        });
+      });
+    });
+  });
+</script>

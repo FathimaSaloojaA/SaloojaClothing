@@ -6,6 +6,13 @@ const upload = require('../../middlewares/multerEditemail');
 router.use(isUserLoggedIn,checkUserBlocked)
 
 router.get('/', orderController.getUserOrders);
+router.post('/cancel-order/:orderId', orderController.postCancelOrder);
+router.get('/viewDetails/:orderId', orderController.getOrderdetails)
+router.put('/return-order/:orderId', orderController.returnOrder);
+router.get('/invoice/:orderId', orderController.downloadInvoice);
+
+
+
 
 
 module.exports=router
