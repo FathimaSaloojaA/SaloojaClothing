@@ -27,6 +27,14 @@
       <p>Quantity: <%= prod.quantity %></p>
       <p>Price: ₹<%= prod.price.toFixed(2) %> each</p>
       <span class="status <%= prod.status %>">[<%= prod.status %>]</span>
+      <% if (prod.status === 'delivered') { %>
+  <button class="btn btn-return small-btn" 
+          data-orderid="<%= order.orderID %>" 
+          data-productid="<%= product ? product._id : prod.productId %>">
+    🔄 Return Product
+  </button>
+<% } %>
+
       <a href="/product/<%= product ? product._id : prod.productId %>" class="btn btn-view">🔍 View Product</a>
     </div>
   </div>
@@ -90,6 +98,43 @@ document.getElementById('returnBtn')?.addEventListener('click', () => {
           }
         });
       }
+    });
+  });
+  document.querySelectorAll('.btn-return').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const orderId = btn.dataset.orderid;
+      const productId = btn.dataset.productid;
+
+      Swal.fire({
+        title: 'Return this product?',
+        input: 'textarea',
+        inputLabel: 'Reason for return (required)',
+        inputPlaceholder: 'Enter your reason...',
+        showCancelButton: true,
+        confirmButtonText: 'Return Product',
+        preConfirm: (reason) => {
+          if (!reason) {
+            Swal.showValidationMessage('Reason is required!');
+          }
+          return reason;
+        }
+      }).then(result => {
+        if (result.isConfirmed) {
+          fetch(`/orders/return-product/${orderId}/${productId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason: result.value })
+          })
+          .then(res => {
+            if (res.ok) {
+              Swal.fire('Returned!', 'Product return request submitted.', 'success')
+                .then(() => location.reload());
+            } else {
+              Swal.fire('Error', 'Could not return product.', 'error');
+            }
+          });
+        }
+      });
     });
   });
 </script>

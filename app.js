@@ -5,10 +5,17 @@ const MongoStore = require("connect-mongo");
 const dotenv = require("dotenv");
 
 const cookieParser = require("cookie-parser");
+const authRoutes = require('./routes/user/authRoutes');
 const adminAuthRoutes = require('./routes/admin/authRoutes');
 const adminUserRoutes = require('./routes/admin/userRoutes');
 const adminCategoryRoutes = require('./routes/admin/categoryRoutes');
 const adminProductRoutes = require('./routes/admin/productRoutes');
+const adminOrderRoutes = require('./routes/admin/orderRoutes');
+const cartRoutes = require('./routes/user/cartRoutes');
+const checkoutRoutes = require('./routes/user/checkoutRoutes');
+const orderRoutes=require('./routes/user/orderRoutes');
+const productRoutes = require('./routes/user/productRoutes');
+
 const profileRoutes = require('./routes/user/profileRoutes');
 const path = require("path");
 const indexRoutes = require('./routes/user/indexRoutes')
@@ -37,16 +44,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 
-/*app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
-  cookie: { maxAge: 1000 * 60 * 60 * 24 ,secure: false,  // set to true only if HTTPS
-    httpOnly: true,
-    sameSite: 'lax'        // Use HTTPS
-     
-}}));*/
+
 
 const userSession = session({
   name: 'user.sid',
@@ -90,31 +88,21 @@ app.use(expressLayouts);
 // Static files
 
 // Sample route
-const authRoutes = require('./routes/user/authRoutes');
 app.use('/', authRoutes);
-app.use('/', indexRoutes);
-const productRoutes = require('./routes/user/productRoutes');
-app.use('/',productRoutes)
+ app.use('/', indexRoutes);
+app.use('/',productRoutes);
+// mount un
+ app.use('/admin', adminAuthRoutes);
+app.use('/admin', adminUserRoutes); // '/admin/users' now works 
+app.use('/admin', adminCategoryRoutes);
+ app.use('/admin', adminProductRoutes) ;
+ app.use('/admin', adminOrderRoutes)
+app.use('/',profileRoutes);
+ app.use('/cart', cartRoutes); 
+ app.use('/checkout', checkoutRoutes);
+  app.use('/orders', orderRoutes);
 
-
-
- // mount under "/"
-app.use('/admin', adminAuthRoutes);
-
-const cartRoutes = require('./routes/user/cartRoutes');
-const checkoutRoutes = require('./routes/user/checkoutRoutes');
-const orderRoutes=require('./routes/user/orderRoutes');
-
-app.use('/admin', adminUserRoutes); // '/admin/users' now works
-app.use('/admin', adminCategoryRoutes)
-app.use('/admin', adminProductRoutes)
-app.use('/',profileRoutes)
-app.use('/cart', cartRoutes);
-app.use('/checkout', checkoutRoutes);
-app.use('/orders', orderRoutes);
-
-
-
-
+// Admin routes first
+// User order routes should be AFTER admin routes
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));

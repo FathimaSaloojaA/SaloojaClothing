@@ -10742,6 +10742,130 @@ h2.title {
 .page-btn.active {
   background-color: #c71585;
 }
+/* wallet.css */
+
+
+
+.wallet-container {
+  max-width: 1000px;
+  margin: 60px auto;
+  padding: 30px;
+  background: white;
+  border-radius: 30px;
+  box-shadow: 0 10px 40px rgba(255, 105, 180, 0.3);
+  animation: fadeIn 1s ease;
+  transform-style: preserve-3d;
+}
+
+.wallet-container h2 {
+  font-size: 2.5rem;
+  text-align: center;
+  color: #d63384;
+  margin-bottom: 30px;
+  animation: slideDown 0.6s ease;
+}
+
+.wallet-balance {
+  background: linear-gradient(145deg, #f8bbd0, #fce4ec);
+  padding: 25px;
+  border-radius: 20px;
+  text-align: center;
+  margin-bottom: 40px;
+  box-shadow: 0 10px 25px rgba(255, 105, 180, 0.2);
+  transition: transform 0.4s ease;
+}
+
+.wallet-balance:hover {
+  transform: scale(1.03);
+}
+
+.wallet-balance h3 {
+  font-size: 1.5rem;
+  color: #ad1457;
+}
+
+.balance-amount {
+  font-size: 3rem;
+  font-weight: bold;
+  color: #e91e63;
+  margin-top: 10px;
+  animation: balancePop 0.8s ease-in-out;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(255, 192, 203, 0.2);
+}
+
+thead tr {
+  background-color: #f8bbd0;
+  color: #880e4f;
+}
+
+th, td {
+  padding: 15px 20px;
+  text-align: left;
+}
+
+tbody tr {
+  background-color: #fff0f5;
+  transition: background 0.3s ease;
+}
+
+tbody tr:hover {
+  background-color: #fce4ec;
+}
+
+.credit td {
+  color: #2e7d32;
+  font-weight: 500;
+}
+
+.debit td {
+  color: #c62828;
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .wallet-container {
+    padding: 20px;
+    margin: 20px;
+  }
+
+  .wallet-container h2 {
+    font-size: 2rem;
+  }
+
+  .balance-amount {
+    font-size: 2.2rem;
+  }
+
+  table, thead, tbody, th, td, tr {
+    font-size: 0.9rem;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes balancePop {
+  0% { transform: scale(0.9); opacity: 0; }
+  60% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
 
 
 

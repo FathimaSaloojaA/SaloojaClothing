@@ -1,0 +1,32 @@
+<div class="wallet-container">
+    <a href="/profile" class="back-button">← Back to Profile</a>
+
+  <h2>My Wallet</h2>
+
+  <div class="wallet-balance">
+    <h3>Available Balance:</h3>
+    <p class="balance-amount">₹<%= balance.toFixed(2) %></p>
+  </div>
+
+  <h3>Transaction History</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Amount</th>
+        <th>Description</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% transactions.forEach(tx => { %>
+        <tr class="<%= tx.type === 'credit' ? 'credit' : 'debit' %>">
+          <td><%= tx.type %></td>
+          <td>₹<%= tx.amount.toFixed(2) %></td>
+          <td><%= tx.description %></td>
+          <td><%= tx.date.toLocaleDateString() %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>

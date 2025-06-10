@@ -60,12 +60,12 @@ const postCancelOrder = async (req, res) => {
         await Product.findByIdAndUpdate(item.productId, {
           $inc: { stock: item.quantity }
         });
-        item.status = 'cancelled'; // VERY IMPORTANT
+        item.status = 'cancel requested'; // VERY IMPORTANT
       }
     }
 
     // Update overall order
-    order.status = 'cancelled';
+    order.status = 'cancel requested';
     order.cancelReason = reason || '';
     await order.save();
 
@@ -75,6 +75,60 @@ const postCancelOrder = async (req, res) => {
     res.status(500).send('Error cancelling order');
   }
 };
+
+const cancelProduct = async (req, res) => {
+  try {
+    const { orderID, productId } = req.params;
+    const { reason } = req.body;
+
+    const order = await Order.findOne({ orderID });
+
+    if (!order) return res.redirect('/orders');
+
+    const productItem = order.products.find(
+      (item) => item.productId.toString() === productId
+    );
+
+    if (!productItem || productItem.status === 'cancelled') {
+      return res.redirect('/orders');
+    }
+
+    // Check if order already cancelled or delivered (optional safeguard)
+    if (order.status === 'cancelled' || productItem.status === 'delivered') {
+      return res.redirect('/orders');
+    }
+
+    // Update the product status in the order
+    productItem.status = 'cancel requested';
+
+    // Restock the cancelled product
+    
+    order.totalPrice = order.products
+      .filter((p) => p.status !== 'cancelled')
+      .reduce((sum, p) => sum + p.quantity * p.price, 0);
+
+
+     const allRequestingCancel = order.products
+  .filter((p) => p.status !== 'cancelled' && p.status !== 'delivered')
+  .every((p) => p.status === 'cancel requested');
+
+if (allRequestingCancel) {
+  order.status = 'cancel requested';
+  order.cancelReason = reason || '';
+}
+
+
+    // Optional: Save cancellation reason somewhere — e.g. in productItem, if you add a field like `cancelReason`
+
+    await order.save();
+
+    res.redirect('/orders');
+  } catch (err) {
+    console.error('Error cancelling product in order:', err);
+    res.status(500).send('Error cancelling product');
+  }
+};
+
 
 
 const getOrderdetails=async (req, res) => {
@@ -118,8 +172,8 @@ const returnOrder = async (req, res) => {
       return res.status(400).json({ error: 'Order not eligible for return' });
     }
 
-    order.status = 'returned';
-    order.cancelReason = reason; // Reuse cancelReason field to store return reason
+    order.status = 'return requested';
+    order.returnReason = reason; // Reuse cancelReason field to store return reason
     await order.save();
 
     return res.status(200).json({ message: 'Order returned successfully' });
@@ -128,6 +182,38 @@ const returnOrder = async (req, res) => {
     return res.status(500).json({ error: 'Internal server error' });
   }
 };
+const returnProduct = async (req, res) => {
+  try {
+    const { orderID, productId } = req.params;
+    const { reason } = req.body;
+
+    const order = await Order.findOne({ orderID });
+
+    if (!order) return res.status(404).send('Order not found');
+
+    const productItem = order.products.find(p => p.productId.toString() === productId);
+
+    if (!productItem || productItem.status !== 'delivered') {
+      return res.status(400).send('Product not eligible for return');
+    }
+
+    productItem.status = 'return requested';
+    productItem.returnReason = reason;
+    const allReturned = order.products.every(p => p.status === 'returned' || p.status === 'cancelled');
+if (allReturned) {
+  order.status = 'returned';
+}
+
+
+    await order.save();
+
+    res.status(200).send('Product returned');
+  } catch (err) {
+    console.error('Error returning product:', err);
+    res.status(500).send('Server error');
+  }
+};
+
 
 const downloadInvoice = async (req, res) => {
   try {
@@ -181,5 +267,5 @@ const downloadInvoice = async (req, res) => {
 
 
 module.exports = {
-  getUserOrders,postCancelOrder,getOrderdetails,returnOrder,downloadInvoice
+  getUserOrders,postCancelOrder,cancelProduct,getOrderdetails,returnOrder,returnProduct,downloadInvoice
 };

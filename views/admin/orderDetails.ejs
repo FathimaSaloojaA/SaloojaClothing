@@ -1,0 +1,94 @@
+<div class="admin-order-details-body">
+  <div class="admin-order-details-container">
+    <h1 class="admin-order-details-title">Order: <%= order.orderID %></h1>
+
+    <div class="admin-order-summary">
+      <p><strong>User Email:</strong> <%= order.userEmail %></p>
+      <p><strong>Total Price:</strong> ₹<%= order.totalPrice %></p>
+      <form action="/admin/orders/<%= order.orderID %>/status" method="POST">
+  <label for="orderStatus"><strong>Status:</strong></label>
+  <select name="status" id="orderStatus">
+    <option value="pending" <%= order.status === 'pending' ? 'selected' : '' %>>Pending</option>
+    <option value="shipped" <%= order.status === 'shipped' ? 'selected' : '' %>>Shipped</option>
+    <option value="out for delivery" <%= order.status === 'out for delivery' ? 'selected' : '' %>>Out for Delivery</option>
+    <option value="delivered" <%= order.status === 'delivered' ? 'selected' : '' %>>Delivered</option>
+    <option value="cancelled" <%= order.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+    <option value="cancel requested" <%= order.status === 'cancel requested' ? 'selected' : '' %>>Cancel Requested</option>
+    <option value="returned" <%= order.status === 'returned' ? 'selected' : '' %>>Returned</option>
+    <option value="return rejected" <%= order.status === 'return rejected' ? 'selected' : '' %>>Return Rejected</option>
+  </select>
+  <button type="submit">Update</button>
+
+</form>
+
+<% if (order.status === 'return requested') { %>
+  <div class="order-return-verification">
+    <h3>Return Request for Entire Order</h3>
+
+    <form action="/admin/orders/<%= order.orderID %>/verify-return" method="POST">
+      <button type="submit" name="decision" value="accept">Accept Full Return</button>
+      <button type="submit" name="decision" value="reject">Reject Full Return</button>
+    </form>
+  </div>
+<% } else if (order.status === 'returned') { %>
+  <p><strong>Order Return Status:</strong> ✅ Returned</p>
+<% } else if (order.status === 'return rejected') { %>
+  <p><strong>Order Return Status:</strong> ❌ Return Rejected</p>
+<% } %>
+
+
+
+      <p><strong>Order Date:</strong> <%= order.orderDate.toDateString() %></p>
+    </div>
+
+    <h2 class="admin-product-list-heading">Ordered Products</h2>
+    <div class="admin-product-list">
+      <% order.products.forEach(item => { %>
+        <div class="admin-product-card">
+          <img src="<%= item.productId.images[0] %>" alt="<%= item.name %>" class="admin-product-img">
+          <div class="admin-product-info">
+            <h3 class="admin-product-name"><%= item.name %></h3>
+            <p>Price: ₹<%= item.price %></p>
+            <p>Quantity: <%= item.quantity %></p>
+            
+            <form action="/admin/orders/<%= order.orderID %>/products/<%= item.productId._id %>/status" method="POST">
+  <label>Status:</label>
+  <select name="status">
+    <option value="ordered" <%= item.status === 'ordered' ? 'selected' : '' %>>Ordered</option>
+    <option value="shipped" <%= item.status === 'shipped' ? 'selected' : '' %>>Shipped</option>
+    <option value="out for delivery" <%= item.status === 'out for delivery' ? 'selected' : '' %>>Out for Delivery</option>
+    <option value="delivered" <%= item.status === 'delivered' ? 'selected' : '' %>>Delivered</option>
+    <option value="cancelled" <%= item.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+    <option value="return requested" <%= item.status === 'return requested' ? 'selected' : '' %>>Return Requested</option>
+    <option value="returned" <%= item.status === 'returned' ? 'selected' : '' %>>Returned</option>
+    <option value="cancel requested" <%= item.status === 'cancel requested' ? 'selected' : '' %>>Cancel Requested</option>
+    <option value="return rejected" <%= item.status === 'return rejected' ? 'selected' : '' %>>Return Rejected</option>
+  </select>
+  <button type="submit">Update</button>
+</form>
+
+
+<% if (item.status === 'return requested') { %>
+  <p><strong>Return Reason:</strong> <%= item.returnReason || 'N/A' %></p>
+
+  <form action="/admin/orders/<%= order.orderID %>/products/<%= item.productId._id %>/verify-return" method="POST">
+    <button type="submit" name="decision" value="accept">Accept Return</button>
+    <button type="submit" name="decision" value="reject">Reject Return</button>
+  </form>
+<% } else if (item.status === 'returned') { %>
+  <p><strong>Status:</strong> ✅ Returned</p>
+<% } else if (item.status === 'return rejected') { %>
+  <p><strong>Status:</strong> ❌ Return Rejected</p>
+<% } %>
+
+
+
+          </div>
+        </div>
+      <% }) %>
+    </div>
+
+    <!-- Future section: Return request verification -->
+    <!-- Status change dropdown -->
+  </div>
+  </div>

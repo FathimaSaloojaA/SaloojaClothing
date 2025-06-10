@@ -3,6 +3,7 @@ const User = require('../../models/userModel');
 const Order = require('../../models/orderModel');
 const { sendEmail } = require('../../utils/mailer');
 const bcrypt=require('bcrypt')
+const Wallet = require('../../models/walletModel');
 
 
 
@@ -307,10 +308,34 @@ const setDefaultAddress = async (req, res) => {
 };
 
 
+// GET /user/wallet
+const getWalletDetails = async (req, res) => {
+  try {
+    const userEmail = req.session.user.email; // Or however you store the session
+
+    const wallet = await Wallet.findOne({ userEmail });
+    if (!wallet) {
+      return res.render('wallet', { balance: 0, transactions: [] });
+    }
+
+    res.render('user/wallet', {
+      balance: wallet.balance,
+      transactions: wallet.transactions.sort((a, b) => b.date - a.date),
+      userName: req.session.user ? req.session.user.firstName : '',
+    layout: 'user/detailsLayout'
+    });
+  } catch (err) {
+    console.error('Error fetching wallet:', err);
+    res.status(500).send('Internal Server Error');
+  }
+};
 
 
 
 
 
 
-module.exports = { getUserProfile,getEditProfile,postEditProfile,getVerifyNewEmail ,postVerifyNewEmail,getChangePassword,postChangePassword,getOrderDetails,postCancelOrder,getAddAddressPage,postAddAddress,getEditAddressForm,postEditAddress,deleteAddress,setDefaultAddress};
+module.exports = { getUserProfile,getEditProfile,postEditProfile,getVerifyNewEmail ,
+                  postVerifyNewEmail,getChangePassword,postChangePassword,getOrderDetails,
+                  postCancelOrder,getAddAddressPage,postAddAddress,getEditAddressForm,
+                  postEditAddress,deleteAddress,setDefaultAddress,getWalletDetails};

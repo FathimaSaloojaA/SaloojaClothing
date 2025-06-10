@@ -34,6 +34,9 @@ router.post('/edit-address/:id',  profileController.postEditAddress);
 router.post('/delete-address/:addressId',  profileController.deleteAddress);
 router.post('/set-default-address/:addressId', profileController.setDefaultAddress);
 
+router.get('/wallet', profileController.getWalletDetails);
+
+
 
 
 

@@ -1,0 +1,62 @@
+<div class="admin-orders-body">
+
+<form action="/admin/orders" method="get" class="admin-order-search-form">
+  <input type="text" name="search" value="<%= typeof search !== 'undefined' ? search : '' %>" placeholder="Search by Order ID, Email, or Status" class="admin-order-search-input" />
+  <button type="submit" class="admin-order-search-btn">🔍 Search</button>
+  <% if (search) { %>
+    <a href="/admin/orders" class="admin-order-clear-btn">❌ Clear</a>
+  <% } %>
+</form>
+
+
+  <div class="admin-orders-container">
+    <h1 class="admin-orders-title">📦 All Orders</h1>
+
+    <div class="admin-orders-table-wrapper">
+      <table class="admin-orders-table">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>User Email</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Order Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% orders.forEach(order => { %>
+            <tr class="admin-order-row">
+              <td><%= order.orderID %></td>
+              <td><%= order.userEmail %></td>
+              <td>₹<%= order.totalPrice %></td>
+              <td>
+                <span class="admin-order-status <%= order.status.toLowerCase() %>">
+                  <%= order.status %>
+                </span>
+              </td>
+              <td><%= order.orderDate.toLocaleDateString() %></td>
+              <td>
+                <a href="/admin/orders/<%= order.orderID %>" class="admin-order-view-btn">🔍 View</a>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="pagination">
+  <% if (currentPage > 1) { %>
+    <a href="?page=<%= currentPage - 1 %><%= search ? '&search=' + search : '' %>" class="page-btn">« Prev</a>
+  <% } %>
+
+  <% for (let i = 1; i <= totalPages; i++) { %>
+    <a href="?page=<%= i %><%= search ? '&search=' + search : '' %>" class="page-btn <%= currentPage === i ? 'active' : '' %>"><%= i %></a>
+  <% } %>
+
+  <% if (currentPage < totalPages) { %>
+    <a href="?page=<%= currentPage + 1 %><%= search ? '&search=' + search : '' %>" class="page-btn">Next »</a>
+  <% } %>
+</div>
+
+  </div>

@@ -7,10 +7,13 @@ router.use(isUserLoggedIn,checkUserBlocked)
 
 router.get('/', orderController.getUserOrders);
 router.post('/cancel-order/:orderId', orderController.postCancelOrder);
+router.post('/cancel-product/:orderID/:productId', orderController.cancelProduct);
+
 router.get('/viewDetails/:orderId', orderController.getOrderdetails)
 router.put('/return-order/:orderId', orderController.returnOrder);
 router.get('/invoice/:orderId', orderController.downloadInvoice);
 
+router.put('/return-product/:orderID/:productId', orderController.returnProduct);
 
 
 

@@ -153,6 +153,7 @@ const postPlaceOrder = async (req, res) => {
     const order = new Order({
       orderID: uuidv4().slice(0, 8), // shorten UUID
       userEmail: user.email,
+      
       products,
       totalPrice,
       shippingAddress: {
