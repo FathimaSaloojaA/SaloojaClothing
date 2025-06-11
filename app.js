@@ -3,7 +3,6 @@ const mongoose = require("mongoose");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const dotenv = require("dotenv");
-
 const cookieParser = require("cookie-parser");
 const authRoutes = require('./routes/user/authRoutes');
 const adminAuthRoutes = require('./routes/admin/authRoutes');
@@ -11,11 +10,11 @@ const adminUserRoutes = require('./routes/admin/userRoutes');
 const adminCategoryRoutes = require('./routes/admin/categoryRoutes');
 const adminProductRoutes = require('./routes/admin/productRoutes');
 const adminOrderRoutes = require('./routes/admin/orderRoutes');
+const adminStockRoutes = require('./routes/admin/stockRoutes');
 const cartRoutes = require('./routes/user/cartRoutes');
 const checkoutRoutes = require('./routes/user/checkoutRoutes');
 const orderRoutes=require('./routes/user/orderRoutes');
 const productRoutes = require('./routes/user/productRoutes');
-
 const profileRoutes = require('./routes/user/profileRoutes');
 const path = require("path");
 const indexRoutes = require('./routes/user/indexRoutes')
@@ -97,6 +96,7 @@ app.use('/admin', adminUserRoutes); // '/admin/users' now works
 app.use('/admin', adminCategoryRoutes);
  app.use('/admin', adminProductRoutes) ;
  app.use('/admin', adminOrderRoutes)
+ app.use('/admin', adminStockRoutes)
 app.use('/',profileRoutes);
  app.use('/cart', cartRoutes); 
  app.use('/checkout', checkoutRoutes);

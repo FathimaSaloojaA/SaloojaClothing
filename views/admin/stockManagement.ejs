@@ -1,0 +1,77 @@
+<form method="GET" action="/admin/inventory" class="inventory-filter-form">
+  <input type="text" name="search" placeholder="Search product name" value="<%= query.search || '' %>"/>
+  
+  <select name="stockFilter">
+    <option value="">All Stocks</option>
+    <option value="low" <%= query.stockFilter === 'low' ? 'selected' : '' %>>Low Stock (&lt; 5)</option>
+    <option value="out" <%= query.stockFilter === 'out' ? 'selected' : '' %>>Out of Stock</option>
+  </select>
+
+  <select name="sort">
+    <option value="newest" <%= query.sort === 'newest' ? 'selected' : '' %>>Newest</option>
+    <option value="oldest" <%= query.sort === 'oldest' ? 'selected' : '' %>>Oldest</option>
+    <option value="stockLow" <%= query.sort === 'stockLow' ? 'selected' : '' %>>Stock Low → High</option>
+    <option value="stockHigh" <%= query.sort === 'stockHigh' ? 'selected' : '' %>>Stock High → Low</option>
+  </select>
+
+  <button type="submit">Apply</button>
+  <a href="/admin/inventory">Clear</a>
+</form>
+
+
+<div class="inventory-container">
+  <h1 class="inventory-title">📦 Inventory Management</h1>
+
+  <table class="inventory-table">
+    <thead>
+      <tr>
+        <th>Image</th>
+        <th>Name</th>
+        <th>Category ID</th>
+        <th>Subcategory ID</th>
+        <th>Stock</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% products.forEach(product => { %>
+        <tr>
+          <td>
+            <% if (product.images.length > 0) { %>
+              <img src="<%= product.images[0] %>" alt="Product" class="product-thumb" />
+            <% } else { %>
+              <span>No Image</span>
+            <% } %>
+          </td>
+          <td><%= product.name %></td>
+          <td><%= product.category %></td>
+          <td><%= product.subcategory %></td>
+          <td><%= product.stock %></td>
+          <td>
+            <form action="/admin/inventory/update-stock/<%= product._id %>" method="POST" class="stock-form">
+              <input type="number" name="stock" min="0" value="<%= product.stock %>" />
+              <button type="submit" class="update-btn">Update</button>
+            </form>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<div class="pagination-container">
+  <% if (totalPages > 1) { %>
+    <div class="pagination-controls">
+      <% for (let i = 1; i <= totalPages; i++) { %>
+        <a 
+          href="?page=<%= i %>
+            <% if (query.search) { %>&search=<%= query.search %><% } %>
+            <% if (query.stockFilter) { %>&stockFilter=<%= query.stockFilter %><% } %>
+            <% if (query.sort) { %>&sort=<%= query.sort %><% } %>" 
+          class="pagination-link <%= currentPage === i ? 'active' : '' %>">
+          <%= i %>
+        </a>
+      <% } %>
+    </div>
+  <% } %>
+</div>
+
