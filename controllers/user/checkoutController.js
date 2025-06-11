@@ -39,7 +39,12 @@ const getCheckoutPage = async (req, res) => {
 
     const subtotal = cartItems.reduce((acc, item) => acc + item.itemTotal, 0);
     const tax = 0;
-    const discount = 0;
+    const discount = cartItems.reduce((acc, item) => {
+  const totalOriginal = item.originalPrice * item.quantity;
+  const totalDiscounted = item.discountedPrice * item.quantity;
+  return acc + (totalOriginal - totalDiscounted);
+}, 0);
+
     const shipping = 0;
     const finalTotal = subtotal + tax - discount + shipping;
 

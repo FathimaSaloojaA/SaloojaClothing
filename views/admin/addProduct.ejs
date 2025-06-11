@@ -139,8 +139,8 @@ const form = document.getElementById('addProductForm');
     return Swal.fire('Error', 'Stock must be a non-negative number.', 'error');
   }
 
-  if (discount >= 100) {
-    return Swal.fire('Error', 'Discount should be less than 100%.', 'error');
+  if (discount >= 90) {
+    return Swal.fire('Error', 'Discount should be less than 90%.', 'error');
   }
 
   const imageInput = document.getElementById('images');

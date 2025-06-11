@@ -1,7 +1,7 @@
 <div class="address-form-container">
   <div class="address-form-card">
     <h2>Add New Address</h2>
-    <form action="/add-address" method="POST">
+    <form action="/add-address" method="POST" id="addAddressForm">
       <div class="form-group">
         <label for="street">Street</label>
         <input type="text" id="street" name="street" required>
@@ -31,3 +31,90 @@
     </form>
   </div>
 </div>
+<script>
+  function getElement(id) {
+    return document.getElementById(id);
+  }
+
+  function showError(input, message) {
+    input.classList.add('is-invalid');
+    input.classList.remove('is-valid');
+
+    let errorDiv = input.nextElementSibling;
+    if (!errorDiv || !errorDiv.classList.contains('invalid-feedback')) {
+      errorDiv = document.createElement('div');
+      errorDiv.className = 'invalid-feedback';
+      errorDiv.innerText = message;
+      input.parentNode.appendChild(errorDiv);
+    } else {
+      errorDiv.innerText = message;
+    }
+  }
+
+  function clearError(input) {
+    input.classList.remove('is-invalid');
+    input.classList.add('is-valid');
+
+    const errorDiv = input.nextElementSibling;
+    if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
+      errorDiv.remove();
+    }
+  }
+
+  function validateField(input, name) {
+    const value = input.value.trim();
+    if (value === '' || /^\s+$/.test(value)) {
+      showError(input, `${name} cannot be empty or just spaces`);
+      return false;
+    }
+    clearError(input);
+    return true;
+  }
+
+  function validateZip(input) {
+    const value = input.value.trim();
+    const zipRegex = /^\d{5,10}$/; // Allow 5 to 10 digits (adjust as needed)
+
+    if (!zipRegex.test(value)) {
+      showError(input, `Zip Code must be 5-10 digits`);
+      return false;
+    }
+    clearError(input);
+    return true;
+  }
+
+  function handleAddressValidation(event) {
+    const street = getElement('street');
+    const city = getElement('city');
+    const state = getElement('state');
+    const zip = getElement('zip');
+    const country = getElement('country');
+    const submitBtn = document.querySelector('.submit-btn');
+
+    let isValid = true;
+
+    if (!validateField(street, 'Street')) isValid = false;
+    if (!validateField(city, 'City')) isValid = false;
+    if (!validateField(state, 'State')) isValid = false;
+    if (!validateZip(zip)) isValid = false;
+    if (!validateField(country, 'Country')) isValid = false;
+
+    if (!isValid) {
+      event.preventDefault(); // stop submission if any field is invalid
+      return;
+    }
+
+    // disable button and show loading if valid
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving...';
+  }
+
+  function attachValidation() {
+    const form = getElement('addAddressForm');
+    if (form) {
+      form.addEventListener('submit', handleAddressValidation);
+    }
+  }
+
+  window.onload = attachValidation;
+</script>

@@ -9,13 +9,31 @@ const viewCart = async (req, res) => {
     const userId = req.session.user._id;
     const user = await User.findById(userId).populate('cart.productId');
 
-    res.render('user/cart', { cartItems: user.cart,userName: req.session.user ? req.session.user.firstName : '',
-    layout: 'user/detailsLayout' });
+    const cartItems = user.cart.map(item => {
+      const product = item.productId;
+      const isUnavailable = !product || product.isDeleted || product.stock === 0;
+
+      return {
+        ...item.toObject(),
+        product,
+        isUnavailable
+      };
+    });
+
+    const hasInvalidItems = cartItems.some(item => item.isUnavailable);
+
+    res.render('user/cart', {
+      cartItems,
+      hasInvalidItems,
+      userName: req.session.user ? req.session.user.firstName : '',
+      layout: 'user/detailsLayout'
+    });
   } catch (err) {
     console.error(err);
     res.status(500).send('Error loading cart');
   }
 };
+
 
 
 const addToCart = async (req, res) => {
@@ -26,43 +44,53 @@ const addToCart = async (req, res) => {
     const product = await Product.findById(productId);
 
     if (!product || product.isDeleted || product.stock === 0) {
-      return res.redirect(`/product/${productId}?error=This product is unavailable or deleted.`);
+      const message = 'This product is unavailable or deleted.';
+      return req.xhr || req.headers.accept.includes('json')
+        ? res.status(400).json({ success: false, message })
+        : res.redirect(`/product/${productId}?error=${message}`);
     }
 
     const user = await User.findById(userId);
-
     const existingItem = user.cart.find(item => item.productId.equals(productId));
+    const requestedQty = parseInt(quantity);
 
     if (existingItem) {
-      const newQuantity = existingItem.quantity + parseInt(quantity);
+      const newQuantity = existingItem.quantity + requestedQty;
 
       if (newQuantity > product.stock) {
-        return res.redirect(`/product/${productId}?error=Requested quantity exceeds stock.`);
+        const message = `Only ${product.stock} items left in stock.`;
+        return req.xhr || req.headers.accept.includes('json')
+          ? res.status(400).json({ success: false, message })
+          : res.redirect(`/product/${productId}?error=${message}`);
       }
 
       existingItem.quantity = newQuantity;
     } else {
-      if (quantity > product.stock) {
-        return res.redirect(`/product/${productId}?error=Requested quantity exceeds stock.`);
+      if (requestedQty > product.stock) {
+        const message = `Only ${product.stock} items available in stock.`;
+        return req.xhr || req.headers.accept.includes('json')
+          ? res.status(400).json({ success: false, message })
+          : res.redirect(`/product/${productId}?error=${message}`);
       }
 
-      user.cart.push({
-        productId,
-        quantity
-      });
+      user.cart.push({ productId, quantity: requestedQty });
     }
-
-    // TODO: Remove from wishlist if you implement it
-    // user.wishlist = user.wishlist.filter(item => item.toString() !== productId);
 
     await user.save();
 
-    return res.redirect(`/product/${productId}?success=Product added to cart.`); // or show a SweetAlert via query or session
+    const cartCount = user.cart.length;
+
+    return req.xhr || req.headers.accept.includes('json')
+      ? res.status(200).json({ success: true, message: 'Product added to cart.', cartCount })
+      : res.redirect(`/product/${productId}?success=Product added to cart.`);
   } catch (err) {
-    console.error(err);
-    res.status(500).send("Internal Server Error");
+    console.error('AddToCart Error:', err);
+    return req.xhr || req.headers.accept.includes('json')
+      ? res.status(500).json({ success: false, message: 'Something went wrong on the server.' })
+      : res.status(500).send('Internal Server Error');
   }
 };
+
 
 
 // updateQuantity
@@ -121,11 +149,23 @@ const removeFromCart = async (req, res) => {
   }
 };
 
+const cartCount=async (req, res) => {
+  try {
+    if (!req.session.user) return res.json({ cartCount: 0 });
+
+    const user = await User.findById(req.session.user._id).lean();
+    const count = user.cart.reduce((acc, item) => acc + item.quantity, 0);
+    res.json({ cartCount: count });
+  } catch (err) {
+    console.error('Cart count error:', err);
+    res.status(500).json({ cartCount: 0 });
+  }
+};
 
 
 
 
 
 module.exports = {
-  addToCart,viewCart,updateQuantity,removeFromCart
+  addToCart,viewCart,updateQuantity,removeFromCart,cartCount
 };

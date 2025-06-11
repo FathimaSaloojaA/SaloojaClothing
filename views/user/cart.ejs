@@ -16,33 +16,52 @@
         </tr>
       </thead>
       <tbody>
-        <% cartItems.forEach(item => { %>
-          <% const product = item.productId; %>
+        <% cartItems.forEach(item => { 
+     const product = item.product;
+     const unavailable = item.isUnavailable;
+%>
           <tr>
             <td><%= product.name %></td>
             <td>
               <img src="<%= product.images[0] %>" alt="<%= product.name %>" style="width: 60px; height: 60px; object-fit: cover;">
             </td>
             <td>₹<%= product.price.toFixed(2) %></td>
+
             <td>
-  <div class="d-flex align-items-center">
-    <button class="btn btn-sm btn-outline-secondary qty-decrement" data-product-id="<%= product._id %>">−</button>
-    <input type="number" id="quantity-<%= product._id %>" value="<%= item.quantity %>" min="1" max="<%= product.stock %>" class="form-control mx-1" style="width: 60px; text-align: center;" readonly>
-    <button class="btn btn-sm btn-outline-secondary qty-increment" data-product-id="<%= product._id %>">+</button>
-  </div>
+  <% if (unavailable) { %>
+    <span class="text-danger">Unavailable</span>
+  <% } else { %>
+    <div class="d-flex align-items-center">
+      <button class="btn btn-sm btn-outline-secondary qty-decrement" data-product-id="<%= product._id %>">−</button>
+      <input type="number" id="quantity-<%= product._id %>" value="<%= item.quantity %>" min="1" max="<%= product.stock %>" class="form-control mx-1" style="width: 60px; text-align: center;" readonly>
+      <button class="btn btn-sm btn-outline-secondary qty-increment" data-product-id="<%= product._id %>">+</button>
+    </div>
+  <% } %>
 </td>
+
             <td>₹<%= (product.price * item.quantity).toFixed(2) %></td>
             <td>
-  <button class="btn btn-sm btn-danger remove-from-cart" data-product-id="<%= product._id %>">Remove</button>
+  <button 
+  class="btn btn-sm <%= unavailable ? 'btn-secondary' : 'btn-danger' %> remove-from-cart" 
+  data-product-id="<%= product._id %>">
+  Remove
+</button>
+
 </td>
+
           </tr>
         <% }) %>
       </tbody>
     </table>
 
     <div class="text-right">
-      <a href="/checkout" class="btn btn-success">Proceed to Checkout</a>
-    </div>
+  <% if (hasInvalidItems) { %>
+    <div class="alert alert-warning">Some products are unavailable. Please remove them to proceed.</div>
+  <% } else { %>
+    <a href="/checkout" class="btn btn-success">Proceed to Checkout</a>
+  <% } %>
+</div>
+
   <% } %>
 </div>
 <script>

@@ -41,7 +41,7 @@
                 <li>
                   <div class="product-line">
   <span><%= prod.name %> (x<%= prod.quantity %>) - ₹<%= (prod.quantity * prod.price).toFixed(2) %></span>
-  <span class="status <%= prod.status %>">[<%= prod.status %>]</span>
+  <span class="status <%= prod.status %>" style="color: rgb(111, 93, 117);"  >[<%= prod.status %>]</span>
 
   <% if (prod.status === 'ordered' && order.status !== 'cancelled') { %>
     <form action="/orders/cancel-product/<%= order.orderID %>/<%= prod.productId._id %>" method="POST" class="product-cancel-form">

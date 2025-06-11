@@ -158,20 +158,22 @@
                             <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Pages</a>
                             <div class="dropdown-menu rounded-0 m-0">
                                 <a href="/cart" class="dropdown-item">Shopping Cart</a>
-                                <a href="" class="dropdown-item">Checkout</a>
+                                <a href="/checkout" class="dropdown-item">Checkout</a>
                             </div>
                         </div>
                         <a href="" class="nav-item nav-link">Contact</a>
                     </div>
                     
-                    <div class="col-lg-11 col-6 text-right">
+                    <div class="col-lg-11 col-6 text-right mr-3">
             <a href="" class="btn border">
                 <i class="fas fa-heart text-primary"></i>
                 <span class="badge">0</span>
             </a>
             <a href="/cart" class="btn border">
                 <i class="fas fa-shopping-cart text-primary"></i>
-                <span class="badge">0</span>
+                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill cart-badge">
+    <%= cartCount %>
+  </span>
             </a>
             </div>
             <div class="navbar-nav ml-auto py-0 d-flex align-items-center">

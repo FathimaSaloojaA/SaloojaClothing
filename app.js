@@ -19,6 +19,7 @@ const profileRoutes = require('./routes/user/profileRoutes');
 const path = require("path");
 const indexRoutes = require('./routes/user/indexRoutes')
 const passport = require('./middlewares/passport');
+const setCartCount = require('./middlewares/cartCount');
  // adjust path as needed
 const expressLayouts = require('express-ejs-layouts');
 const { EMAIL_FROM, EMAIL_PASS } = require('./utils/constants');
@@ -38,6 +39,7 @@ mongoose.connect(process.env.MONGO_URI, {
 });
 
 // Middleware
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
@@ -72,7 +74,7 @@ app.use((req, res, next) => {
   }
 });
 
-
+app.use(setCartCount);
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.static(path.join(__dirname, "public")));

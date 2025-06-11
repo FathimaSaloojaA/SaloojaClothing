@@ -77,7 +77,21 @@
                             </div>
                         </div>
                         <a href="" class="nav-item nav-link">Contact</a>
+
+                        <div class="col-lg-12 col-6 text-right  ml-4 mt-2">
+            <a href="/checkout" class="btn border">
+                <i class="fas fa-heart text-primary"></i>
+                <span class="badge">0</span>
+            </a>
+            <a href="/cart" class="btn border">
+                <i class="fas fa-shopping-cart text-primary"></i>
+                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill cart-badge">
+    <%= cartCount %>
+  </span>
+            </a>
+            </div>
                     </div>
+                    
                     <div class="navbar-nav ml-auto py-0 d-flex align-items-center">
                         <a href="/profile" style="text-decoration: none; color: inherit;">
   <span style="margin-right: 10px; font-weight: 500; display: flex; align-items: center;">

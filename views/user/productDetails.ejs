@@ -91,7 +91,7 @@
 <% } %>
 
            
-            <form action="/cart/add-to-cart" method="POST">
+            <form action="/cart/add-to-cart" method="POST" id="addToCartForm" >
                 <input type="hidden" name="productId" value="<%= product._id %>">
 
                 
@@ -319,9 +319,59 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>`;
   }
 
+// --- Add to Cart AJAX handler ---
+  document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('addToCartForm');
 
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
 
-  
+      const formData = new FormData(form);
+      const data = new URLSearchParams(formData);
+
+      try {
+        const response = await fetch('/cart/add-to-cart', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: data
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Added to Cart!',
+            text: result.message,
+            timer: 1500,
+            showConfirmButton: false
+          });
+
+          // Update cart badge
+          const badge = document.querySelector('.cart-badge');
+          if (badge) badge.textContent = result.cartCount;
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: result.message
+          });
+        }
+      } catch (err) {
+        console.error('Add to Cart AJAX Error:', err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Something went wrong.'
+        });
+      }
+    });
+  }
+});
 </script>
 
     

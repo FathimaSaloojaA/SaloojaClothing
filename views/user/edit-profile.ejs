@@ -1,18 +1,123 @@
 <div class="edit-container">
     <h2>Edit Profile</h2>
-    <form action="/edit-profile" class="editForm"  method="POST" enctype="multipart/form-data">
-      <label>First Name</label>
-      <input type="text" name="firstName" value="<%= user.firstName %>" required>
 
-      <label>Last Name</label>
-      <input type="text" name="lastName" value="<%= user.lastName %>" required>
+    <% if (errorMessage) { %>
+  <div class="alert alert-danger"><%= errorMessage %></div>
+<% } %>
 
-      <label>Email</label>
-      <input type="email" name="email" value="<%= user.email %>" required>
+    <form action="/edit-profile" class="editForm" id="editProfileForm" method="POST" enctype="multipart/form-data">
+  <label>First Name</label>
+  <input type="text" name="firstName" id="firstName" value="<%= user.firstName %>" required>
 
-      <label>Profile Image</label>
-      <input type="file" name="profileImage" accept="image/*">
+  <label>Last Name</label>
+  <input type="text" name="lastName" id="lastName" value="<%= user.lastName %>" required>
 
-      <button class="submit-btn" type="submit">Save Changes</button>
-    </form>
-  </div>
+  <label>Email</label>
+  <input type="email" name="email" id="email" value="<%= user.email %>" required>
+
+  <label>Profile Image</label>
+  <input type="file" name="profileImage" accept="image/*">
+
+  <button class="submit-btn" type="submit">Save Changes</button>
+</form>
+</div>
+
+
+  <script>
+  function getElement(id) {
+    return document.getElementById(id);
+  }
+
+  function showError(input, message) {
+    input.classList.add('is-invalid');
+    input.classList.remove('is-valid');
+
+    const existingError = input.parentNode.querySelector('.invalid-feedback');
+    if (existingError) {
+      existingError.innerText = message;
+    } else {
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'invalid-feedback';
+      errorDiv.innerText = message;
+      input.parentNode.appendChild(errorDiv);
+    }
+  }
+
+  function clearError(input) {
+    input.classList.remove('is-invalid');
+    input.classList.add('is-valid');
+
+    const errorDiv = input.parentNode.querySelector('.invalid-feedback');
+    if (errorDiv) {
+      errorDiv.remove();
+    }
+  }
+
+  function validateField(input, name) {
+    const value = input.value.trim();
+    if (value === '' || /^\s+$/.test(input.value)) {
+      showError(input, `${name} cannot be empty or contain only spaces`);
+      return false;
+    }
+    clearError(input);
+    return true;
+  }
+
+  function validateEmail(emailInput) {
+    const email = emailInput.value.trim();
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!regex.test(email)) {
+      showError(emailInput, 'Please enter a valid email');
+      return false;
+    }
+    clearError(emailInput);
+    return true;
+  }
+
+  function handleEditProfileValidation(event) {
+    const firstName = getElement('firstName');
+    const lastName = getElement('lastName');
+    const email = getElement('email');
+    const submitBtn = document.querySelector('button[type="submit"]');
+
+    let isValid = true;
+
+    if (!validateField(firstName, 'First name')) isValid = false;
+    if (!validateField(lastName, 'Last name')) isValid = false;
+    if (!validateEmail(email)) isValid = false;
+
+    if (!isValid) {
+      event.preventDefault();
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving...';
+  }
+
+  function attachValidation() {
+    const form = getElement('editProfileForm');
+    if (form) {
+      const firstName = getElement('firstName');
+      const lastName = getElement('lastName');
+      const email = getElement('email');
+
+      // Submit validation
+      form.addEventListener('submit', handleEditProfileValidation);
+
+      // Live validation on typing
+      [firstName, lastName, email].forEach(field => {
+        field.addEventListener('input', () => {
+          if (field === email) {
+            validateEmail(email);
+          } else {
+            validateField(field, field.name);
+          }
+        });
+      });
+    }
+  }
+
+  window.onload = attachValidation;
+</script>

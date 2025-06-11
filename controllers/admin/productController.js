@@ -84,8 +84,8 @@ console.log("FILES:", req.files);
       return renderWithError('Product name cannot be empty or just spaces.');
     }
 
-    if (discountPercentage && parseFloat(discountPercentage) >= 100) {
-      return renderWithError('Discount percentage must be less than 100.');
+    if (discountPercentage && parseFloat(discountPercentage) >= 90) {
+      return renderWithError('Discount percentage must be less than 90.');
     }
 
     if (isNaN(price) || price < 0) {

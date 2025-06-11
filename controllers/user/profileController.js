@@ -30,7 +30,9 @@ const getEditProfile = async (req, res) => {
     const user = await User.findById(req.user._id); // assuming JWT puts user in req.user
     res.render('user/edit-profile', { user,
         userName: req.session.user ? req.session.user.firstName : '',
+        errorMessage: null,
     layout: 'user/detailsLayout'
+
      });
   } catch (err) {
     console.log(err);
@@ -42,15 +44,23 @@ const getEditProfile = async (req, res) => {
 const postEditProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
-
     const { firstName, lastName, email } = req.body;
     const profileImage = req.file ? req.file.filename : user.profileImage;
 
     // ✅ If email is changed
     if (email !== user.email) {
-      const otp = Math.floor(100000 + Math.random() * 900000);
+      // Check if email is already in use
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.render('user/edit-profile', {
+          user,
+          errorMessage: 'This email is already in use by another account.',
+          layout: 'user/detailsLayout',
+          userName: req.session.user ? req.session.user.firstName : '',
+        });
+      }
 
-      // Temporarily store new email and OTP
+      const otp = Math.floor(100000 + Math.random() * 900000);
       user.emailTemp = email;
       user.emailVerifyToken = otp;
       user.isVerified = false;
@@ -58,25 +68,29 @@ const postEditProfile = async (req, res) => {
       await sendEmail(
         email,
         'Verify Your New Email Address',
-        `Hi ${user.firstName},\n\nYour OTP to verify the new email address is: ${otp}\n\nThank you!`
+        `Hi ${user.firstName},\n\nYour OTP to verify the new email address is: ${otp}`
       );
 
       await user.save();
+      
 
       return res.render('user/verify-new-email', {
         userId: user._id,
         userName: req.session.user ? req.session.user.firstName : '',
-    layout: 'user/detailsLayout',
+        errorMessage:null,
+        layout: 'user/detailsLayout',
         message: 'OTP sent to new email address!',
       });
     }
 
-    // ✅ If email is not changed, update other info
+    // ✅ If email not changed, update other details
     user.firstName = firstName;
     user.lastName = lastName;
     user.profileImage = profileImage;
 
     await user.save();
+    req.session.user.firstName = user.firstName;
+req.session.user.lastName = user.lastName;
     res.redirect('/profile');
 
   } catch (err) {
@@ -175,7 +189,7 @@ const postCancelOrder=async (req, res) => {
       return res.status(400).send('Order cannot be cancelled');
     }
 
-    order.status = 'cancelled';
+    order.status = 'cancel requested';
     await order.save();
 
     // TODO: Increase stock of products in inventory here

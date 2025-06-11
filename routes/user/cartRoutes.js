@@ -9,6 +9,7 @@ router.use(isUserLoggedIn,checkUserBlocked)
 router.get('/', cartController.viewCart);
 
 router.post('/add-to-cart', cartController.addToCart);
+router.post('/add-to-cart/count', cartController.cartCount);
 // Update quantity of a product in cart
 router.post('/update-quantity/:productId', cartController.updateQuantity);
 
