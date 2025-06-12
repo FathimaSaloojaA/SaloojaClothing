@@ -57,9 +57,12 @@
 
     <% if (order.status === 'delivered') { %>
       <button id="returnBtn" class="btn btn-warning">🔄 Return Order</button>
+      <a href="/orders/invoice/<%= order.orderID %>" class="btn btn-primary">📄 Download Invoice</a>
     <% } %>
+    
 
-    <a href="/orders/invoice/<%= order.orderID %>" class="btn btn-primary">📄 Download Invoice</a>
+    
+    
   </div>
 </div>
 <script>

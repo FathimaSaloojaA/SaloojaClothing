@@ -177,7 +177,12 @@ const updateProductStatus = async (req, res) => {
         await product.save();
         console.log(`Stock updated: ${product.name} stock increased by ${productToUpdate.quantity}`);
       }
+       // 💰 Deduct cancelled/returned product amount from total price
+      const refundAmount = productToUpdate.quantity * productToUpdate.price;
+      order.totalPrice = Math.max(0, order.totalPrice - refundAmount); // prevent negative total
+      console.log(`Order total reduced by ₹${refundAmount.toFixed(2)} for cancelled/returned product`);
     }
+    await order.save();
 
     res.redirect(`/admin/orders/${orderID}`);
   } catch (error) {

@@ -24,7 +24,7 @@
 <% if (order.status === 'return requested') { %>
   <div class="order-return-verification">
     <h3>Return Request for Entire Order</h3>
-
+<p><strong>Return Reason:</strong> <%= order.returnReason || 'N/A' %></p>
     <form action="/admin/orders/<%= order.orderID %>/verify-return" method="POST">
       <button type="submit" name="decision" value="accept">Accept Full Return</button>
       <button type="submit" name="decision" value="reject">Reject Full Return</button>

@@ -47,32 +47,42 @@ const addToCart = async (req, res) => {
       const message = 'This product is unavailable or deleted.';
       return req.xhr || req.headers.accept.includes('json')
         ? res.status(400).json({ success: false, message })
-        : res.redirect(`/product/${productId}?error=${message}`);
+        : res.redirect(`/product/${productId}?error=${encodeURIComponent(message)}`);
     }
+
+    const requestedQty = parseInt(quantity);
+    if (isNaN(requestedQty) || requestedQty <= 0) {
+      const message = 'Invalid quantity selected.';
+      return req.xhr || req.headers.accept.includes('json')
+        ? res.status(400).json({ success: false, message })
+        : res.redirect(`/product/${productId}?error=${encodeURIComponent(message)}`);
+    }
+
+    // Calculate per-user max limit based on product stock
+    const maxQtyPerUser = product.stock >= 5 ? 5 : 2;
 
     const user = await User.findById(userId);
     const existingItem = user.cart.find(item => item.productId.equals(productId));
-    const requestedQty = parseInt(quantity);
+    const currentQty = existingItem ? existingItem.quantity : 0;
+    const newTotalQty = currentQty + requestedQty;
+
+    if (newTotalQty > maxQtyPerUser) {
+      const message = `You can only add a maximum of ${maxQtyPerUser} items for this product. You already have ${currentQty}.`;
+      return req.xhr || req.headers.accept.includes('json')
+        ? res.status(400).json({ success: false, message })
+        : res.redirect(`/product/${productId}?error=${encodeURIComponent(message)}`);
+    }
+
+    if (newTotalQty > product.stock) {
+      const message = `Only ${product.stock} items available in stock. You already have ${currentQty}.`;
+      return req.xhr || req.headers.accept.includes('json')
+        ? res.status(400).json({ success: false, message })
+        : res.redirect(`/product/${productId}?error=${encodeURIComponent(message)}`);
+    }
 
     if (existingItem) {
-      const newQuantity = existingItem.quantity + requestedQty;
-
-      if (newQuantity > product.stock) {
-        const message = `Only ${product.stock} items left in stock.`;
-        return req.xhr || req.headers.accept.includes('json')
-          ? res.status(400).json({ success: false, message })
-          : res.redirect(`/product/${productId}?error=${message}`);
-      }
-
-      existingItem.quantity = newQuantity;
+      existingItem.quantity = newTotalQty;
     } else {
-      if (requestedQty > product.stock) {
-        const message = `Only ${product.stock} items available in stock.`;
-        return req.xhr || req.headers.accept.includes('json')
-          ? res.status(400).json({ success: false, message })
-          : res.redirect(`/product/${productId}?error=${message}`);
-      }
-
       user.cart.push({ productId, quantity: requestedQty });
     }
 
@@ -82,7 +92,7 @@ const addToCart = async (req, res) => {
 
     return req.xhr || req.headers.accept.includes('json')
       ? res.status(200).json({ success: true, message: 'Product added to cart.', cartCount })
-      : res.redirect(`/product/${productId}?success=Product added to cart.`);
+      : res.redirect(`/product/${productId}?success=${encodeURIComponent('Product added to cart.')}`);
   } catch (err) {
     console.error('AddToCart Error:', err);
     return req.xhr || req.headers.accept.includes('json')
@@ -108,14 +118,22 @@ const updateQuantity = async (req, res) => {
       return res.status(404).json({ message: 'Product not found or deleted' });
     }
 
+    const maxAllowed = product.stock >= 5 ? 5 : 2;
+
     if (qty > product.stock) {
-      return res.status(400).json({ message: 'Quantity exceeds stock' });
+      return res.status(400).json({ message: `Only ${product.stock} in stock` });
+    }
+
+    if (qty > maxAllowed) {
+      return res.status(400).json({
+        message: `You can only buy a maximum of ${maxAllowed} for this product`
+      });
     }
 
     const user = await User.findById(userId);
-    const cartItem = user.cart.find(item => 
-  item.productId && item.productId.toString() === productId
-);
+    const cartItem = user.cart.find(item =>
+      item.productId && item.productId.toString() === productId
+    );
     if (!cartItem) {
       return res.status(404).json({ message: 'Product not in cart' });
     }

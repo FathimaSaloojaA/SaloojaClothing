@@ -174,6 +174,13 @@ const postPlaceOrder = async (req, res) => {
 
     await order.save();
 
+  for (const item of user.cart) {
+      const product = item.productId;
+      product.stock = Math.max(0, product.stock - item.quantity); // Ensure no negative stock
+      await product.save();
+    }
+
+
     // Clear cart
     user.cart = [];
     await user.save();

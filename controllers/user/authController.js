@@ -215,7 +215,7 @@ handleForgotPassword : async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.render('user/forgot-password', { error: 'Email not registered', layout: false });
+      return res.render('user/forgot-password', { error: 'Email not registered', layout: false,success:null });
     }
 
     const token = crypto.randomBytes(32).toString('hex');

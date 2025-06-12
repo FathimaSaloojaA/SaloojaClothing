@@ -174,4 +174,87 @@
   });
 });
 
+function createError(input, message) {
+    clearError(input);
+
+    input.classList.add('invalid-input');
+    const error = document.createElement('div');
+    error.className = 'error-msg';
+    error.innerText = message;
+    input.insertAdjacentElement('afterend', error);
+  }
+
+  function clearError(input) {
+    input.classList.remove('invalid-input');
+    const next = input.nextElementSibling;
+    if (next && next.classList.contains('error-msg')) {
+      next.remove();
+    }
+  }
+
+  function validateAddressForm(form) {
+  const fields = form.querySelectorAll('input[type="text"]');
+  let valid = true;
+
+  const onlyAlphabetsRegex = /^[A-Za-z\s]+$/;
+
+  fields.forEach(input => {
+    clearError(input);
+    const value = input.value.trim();
+    const name = input.name;
+
+    if (value === '' || /^\s+$/.test(value)) {
+      createError(input, `${capitalize(name)} cannot be empty or just spaces.`);
+      valid = false;
+    } else if (name === 'zip') {
+      if (!/^\d{5,10}$/.test(value)) {
+        createError(input, "ZIP Code must be 5 to 10 digits.");
+        valid = false;
+      }
+    } else if (['street', 'city', 'state', 'country'].includes(name)) {
+      if (!onlyAlphabetsRegex.test(value)) {
+        createError(input, `${capitalize(name)} must contain only alphabets.`);
+        valid = false;
+      }
+    }
+  });
+
+  return valid;
+}
+
+
+  function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  // ✅ Add Address Form Validation
+  document.getElementById('addAddressForm')?.addEventListener('submit', function (e) {
+    if (!validateAddressForm(this)) e.preventDefault();
+  });
+
+  // ✅ Attach validation to dynamically inserted Edit Address Form
+  const editAddressObserver = new MutationObserver(() => {
+    const editForm = document.querySelector('#editAddressContainer form');
+    if (editForm) {
+      editForm.addEventListener('submit', function (e) {
+        if (!validateAddressForm(this)) e.preventDefault();
+      });
+
+      // Clear errors on input
+      editForm.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', () => clearError(input));
+      });
+    }
+  });
+
+  editAddressObserver.observe(document.getElementById('editAddressContainer'), {
+    childList: true,
+    subtree: true
+  });
+
+  // Clear errors on Add form too
+  document.querySelectorAll('#addAddressForm input')?.forEach(input => {
+    input.addEventListener('input', () => clearError(input));
+  });
+
 </script>

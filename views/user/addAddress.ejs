@@ -62,14 +62,22 @@
   }
 
   function validateField(input, name) {
-    const value = input.value.trim();
-    if (value === '' || /^\s+$/.test(value)) {
-      showError(input, `${name} cannot be empty or just spaces`);
-      return false;
-    }
-    clearError(input);
-    return true;
+  const value = input.value.trim();
+  const onlyAlphabetsRegex = /^[A-Za-z\s]+$/;
+
+  if (value === '' || /^\s+$/.test(value)) {
+    showError(input, `${name} cannot be empty or just spaces`);
+    return false;
+  } else if (['Street', 'City', 'State', 'Country'].includes(name) && !onlyAlphabetsRegex.test(value)) {
+    showError(input, `${name} must contain only alphabets`);
+    return false;
   }
+
+  clearError(input);
+  return true;
+}
+
+
 
   function validateZip(input) {
     const value = input.value.trim();

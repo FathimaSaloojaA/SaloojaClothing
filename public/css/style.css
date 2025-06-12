@@ -47,6 +47,9 @@ html {
   line-height: 1.15;
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  padding: 0;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 article, aside, figcaption, figure, footer, header, hgroup, main, nav, section {
@@ -67,6 +70,9 @@ body {
   background-position: center;    /* centers the image */
   background-repeat: no-repeat;   /* prevents tiling */
   background-color: rgba(224, 220, 220, 0.2); /* fallback or overlay */
+  padding: 0;
+  overflow-x: hidden;
+  width: 100%;
 
 }
 
@@ -10865,7 +10871,15 @@ tbody tr:hover {
   60% { transform: scale(1.1); opacity: 1; }
   100% { transform: scale(1); }
 }
-
+.error-msg {
+    color: red;
+    font-size: 0.85rem;
+    margin-top: 2px;
+  }
+  .invalid-input {
+    border: 1px solid red;
+    background-color: #fff0f0;
+  }
 
 
 

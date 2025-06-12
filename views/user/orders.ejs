@@ -45,7 +45,7 @@
 
   <% if (prod.status === 'ordered' && order.status !== 'cancelled') { %>
     <form action="/orders/cancel-product/<%= order.orderID %>/<%= prod.productId._id %>" method="POST" class="product-cancel-form">
-      <button type="submit" class="btn btn-danger small-btn">❌ Cancel Product</button>
+      <button type="submit" class="btn btn-danger small-btn" style="background-color: red; height: 25px; font-size: x-small;" > Cancel Product</button>
     </form>
   <% } %>
 </div>
@@ -64,7 +64,7 @@
   <form action="/orders/cancel-order/<%= order.orderID %>" method="POST" class="cancel-form">
   <input type="hidden" name="_method" value="PUT" />
   <!-- We'll insert the textarea dynamically from JS -->
-  <button type="submit" class="btn btn-danger cancel-btn">❌ Cancel Order</button>
+  <button type="submit" class="btn btn-danger cancel-btn"> Cancel Order</button>
 </form>
 
 <% } %>
