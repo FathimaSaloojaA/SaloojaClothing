@@ -1,0 +1,38 @@
+<div class="category-offer-wrapper">
+  <div class="category-offer-form">
+    <h2>Create Category Offer</h2>
+    <form action="/admin/offers/category" method="POST">
+      <div class="form-group">
+        <label for="name">Offer Name</label>
+        <input type="text" name="name" id="name" required />
+      </div>
+
+      <div class="form-group">
+        <label for="category">Select Category</label>
+        <select name="category" id="category" required>
+          <option value="">-- Select a Category --</option>
+          <% categories.forEach(category => { %>
+            <option value="<%= category._id %>"><%= category.name %></option>
+          <% }); %>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="discountPercentage">Discount Percentage</label>
+        <input type="number" name="discountPercentage" id="discountPercentage" min="1" max="90" required />
+      </div>
+
+      <div class="form-group">
+        <label for="startDate">Start Date</label>
+        <input type="date" name="startDate" id="startDate" required />
+      </div>
+
+      <div class="form-group">
+        <label for="endDate">End Date</label>
+        <input type="date" name="endDate" id="endDate" required />
+      </div>
+
+      <button type="submit" class="submit-btn">Create Category Offer</button>
+    </form>
+  </div>
+</div>

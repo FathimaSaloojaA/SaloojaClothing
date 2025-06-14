@@ -1,0 +1,38 @@
+<div class="offer-product-wrapper">
+  <div class="offer-form-container">
+    <h2>Create Product Offer</h2>
+    <form action="/admin/offers/product" method="POST">
+      <div class="form-group">
+        <label for="name">Offer Name</label>
+        <input type="text" name="name" id="name" required />
+      </div>
+
+      <div class="form-group">
+        <label for="product">Select Product</label>
+        <select name="product" id="product" required>
+          <option value="">-- Select a Product --</option>
+          <% products.forEach(product => { %>
+            <option value="<%= product._id %>"><%= product.name %></option>
+          <% }); %>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="discountPercentage">Discount Percentage</label>
+        <input type="number" name="discountPercentage" id="discountPercentage" min="1" max="90" required />
+      </div>
+
+      <div class="form-group">
+        <label for="startDate">Start Date</label>
+        <input type="date" name="startDate" id="startDate" required />
+      </div>
+
+      <div class="form-group">
+        <label for="endDate">End Date</label>
+        <input type="date" name="endDate" id="endDate" required />
+      </div>
+
+      <button type="submit" class="submit-btn">Create Offer</button>
+    </form>
+  </div>
+</div>

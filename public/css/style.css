@@ -10880,6 +10880,97 @@ tbody tr:hover {
     border: 1px solid red;
     background-color: #fff0f0;
   }
+  .coupon-box {
+  margin-bottom: 20px;
+  padding: 14px;
+  background: #ffe4f0;
+  border: 2px dashed #ff69b4;
+  border-radius: 16px;
+  color: #4b044b;
+  animation: floatUp 0.4s ease-out;
+}
+
+.coupon-form {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.coupon-form input {
+  flex: 1;
+  padding: 10px;
+  border: 2px solid #ffaad4;
+  border-radius: 10px;
+  font-size: 1rem;
+  background: white;
+}
+
+.coupon-form button {
+  padding: 10px 16px;
+  background: #ff69b4;
+  border: none;
+  color: white;
+  font-weight: bold;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.coupon-form button:hover {
+  background: #ff3e9e;
+}
+
+.applied-coupon {
+  font-size: 0.95rem;
+  color: #780a55;
+  background: #ffd6ec;
+  padding: 10px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.remove-btn {
+  background: #ff4d6d;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.remove-btn:hover {
+  background: #d83a5e;
+}
+
+@keyframes floatUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.coupon-error {
+  color: #d40052;
+  font-size: 0.9rem;
+  margin-top: 6px;
+  animation: floatUp 0.3s ease-out;
+}
+.text-pink {
+  color: #ff4da6 !important;
+}
+
+.wishlist-icon.clicked {
+  transform: scale(1.3);
+}
+
 
 
 

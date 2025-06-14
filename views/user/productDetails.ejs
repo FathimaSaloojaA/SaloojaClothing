@@ -23,6 +23,7 @@
     </div>
 
     <div class="row">
+        
         <!-- Image Carousel -->
         <div class="col-md-6">
             <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
@@ -52,9 +53,16 @@
             
         </div>
 
+        
+
+
         <!-- Product Info -->
         <div class="col-md-6">
-            <h3><%= product.name %></h3>
+            <h3><%= product.name %>  <button class="wishlist-toggle btn btn-sm p-0 border-0 bg-transparent"
+        data-product-id="<%= product._id %>">
+  <i class="fa-heart <%= wishlistProductIds.includes(product._id.toString()) ? 'fas text-pink' : 'far text-secondary' %> wishlist-icon"
+     style="font-size: 18px; transition: transform 0.2s ease;"></i>
+</button> </h3>
 
             <!-- Rating -->
             <div class="mb-2">
@@ -104,6 +112,9 @@
                     Add to Cart
                 </button>
             </form>
+
+            
+
 
             <!-- Highlights -->
             <div class="mt-4">
@@ -251,6 +262,11 @@
                         <a href="/cart/add-to-cart/<%= item._id %>" class="btn btn-sm text-dark p-0">
                             <i class="fas fa-shopping-cart text-primary mr-1"></i>Add
                         </a>
+                        <button class="wishlist-toggle btn btn-sm p-0 border-0 bg-transparent"
+        data-product-id="<%= product._id %>">
+  <i class="fa-heart <%= wishlistProductIds.includes(product._id.toString()) ? 'fas text-pink' : 'far text-secondary' %> wishlist-icon"
+     style="font-size: 18px; transition: transform 0.2s ease;"></i>
+</button>
                     </div>
                 </div>
             </div>
@@ -372,6 +388,39 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.wishlist-toggle').forEach(button => {
+      button.addEventListener('click', async (e) => {
+        e.preventDefault();
+
+        const productId = button.getAttribute('data-product-id');
+        const icon = button.querySelector('i');
+
+        try {
+          const res = await fetch(`/wishlist/toggle/${productId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+
+          const data = await res.json();
+          if (data.success) {
+            // Toggle heart icon classes
+            icon.classList.toggle('fas');
+            icon.classList.toggle('far');
+            icon.classList.toggle('text-pink');
+            icon.classList.toggle('text-secondary');
+          }
+        } catch (err) {
+          console.error('Wishlist toggle failed:', err);
+        }
+      });
+    });
+  });
+
+
 </script>
 
     

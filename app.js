@@ -11,11 +11,14 @@ const adminCategoryRoutes = require('./routes/admin/categoryRoutes');
 const adminProductRoutes = require('./routes/admin/productRoutes');
 const adminOrderRoutes = require('./routes/admin/orderRoutes');
 const adminStockRoutes = require('./routes/admin/stockRoutes');
+const adminCouponRoutes = require('./routes/admin/couponRoutes');
+const adminOfferRoutes = require('./routes/admin/offerRoutes');
 const cartRoutes = require('./routes/user/cartRoutes');
 const checkoutRoutes = require('./routes/user/checkoutRoutes');
 const orderRoutes=require('./routes/user/orderRoutes');
 const productRoutes = require('./routes/user/productRoutes');
 const profileRoutes = require('./routes/user/profileRoutes');
+const wishlistRoutes = require('./routes/user/wishlistRoutes');
 const path = require("path");
 const indexRoutes = require('./routes/user/indexRoutes')
 const passport = require('./middlewares/passport');
@@ -99,10 +102,13 @@ app.use('/admin', adminCategoryRoutes);
  app.use('/admin', adminProductRoutes) ;
  app.use('/admin', adminOrderRoutes)
  app.use('/admin', adminStockRoutes)
+ app.use('/admin', adminCouponRoutes)
+ app.use('/admin', adminOfferRoutes)
 app.use('/',profileRoutes);
  app.use('/cart', cartRoutes); 
  app.use('/checkout', checkoutRoutes);
   app.use('/orders', orderRoutes);
+  app.use('/wishlist',wishlistRoutes)
 
 // Admin routes first
 // User order routes should be AFTER admin routes

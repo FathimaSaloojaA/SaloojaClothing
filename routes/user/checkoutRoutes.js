@@ -12,6 +12,11 @@ router.post('/add-address',checkoutController.postAddAddress)
 router.post('/edit-address/:id',checkoutController.postEditAddress)
 router.post('/place-order',checkoutController.postPlaceOrder)
 router.get('/order-success/:id', checkoutController.getOrderSuccess);
+// POST - Apply a coupon
+router.post('/apply-coupon', checkoutController.postApplyCoupon);
+
+// POST - Remove a coupon
+router.post('/remove-coupon', checkoutController.postRemoveCoupon);
 
 
 module.exports=router

@@ -74,7 +74,9 @@ emailTemp: { type: String },
         min: 1
       }
     }
-  ]
+  ],
+  wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }]
+
 });
 
 module.exports = mongoose.model('User', userSchema);

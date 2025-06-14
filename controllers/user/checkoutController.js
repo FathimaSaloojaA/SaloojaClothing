@@ -2,6 +2,8 @@ const Product = require('../../models/productModel');
 const User = require('../../models/userModel');
 const Order = require('../../models/orderModel');
 const { v4: uuidv4 } = require('uuid');
+const Coupon = require('../../models/couponModel');
+
 const mongoose = require('mongoose');
 
 
@@ -45,25 +47,43 @@ const getCheckoutPage = async (req, res) => {
   return acc + (totalOriginal - totalDiscounted);
 }, 0);
 
+const coupon = req.session.appliedCoupon || null;
+let couponDiscount = 0;
+
+if (coupon) {
+  if (coupon.discountType === 'percentage') {
+    couponDiscount = subtotal * (coupon.discountValue / 100);
+  } else {
+    couponDiscount = coupon.discountValue;
+  }
+}
+
+
     const shipping = 0;
-    const finalTotal = subtotal + tax - discount + shipping;
+    const finalTotal = subtotal + tax - discount - couponDiscount + shipping;
+    
 
     const defaultAddress = user.addresses.find(addr => addr.isDefault);
     const allAddresses = user.addresses;
+    const couponError = req.session.couponError || null;
+req.session.couponError = null;
+
 
     res.render('user/checkout', {
-      cartItems,
-      subtotal,
-      tax,
-      discount,
-      shipping,
-      finalTotal,
-      addresses: allAddresses,
-      defaultAddressId: defaultAddress?._id?.toString() || null,
-      userName: req.session.user ? req.session.user.firstName : '',
-    layout: 'user/detailsLayout'
-    });
-
+  cartItems,
+  subtotal,
+  tax,
+  discount,
+  shipping,
+  finalTotal,
+  couponDiscount,
+  appliedCoupon: coupon,
+  couponError,
+  addresses: allAddresses,
+  defaultAddressId: defaultAddress?._id?.toString() || null,
+  userName: req.session.user ? req.session.user.firstName : '',
+  layout: 'user/detailsLayout'
+});
   } catch (err) {
     console.error('Checkout Page Error:', err);
     res.status(500).send('Internal Server Error');
@@ -127,6 +147,52 @@ const postEditAddress=async (req, res) => {
     res.redirect('/checkout');
   }
 }
+
+const postApplyCoupon = async (req, res) => {
+  try {
+    const { couponCode } = req.body;
+    const userId = req.session.user._id;
+
+    const coupon = await Coupon.findOne({ code: couponCode, isActive: true, isDeleted: false });
+    if (!coupon) {
+      req.session.couponError = 'Invalid or expired coupon code.';
+      return res.redirect('/checkout');
+    }
+
+    const user = await User.findById(userId).populate('cart.productId');
+    const subtotal = user.cart.reduce((sum, item) => {
+      const product = item.productId;
+      const discounted = product.price * (1 - (product.discountPercentage || 0) / 100);
+      return sum + (discounted * item.quantity);
+    }, 0);
+
+    if (subtotal < coupon.minPurchase) {
+      req.session.couponError = `Minimum purchase of ₹${coupon.minPurchase} required to use this coupon.`;
+      return res.redirect('/checkout');
+    }
+
+    // Store coupon in session
+    req.session.appliedCoupon = {
+      id: coupon._id,
+      code: coupon.code,
+      discountType: coupon.discountType,
+      discountValue: coupon.discountValue
+    };
+
+    res.redirect('/checkout');
+  } catch (err) {
+    console.error('Apply Coupon Error:', err);
+    req.session.couponError = 'Failed to apply coupon.';
+    res.redirect('/checkout');
+  }
+};
+
+const postRemoveCoupon = (req, res) => {
+  req.session.appliedCoupon = null;
+  res.redirect('/checkout');
+};
+
+
 
 const postPlaceOrder = async (req, res) => {
   try {
@@ -208,5 +274,7 @@ const getOrderSuccess = async (req, res) => {
 
 
 module.exports = {
-  getCheckoutPage,getAddress,postAddAddress,postEditAddress,postPlaceOrder,getOrderSuccess
+  getCheckoutPage,getAddress,postAddAddress,
+  postEditAddress,postPlaceOrder,getOrderSuccess,
+  postApplyCoupon,postRemoveCoupon
 };

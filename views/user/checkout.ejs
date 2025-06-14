@@ -65,6 +65,29 @@
   <!-- 💰 Price Summary -->
   <div class="section summary-section">
     <h3>Price Details</h3>
+
+    <!-- 🎟️ Coupon Section -->
+     <% if (couponError) { %>
+  <p class="coupon-error"><%= couponError %></p>
+<% } %>
+
+<div class="coupon-box">
+  <% if (!appliedCoupon) { %>
+    <form action="/checkout/apply-coupon" method="POST" class="coupon-form">
+      <input type="text" name="couponCode" placeholder="Enter coupon code" required>
+      <button type="submit">Apply</button>
+    </form>
+  <% } else { %>
+    <div class="applied-coupon">
+      ✅ Coupon "<strong><%= appliedCoupon.code %></strong>" applied
+      (<%= appliedCoupon.discountType === 'percentage' ? appliedCoupon.discountValue + '%' : '₹' + appliedCoupon.discountValue %> off)
+      <form action="/checkout/remove-coupon" method="POST" style="display:inline;">
+        <button type="submit" class="remove-btn">Remove</button>
+      </form>
+    </div>
+  <% } %>
+</div>
+
     <ul>
       <li>Subtotal: ₹<%= subtotal.toFixed(2) %></li>
       <li>Tax: ₹<%= tax.toFixed(2) %></li>

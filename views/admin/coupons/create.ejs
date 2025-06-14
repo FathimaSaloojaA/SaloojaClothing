@@ -1,0 +1,40 @@
+<div class="create-coupon-container">
+  <h1 class="create-title">➕ Create New Coupon</h1>
+
+  <form action="/admin/coupons/create" method="POST" class="form-card">
+    <div class="form-group">
+      <label for="code">Coupon Code</label>
+      <input type="text" name="code" id="code" required />
+    </div>
+
+    <div class="form-group">
+      <label for="discountType">Discount Type</label>
+      <select name="discountType" id="discountType" required>
+        <option value="percentage">Percentage</option>
+        <option value="fixed">Fixed Amount</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="discountValue">Discount Value</label>
+      <input type="number" name="discountValue" id="discountValue" step="0.01" required />
+    </div>
+
+    <div class="form-group">
+      <label for="minPurchase">Minimum Purchase Amount</label>
+      <input type="number" name="minPurchase" id="minPurchase" step="0.01" required />
+    </div>
+
+    <div class="form-group">
+      <label for="expiryDate">Expiry Date</label>
+      <input type="date" name="expiryDate" id="expiryDate" required />
+    </div>
+
+    <div class="form-group">
+      <label for="usageLimit">Usage Limit</label>
+      <input type="number" name="usageLimit" id="usageLimit" required />
+    </div>
+
+    <button type="submit" class="btn-submit">Create Coupon</button>
+  </form>
+</div>

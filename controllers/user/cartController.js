@@ -85,6 +85,7 @@ const addToCart = async (req, res) => {
     } else {
       user.cart.push({ productId, quantity: requestedQty });
     }
+    user.wishlist = user.wishlist.filter(id => id.toString() !== productId);
 
     await user.save();
 

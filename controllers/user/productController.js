@@ -1,6 +1,7 @@
 const Product = require('../../models/productModel');
 const Category = require('../../models/categoryModel');
 const Subcategory = require('../../models/subCategoryModel');
+const User = require('../../models/userModel');
 
 
 exports.loadShopPage = async (req, res) => {
@@ -120,12 +121,20 @@ exports.loadShopPage = async (req, res) => {
       ...cat,
       subcategories: subcategories.filter(sub => sub.category.toString() === cat._id.toString()&& sub.isDeleted === false),
     }));
+    
 
+let wishlistProductIds = [];
+
+if (req.session.user) {
+  const user = await User.findById(req.session.user._id).lean();
+  wishlistProductIds = user?.wishlist?.map(id => id.toString()) || [];
+}
     res.render('user/product', {
       userName: req.session.user ? req.session.user.firstName : '',
       products: paginatedProducts,
       search,
       sort,
+      wishlistProductIds,
       price,
       category,
       subcategory,
@@ -259,8 +268,17 @@ exports.loadProductDetails = async (req, res) => {
       filter.$and = orFilters;
     }
 
+let wishlistProductIds = [];
+
+if (req.session.user) {
+  const user = await User.findById(req.session.user._id).lean();
+  wishlistProductIds = user?.wishlist?.map(id => id.toString()) || [];
+}
+
+
     res.render('user/productDetails', {
       product,
+      wishlistProductIds,
       products,
       price,
       sort,

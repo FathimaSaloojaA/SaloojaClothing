@@ -1,0 +1,36 @@
+<div class="coupon-wrapper">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="coupon-title">🎟️ Coupon Management</h1>
+    <a href="/admin/coupons/create" class="btn">+ Create Coupon</a>
+  </div>
+
+  <% if (coupons.length === 0) { %>
+    <p>No coupons available yet.</p>
+  <% } else { %>
+    <div class="coupon-grid">
+      <% coupons.forEach(coupon => { %>
+        <div class="coupon-card">
+          <h3><%= coupon.code %> <% if (!coupon.isActive) { %><span style="color:#f87171">(Inactive)</span><% } %></h3>
+          <div class="coupon-meta">
+            <p><strong>Type:</strong> <%= coupon.discountType %></p>
+            <p><strong>Value:</strong> <%= coupon.discountType === 'percentage' ? coupon.discountValue + '%' : '₹' + coupon.discountValue %></p>
+            <p><strong>Min Purchase:</strong> ₹<%= coupon.minPurchase %></p>
+            <p><strong>Expiry:</strong> <%= new Date(coupon.expiryDate).toLocaleDateString() %></p>
+            <p><strong>Usage Limit:</strong> <%= coupon.usageLimit %></p>
+          </div>
+
+          <div class="coupon-actions">
+            <form method="POST" action="/admin/coupons/delete/<%= coupon._id %>">
+              <button type="submit" class="btn btn-danger">Delete</button>
+            </form>
+            <form method="POST" action="/admin/coupons/toggle/<%= coupon._id %>">
+              <button type="submit" class="btn">
+                <%= coupon.isActive ? 'Deactivate' : 'Activate' %>
+              </button>
+            </form>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</div>

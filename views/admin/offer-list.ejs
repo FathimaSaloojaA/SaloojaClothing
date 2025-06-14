@@ -1,0 +1,42 @@
+<div class="offer-list-wrapper">
+  <h2 style="color:#ffd700; margin-bottom: 25px;">All Active Offers</h2>
+  <table class="offer-list-table">
+    <thead>
+      <tr>
+        <th>Offer Name</th>
+        <th>Type</th>
+        <th>Item</th>
+        <th>Discount %</th>
+        <th>Valid From</th>
+        <th>Valid Till</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (offers.length === 0) { %>
+        <tr>
+          <td colspan="7" style="text-align: center;">No offers available.</td>
+        </tr>
+      <% } else { %>
+        <% offers.forEach(offer => { %>
+          <tr>
+            <td><%= offer.name %></td>
+            <td><%= offer.type === 'product' ? 'Product Offer' : 'Category Offer' %></td>
+            <td>
+              <%= offer.type === 'product' && offer.product ? offer.product.name : '' %>
+              <%= offer.type === 'category' && offer.category ? offer.category.name : '' %>
+            </td>
+            <td><%= offer.discountPercentage %>%</td>
+            <td><%= offer.startDate.toDateString() %></td>
+            <td><%= offer.endDate.toDateString() %></td>
+            <td class="action-btns">
+              <!-- Future: Add edit page -->
+              <a href="#">Edit</a>
+              <a href="#">Delete</a>
+            </td>
+          </tr>
+        <% }) %>
+      <% } %>
+    </tbody>
+  </table>
+</div>
