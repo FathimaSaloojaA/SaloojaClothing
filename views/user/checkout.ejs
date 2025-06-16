@@ -88,6 +88,22 @@
   <% } %>
 </div>
 
+<% if (availableCoupons && availableCoupons.length > 0 && !appliedCoupon) { %>
+  <div class="suggested-coupons">
+    <h4>Available Coupons</h4>
+    <ul>
+      <% availableCoupons.forEach(c => { %>
+        <li>
+          <strong><%= c.code %></strong> -
+          <%= c.discountType === 'percentage' ? c.discountValue + '%' : '₹' + c.discountValue %> off
+          (Min: ₹<%= c.minPurchase %>) - expires on <%= new Date(c.expiryDate).toLocaleDateString() %>
+        </li>
+      <% }) %>
+    </ul>
+  </div>
+<% } %>
+
+
     <ul>
       <li>Subtotal: ₹<%= subtotal.toFixed(2) %></li>
       <li>Tax: ₹<%= tax.toFixed(2) %></li>

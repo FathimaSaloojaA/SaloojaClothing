@@ -75,8 +75,22 @@ emailTemp: { type: String },
       }
     }
   ],
-  wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }]
+  wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
+    referralCode: {
+    type: String,
+    unique: true,
+    uppercase: true
+  },
+  referredBy: {
+    type: String,
+    default: null
+  },
+  rewardCoupons: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Coupon' }],
+
+
 
 });
+
+
 
 module.exports = mongoose.model('User', userSchema);

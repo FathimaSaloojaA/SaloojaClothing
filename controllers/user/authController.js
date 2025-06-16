@@ -20,7 +20,7 @@ module.exports = {
   // 2️⃣ Handle Registration and Send OTP
   handleRegisterPost: async (req, res) => {
     try {
-      const { firstName, lastName, email, password,confirmPassword } = req.body;
+      const { firstName, lastName, email, password,confirmPassword,referredBy } = req.body;
 
       // Check if user already exists
       const existingUser = await User.findOne({ email });
@@ -31,7 +31,7 @@ if (password !== confirmPassword) {
       return res.render('user/register', { error: 'Passwords do not match' ,layout:false});
     }
       // Save data temporarily in session
-      req.session.tempUser = { firstName, lastName, email, password,confirmPassword };
+      req.session.tempUser = { firstName, lastName, email, password,confirmPassword,referredBy: referredBy ? referredBy.trim().toUpperCase() : null };
 
       // Generate OTP using your utility
       const otpCode = generateOtp();
@@ -107,14 +107,45 @@ verifyOtp: async (req, res) => {
 
     // Register the user
     const hashedPassword = await bcrypt.hash(tempUser.password, 10);
+
+    const referralCode = `${tempUser.firstName}${Date.now()}`.toUpperCase();
+
     const newUser = new User({
       firstName: tempUser.firstName,
       lastName: tempUser.lastName,
       email: tempUser.email,
-      password: hashedPassword
+      password: hashedPassword,
+      referralCode: referralCode,
+  referredBy: tempUser.referredBy ? tempUser.referredBy.toUpperCase() : null
     });
 
     await newUser.save();
+
+    if (tempUser.referredBy) {
+  const referrer = await User.findOne({ referralCode: tempUser.referredBy });
+  if (referrer) {
+    // Reward logic: create a coupon and assign it to referrer
+    const Coupon = require('../../models/couponModel');
+    const uniqueCode = `REF-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+
+    const coupon = new Coupon({
+      code: uniqueCode,
+      discountType: 'flat',
+      discountValue: 100,
+      minPurchase: 500,
+      expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // valid for 30 days
+      usageLimit: 1,
+      isActive: true
+    });
+
+    await coupon.save();
+
+    // Attach coupon code to referrer (assuming you show coupons per user)
+    if (!referrer.rewardCoupons) referrer.rewardCoupons = [];
+    referrer.rewardCoupons.push(coupon._id);
+    await referrer.save();
+  }
+}
 
     // Clear temp data
     req.session.tempUser = null;

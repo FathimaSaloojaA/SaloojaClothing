@@ -7,23 +7,28 @@ const Wallet = require('../../models/walletModel');
 
 
 
-const getUserProfile = async(req, res) => {
-  const userEmail = req.session.user.email; // assuming user email is in session
+const getUserProfile = async (req, res) => {
+  const userId = req.session.user._id;
 
-    // Fetch user details (assuming already done)
-    const user = await User.findOne({ email: userEmail }).lean();
+  
+  const user = await User.findById(userId)
+  .populate('rewardCoupons')
+  .lean();
 
-    // Fetch latest 5 orders of this user (sorted newest first)
-    const orders = await Order.find({ userEmail })
-      .sort({ orderDate: -1 })
-      .limit(5)
-      .lean();
+
+  const orders = await Order.find({ userEmail: user.email })
+    .sort({ orderDate: -1 })
+    .limit(5)
+    .lean();
+
   res.render('user/profile', {
-    user,orders,
-    userName: req.session.user ? req.session.user.firstName : '',
+    user,
+    orders,
+    userName: user.firstName,
     layout: 'user/detailsLayout'
   });
 };
+
 
 const getEditProfile = async (req, res) => {
   try {

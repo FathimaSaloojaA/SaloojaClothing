@@ -1,5 +1,7 @@
 
 <div class="profile-container">
+
+
 <div class="profile-card">
     <div class="profile-header">
       <% if (user.profileImage) { %>
@@ -9,6 +11,35 @@
       <% } %>
       <div>
         <div class="profile-name">Welcome, <%= user.firstName %> <%= user.lastName %></div>
+
+        <% if (user.referralCode) { %>
+  <!-- show referral box -->
+    <div class="referral-box shadow rounded-3 p-3 mb-4" style="background: #0b1e3d; color: #fff;">
+  <h5 class="mb-2">🎁 Your Referral Code</h5>
+  <div class="d-flex justify-content-between align-items-center">
+    <strong class="fs-5" style="letter-spacing: 1px;"><%= user.referralCode %></strong>
+    <button class="btn btn-outline-light btn-sm" onclick="copyReferralCode()">Copy</button>
+  </div>
+</div>
+<!-- show reward  coupons -->
+<% if (user.rewardCoupons && user.rewardCoupons.length > 0) { %>
+  <div class="reward-coupons mb-4">
+    <h5>🎉 Your Reward Coupons</h5>
+    <ul class="list-group">
+      <% user.rewardCoupons.forEach(coupon => { %>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <strong><%= coupon.code %></strong>
+          <span><%= coupon.discountType === 'flat' ? '₹' + coupon.discountValue : coupon.discountValue + '%' %> OFF</span>
+        </li>
+      <% }) %>
+    </ul>
+  </div>
+<% } %>
+
+
+<% } %>
+
+       
         <a href="/wallet">🪙 My Wallet</a>
 
       </div>
@@ -193,6 +224,12 @@ document.querySelectorAll('.cancel-form').forEach(form => {
       });
     });
   ;
+  function copyReferralCode() {
+    const code = "<%= user.referralCode %>";
+    navigator.clipboard.writeText(code).then(() => {
+      alert("Referral code copied!");
+    });
+  }
 
 
 </script>

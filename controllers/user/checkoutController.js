@@ -14,6 +14,15 @@ const getCheckoutPage = async (req, res) => {
     const user = await User.findById(userId)
       .populate('cart.productId')
       .lean();
+// 👇 Add this below the user fetch
+const availableCoupons = await Coupon.find({
+  isActive: true,
+  isDeleted: false,
+  expiryDate: { $gte: new Date() },
+  usageLimit: { $gt: 0 }
+}).lean();
+
+
 
     if (!user) return res.redirect('/login');
 
@@ -66,7 +75,7 @@ if (coupon) {
     const defaultAddress = user.addresses.find(addr => addr.isDefault);
     const allAddresses = user.addresses;
     const couponError = req.session.couponError || null;
-req.session.couponError = null;
+    req.session.couponError = null;
 
 
     res.render('user/checkout', {
@@ -79,6 +88,7 @@ req.session.couponError = null;
   couponDiscount,
   appliedCoupon: coupon,
   couponError,
+  availableCoupons,
   addresses: allAddresses,
   defaultAddressId: defaultAddress?._id?.toString() || null,
   userName: req.session.user ? req.session.user.firstName : '',
@@ -89,6 +99,74 @@ req.session.couponError = null;
     res.status(500).send('Internal Server Error');
   }
 };
+const postApplyCoupon = async (req, res) => {
+  try {
+    const { couponCode } = req.body;
+    const userId = req.session.user._id;
+
+    const user = await User.findById(userId).populate('cart.productId');
+
+    // ✅ First, check if coupon exists in the Coupon collection
+    const coupon = await Coupon.findOne({ code: couponCode, isActive: true, isDeleted: false });
+
+    // ✅ Check if it's a regular coupon
+    if (coupon) {
+      const subtotal = user.cart.reduce((sum, item) => {
+        const product = item.productId;
+        const discounted = product.price * (1 - (product.discountPercentage || 0) / 100);
+        return sum + (discounted * item.quantity);
+      }, 0);
+
+      if (subtotal < coupon.minPurchase) {
+        req.session.couponError = `Minimum purchase of ₹${coupon.minPurchase} required to use this coupon.`;
+        return res.redirect('/checkout');
+      }
+
+      req.session.appliedCoupon = {
+        id: coupon._id,
+        code: coupon.code,
+        discountType: coupon.discountType,
+        discountValue: coupon.discountValue
+      };
+
+      return res.redirect('/checkout');
+    }
+
+    // ✅ If not found in Coupon collection, check user's rewarded coupons
+    const userRewardedCoupon = user.rewardedCoupons.find(c => c.code === couponCode && !c.used);
+
+    if (userRewardedCoupon) {
+      // You can define a default flat value or percentage for rewarded coupons
+      const REWARD_DISCOUNT = 100; // ₹100 flat discount for referral
+
+      req.session.appliedCoupon = {
+        id: 'reward', // any placeholder
+        code: userRewardedCoupon.code,
+        discountType: 'flat',
+        discountValue: REWARD_DISCOUNT
+      };
+
+      return res.redirect('/checkout');
+    }
+
+    // ❌ Invalid coupon
+    req.session.couponError = 'Invalid or expired coupon code.';
+    return res.redirect('/checkout');
+
+  } catch (err) {
+    console.error('Apply Coupon Error:', err);
+    req.session.couponError = 'Failed to apply coupon.';
+    res.redirect('/checkout');
+  }
+};
+
+
+const postRemoveCoupon = (req, res) => {
+  req.session.appliedCoupon = null;
+  res.redirect('/checkout');
+};
+
+
 
 const getAddress= async (req, res) => {
   try {
@@ -148,50 +226,6 @@ const postEditAddress=async (req, res) => {
   }
 }
 
-const postApplyCoupon = async (req, res) => {
-  try {
-    const { couponCode } = req.body;
-    const userId = req.session.user._id;
-
-    const coupon = await Coupon.findOne({ code: couponCode, isActive: true, isDeleted: false });
-    if (!coupon) {
-      req.session.couponError = 'Invalid or expired coupon code.';
-      return res.redirect('/checkout');
-    }
-
-    const user = await User.findById(userId).populate('cart.productId');
-    const subtotal = user.cart.reduce((sum, item) => {
-      const product = item.productId;
-      const discounted = product.price * (1 - (product.discountPercentage || 0) / 100);
-      return sum + (discounted * item.quantity);
-    }, 0);
-
-    if (subtotal < coupon.minPurchase) {
-      req.session.couponError = `Minimum purchase of ₹${coupon.minPurchase} required to use this coupon.`;
-      return res.redirect('/checkout');
-    }
-
-    // Store coupon in session
-    req.session.appliedCoupon = {
-      id: coupon._id,
-      code: coupon.code,
-      discountType: coupon.discountType,
-      discountValue: coupon.discountValue
-    };
-
-    res.redirect('/checkout');
-  } catch (err) {
-    console.error('Apply Coupon Error:', err);
-    req.session.couponError = 'Failed to apply coupon.';
-    res.redirect('/checkout');
-  }
-};
-
-const postRemoveCoupon = (req, res) => {
-  req.session.appliedCoupon = null;
-  res.redirect('/checkout');
-};
-
 
 
 const postPlaceOrder = async (req, res) => {
@@ -210,7 +244,6 @@ const postPlaceOrder = async (req, res) => {
 
       return {
         productId: new mongoose.Types.ObjectId(product._id),
-
         name: product.name,
         quantity: item.quantity,
         price: discountedPrice,
@@ -218,13 +251,25 @@ const postPlaceOrder = async (req, res) => {
       };
     });
 
-    const totalPrice = products.reduce((sum, item) => sum + item.quantity * item.price, 0);
+    let totalPrice = products.reduce((sum, item) => sum + item.quantity * item.price, 0);
 
-    // Create new order
+    // 🔐 Apply coupon if available
+    let appliedCoupon = req.session.appliedCoupon || null;
+    let couponDiscount = 0;
+
+    if (appliedCoupon) {
+      if (appliedCoupon.discountType === 'percentage') {
+        couponDiscount = totalPrice * (appliedCoupon.discountValue / 100);
+      } else {
+        couponDiscount = appliedCoupon.discountValue;
+      }
+      totalPrice -= couponDiscount;
+    }
+
+    // ✅ Create new order
     const order = new Order({
-      orderID: uuidv4().slice(0, 8), // shorten UUID
+      orderID: uuidv4().slice(0, 8),
       userEmail: user.email,
-      
       products,
       totalPrice,
       shippingAddress: {
@@ -240,16 +285,30 @@ const postPlaceOrder = async (req, res) => {
 
     await order.save();
 
-  for (const item of user.cart) {
+    // 🧾 Update stock
+    for (const item of user.cart) {
       const product = item.productId;
-      product.stock = Math.max(0, product.stock - item.quantity); // Ensure no negative stock
+      product.stock = Math.max(0, product.stock - item.quantity);
       await product.save();
     }
 
+    // ✅ If rewarded coupon was used, mark it as used
+    if (appliedCoupon) {
+      const rewardedCoupon = user.rewardedCoupons.find(c => 
+        c.code === appliedCoupon.code && !c.used
+      );
 
-    // Clear cart
+      if (rewardedCoupon) {
+        rewardedCoupon.used = true;
+        console.log('✅ Marked rewarded coupon as used.');
+      }
+    }
+
+    // ✅ Clear cart and session coupon
     user.cart = [];
     await user.save();
+    
+    req.session.appliedCoupon = null;
 
     res.redirect(`/checkout/order-success/${order._id}`);
   } catch (err) {
