@@ -28,7 +28,12 @@ const orderSchema = new Schema({
   zip: String,
   country: String
 },
-paymentMethod: { type: String, default: 'Cash on Delivery' } // For future methods
+paymentMethod: { type: String, default: 'Cash on Delivery' },
+razorpayPaymentId: {
+  type: String,
+  default: null
+}
+ // For future methods
 
 });
 

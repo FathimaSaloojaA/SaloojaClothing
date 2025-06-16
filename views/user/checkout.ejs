@@ -117,7 +117,7 @@
   <h3>Select Payment Method</h3>
 
   <div class="payment-options">
-    <label class="payment-option selected">
+    <label class="payment-option ">
       <input type="radio" name="paymentMethod" value="Cash on Delivery" checked />
       <div class="card">
         <span class="emoji">💵</span>
@@ -125,26 +125,23 @@
       </div>
     </label>
 
-    <label class="payment-option disabled">
-      <input type="radio" name="paymentMethod" value="UPI" disabled />
-      <div class="card">
-        <span class="emoji">📱</span>
-        <span class="text">UPI (Coming Soon)</span>
-      </div>
-    </label>
+    
 
-    <label class="payment-option disabled">
-      <input type="radio" name="paymentMethod" value="Card" disabled />
-      <div class="card">
-        <span class="emoji">💳</span>
-        <span class="text">Credit/Debit Card</span>
-      </div>
-    </label>
+    
+
+    <label class="payment-option">
+  <input type="radio" name="paymentMethod" value="Razorpay" />
+  <div class="card">
+    <span class="emoji">💳</span>
+    <span class="text">Pay Online (Razorpay)</span>
+  </div>
+</label>
+
   </div>
 </div>
 
 
-    <form action="/checkout/place-order" method="POST">
+    <form  id="paymentForm"  action="/checkout/place-order" method="POST">
       <input type="hidden" name="selectedAddress" value="<%= defaultAddressId %>" id="selectedAddressInput">
       <button type="submit" class="place-order-btn">📦 Place Order - COD</button>
     </form>
@@ -294,6 +291,82 @@ function createError(input, message) {
   // Clear errors on Add form too
   document.querySelectorAll('#addAddressForm input')?.forEach(input => {
     input.addEventListener('input', () => clearError(input));
+  });
+
+
+  const form = document.getElementById('paymentForm');
+  const paymentOptions = document.getElementsByName('paymentMethod');
+
+  form.addEventListener('submit', async function (e) {
+    const selectedMethod = [...paymentOptions].find(r => r.checked).value;
+
+    if (selectedMethod === 'Razorpay') {
+      e.preventDefault(); // stop default form submit
+
+      const amount = <%= finalTotal %>; // make sure you pass this from backend
+
+      // 🔶 1. Create Razorpay order from backend
+      const res = await fetch('/checkout/create-razorpay-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ amount })
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        alert('Failed to initiate payment.');
+        return;
+      }
+
+      // 🔶 2. Open Razorpay checkout
+      const options = {
+        key: data.keyId,
+        amount: data.amount,
+        currency: data.currency,
+        name: 'Your Brand Name',
+        description: 'Order Payment',
+        order_id: data.orderId,
+        handler: async function (response) {
+          // 🔶 3. On successful payment, submit form with Razorpay flag
+          const razorpayPaymentId = response.razorpay_payment_id;
+
+          const hiddenPaymentMethod = document.createElement('input');
+          hiddenPaymentMethod.type = 'hidden';
+          hiddenPaymentMethod.name = 'paymentMethod';
+          hiddenPaymentMethod.value = 'Razorpay';
+
+          const hiddenPaymentId = document.createElement('input');
+          hiddenPaymentId.type = 'hidden';
+          hiddenPaymentId.name = 'paymentId';
+          hiddenPaymentId.value = razorpayPaymentId;
+
+          form.appendChild(hiddenPaymentMethod);
+          form.appendChild(hiddenPaymentId);
+
+          form.submit();
+        },
+        prefill: {
+          name: '<%= userName %>',
+          email: '<%= userEmail %>'
+        },
+        theme: {
+          color: '#ff69b4'
+        },
+        modal: {
+  ondismiss: function () {
+    // Razorpay popup closed without payment
+    window.location.href = '/checkout/payment-failed/temp';
+  }
+}
+
+      };
+
+      const razorpay = new Razorpay(options);
+      razorpay.open();
+    }
   });
 
 </script>

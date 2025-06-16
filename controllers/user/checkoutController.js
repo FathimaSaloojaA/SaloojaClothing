@@ -5,6 +5,39 @@ const { v4: uuidv4 } = require('uuid');
 const Coupon = require('../../models/couponModel');
 
 const mongoose = require('mongoose');
+const Razorpay = require('razorpay');
+const dotenv = require("dotenv");
+dotenv.config();
+
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
+
+// 👇 This is NEW and only for payment pre-processing
+const createRazorpayOrder = async (req, res) => {
+  try {
+    const amount = req.body.amount; // amount in rupees
+    const razorpayOrder = await razorpay.orders.create({
+      amount: amount * 100, // convert to paisa
+      currency: "INR",
+      receipt: "receipt_order_" + new Date().getTime()
+    });
+
+    res.json({
+      success: true,
+      orderId: razorpayOrder.id,
+      keyId: process.env.RAZORPAY_KEY_ID,
+      amount: razorpayOrder.amount,
+      currency: razorpayOrder.currency
+    });
+  } catch (err) {
+    console.error("Razorpay Order Creation Error:", err);
+    res.status(500).json({ success: false, message: "Failed to create Razorpay order" });
+  }
+};
+
+
 
 
 const getCheckoutPage = async (req, res) => {
@@ -88,6 +121,8 @@ if (coupon) {
   couponDiscount,
   appliedCoupon: coupon,
   couponError,
+  
+  userEmail: user.email,
   availableCoupons,
   addresses: allAddresses,
   defaultAddressId: defaultAddress?._id?.toString() || null,
@@ -233,15 +268,17 @@ const postPlaceOrder = async (req, res) => {
     const userId = req.session.user._id;
     const selectedAddressId = req.body.selectedAddress;
 
+    const paymentMethod = req.body.paymentMethod || 'Cash on Delivery';
+    const razorpayPaymentId = req.body.paymentId || null;
+
     const user = await User.findById(userId).populate('cart.productId');
     const selectedAddress = user.addresses.id(selectedAddressId);
     if (!selectedAddress) return res.redirect('/checkout');
 
-    // Prepare product details from cart
+    // Prepare product details
     const products = user.cart.map(item => {
       const product = item.productId;
       const discountedPrice = product.price * (1 - (product.discountPercentage || 0) / 100);
-
       return {
         productId: new mongoose.Types.ObjectId(product._id),
         name: product.name,
@@ -253,34 +290,34 @@ const postPlaceOrder = async (req, res) => {
 
     let totalPrice = products.reduce((sum, item) => sum + item.quantity * item.price, 0);
 
-    // 🔐 Apply coupon if available
+    // 🔐 Apply coupon
     let appliedCoupon = req.session.appliedCoupon || null;
     let couponDiscount = 0;
 
     if (appliedCoupon) {
-      if (appliedCoupon.discountType === 'percentage') {
-        couponDiscount = totalPrice * (appliedCoupon.discountValue / 100);
-      } else {
-        couponDiscount = appliedCoupon.discountValue;
-      }
+      couponDiscount = appliedCoupon.discountType === 'percentage'
+        ? totalPrice * (appliedCoupon.discountValue / 100)
+        : appliedCoupon.discountValue;
+
       totalPrice -= couponDiscount;
     }
 
-    // ✅ Create new order
+    // ✅ Create Order
     const order = new Order({
       orderID: uuidv4().slice(0, 8),
       userEmail: user.email,
       products,
       totalPrice,
+      paymentMethod,
+      razorpayPaymentId, // Store it if Razorpay
+      status: paymentMethod === 'Razorpay' ? 'paid' : 'pending',
       shippingAddress: {
         street: selectedAddress.street,
         city: selectedAddress.city,
         state: selectedAddress.state,
         zip: selectedAddress.zip,
         country: selectedAddress.country
-      },
-      paymentMethod: 'Cash on Delivery',
-      status: 'pending'
+      }
     });
 
     await order.save();
@@ -292,30 +329,28 @@ const postPlaceOrder = async (req, res) => {
       await product.save();
     }
 
-    // ✅ If rewarded coupon was used, mark it as used
+    // ✅ Mark rewarded coupon as used
     if (appliedCoupon) {
-      const rewardedCoupon = user.rewardedCoupons.find(c => 
+      const rewardedCoupon = user.rewardedCoupons.find(c =>
         c.code === appliedCoupon.code && !c.used
       );
-
-      if (rewardedCoupon) {
-        rewardedCoupon.used = true;
-        console.log('✅ Marked rewarded coupon as used.');
-      }
+      if (rewardedCoupon) rewardedCoupon.used = true;
     }
 
-    // ✅ Clear cart and session coupon
+    // ✅ Clear cart & session coupon
     user.cart = [];
     await user.save();
-    
     req.session.appliedCoupon = null;
 
+    // ✅ Redirect to success page
     res.redirect(`/checkout/order-success/${order._id}`);
+
   } catch (err) {
-    console.error('Error placing order:', err);
-    res.redirect('/checkout');
+    console.error('❌ Error placing order:', err);
+    res.redirect('/checkout/order-failure');
   }
 };
+
 
 const getOrderSuccess = async (req, res) => {
   try {
@@ -330,10 +365,37 @@ const getOrderSuccess = async (req, res) => {
   }
 };
 
+const getPaymentFailure = async (req, res) => {
+  const orderId = req.params.orderId;
+
+  // If no order exists (like in Razorpay cancel), show a generic page
+  if (orderId === 'temp') {
+    return res.render('user/payment-failed', {
+      orderId: null,
+      userName: req.session.user ? req.session.user.firstName : '',
+      layout: 'user/detailsLayout'
+    });
+  }
+
+  try {
+    const order = await Order.findOne({ orderID: orderId });
+    if (!order) return res.redirect('/');
+
+    res.render('user/payment-failed', {
+      orderId: order.orderID,
+      userName: req.session.user ? req.session.user.firstName : '',
+      layout: 'user/detailsLayout'
+    });
+  } catch (err) {
+    console.error('Error rendering failure page:', err);
+    res.redirect('/');
+  }
+};
+
 
 
 module.exports = {
   getCheckoutPage,getAddress,postAddAddress,
   postEditAddress,postPlaceOrder,getOrderSuccess,
-  postApplyCoupon,postRemoveCoupon
+  postApplyCoupon,postRemoveCoupon,createRazorpayOrder,getPaymentFailure
 };

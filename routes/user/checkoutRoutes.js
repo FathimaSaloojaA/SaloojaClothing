@@ -11,7 +11,11 @@ router.get('/address/:id',checkoutController.getAddress)
 router.post('/add-address',checkoutController.postAddAddress)
 router.post('/edit-address/:id',checkoutController.postEditAddress)
 router.post('/place-order',checkoutController.postPlaceOrder)
+router.post('/create-razorpay-order', checkoutController.createRazorpayOrder);
+
 router.get('/order-success/:id', checkoutController.getOrderSuccess);
+router.get('/payment-failed/:orderId', checkoutController.getPaymentFailure);
+
 // POST - Apply a coupon
 router.post('/apply-coupon', checkoutController.postApplyCoupon);
 

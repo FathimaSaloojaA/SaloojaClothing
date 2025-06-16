@@ -2,7 +2,13 @@
   <div class="card">
     <div class="emoji">🎉</div>
     <h1 class="title">Thank You for Your Order!</h1>
-    <p class="desc">Your order has been placed successfully with <strong>Cash on Delivery</strong>.</p>
+    <p class="desc">
+  Your order has been placed successfully with 
+  <strong>
+    <%= order.paymentMethod === 'Razorpay' ? '💳 Razorpay' : '🚚 Cash on Delivery' %>
+  </strong>.
+</p>
+
     <p class="order-id">🧾 Order ID: <%= order.orderID %></p>
 
     <div class="buttons">
