@@ -26,7 +26,7 @@
       <h4><%= product ? product.name : prod.name %></h4>
       <p>Quantity: <%= prod.quantity %></p>
       <p>Price: ₹<%= prod.price.toFixed(2) %> each</p>
-      <span class="status <%= prod.status %>">[<%= prod.status %>]</span>
+      <span class="status <%= prod.status %>" style="color: black;" >[<%= prod.status %>] </span>
       <% if (prod.status === 'delivered') { %>
   <button class="btn btn-return small-btn" 
           data-orderid="<%= order.orderID %>" 

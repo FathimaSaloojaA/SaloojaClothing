@@ -8,7 +8,7 @@ const getUserOrders = async (req, res) => {
     const searchQuery = req.query.q?.trim().toLowerCase() || '';
     const userEmail = req.session.user.email;
     const page = parseInt(req.query.page) || 1;
-    const limit = 5;
+    const limit = 6;
 
     let orders = await Order.find({ userEmail }).sort({ orderDate: -1 }).populate('products.productId');
 

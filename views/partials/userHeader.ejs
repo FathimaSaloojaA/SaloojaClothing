@@ -109,22 +109,49 @@
 
 
 
-                    <div class="col-lg-6 col-6 text-right">
-            <a href="" class="btn border">
-                <i class="fas fa-heart text-primary"></i>
-                <span class="badge">0</span>
-            </a>
-            <a href="" class="btn border">
-                <i class="fas fa-shopping-cart text-primary"></i>
-                <span class="badge">0</span>
-            </a>
-        </div>
+                    
 
-                    <div class="navbar-nav ml-auto py-0 ">
-                        <a href="/login" class="nav-item nav-link" >Login</a>
-                        <a href="/register" class="nav-item nav-link" >Register</a>
-                        
-                    </div>
+                    <% if (userName) { %>
+  <div class="d-flex align-items-center justify-content-end gap-3" style="padding-right: 15px;">
+    
+    <!-- Wishlist Button -->
+    <a href="/wishlist" class="btn border position-relative">
+      <i class="fas fa-heart text-primary"></i>
+      <span class="badge">0</span>
+    </a>
+
+    <!-- Cart Button -->
+    <a href="/cart" class="btn border position-relative">
+      <i class="fas fa-shopping-cart text-primary"></i>
+      <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill cart-badge">
+        <%= cartCount %>
+      </span>
+    </a>
+
+    <!-- Welcome + Logout -->
+    <div class="d-flex align-items-center">
+      <a href="/profile" style="text-decoration: none; color: inherit;">
+        <span style="margin-right: 10px; font-weight: 500; display: flex; align-items: center;">
+          <i class="fas fa-user-circle" style="font-size: 20px; margin-right: 5px;"></i>
+          Welcome, <%= userName %>
+        </span>
+      </a>
+
+      <form action="/logout" method="get" style="display: inline;">
+        <button type="submit" class="btn btn-sm btn-outline-danger" style="font-weight: 500; padding: 5px 10px;">
+          Logout
+        </button>
+      </form>
+    </div>
+
+  </div>
+<% } else { %>
+  <div class="navbar-nav ml-auto py-0">
+    <a href="/login" class="nav-item nav-link">Login</a>
+    <a href="/register" class="nav-item nav-link">Register</a>
+  </div>
+<% } %>
+
 
                 </div>
             </nav>
