@@ -2149,3 +2149,225 @@ button[type="submit"]:hover {
       padding: 10px;
     }
   }
+  /* dashboard.css */
+
+/* ======= Admin Dashboard Styling (Scoped Blue Theme) ======= */
+
+.main-content {
+  --blue-1: #0f172a;
+  --blue-2: #1e293b;
+  --blue-3: #3b82f6;
+  --blue-4: #60a5fa;
+  --text-light: #e2e8f0;
+  --text-muted: #94a3b8;
+  --glass-bg: rgba(15, 23, 42, 0.5);
+  --card-radius: 1.25rem;
+  --shadow-glow: 0 4px 20px rgba(96, 165, 250, 0.25);
+  --transition: all 0.4s ease-in-out;
+
+  background: var(--blue-1);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--text-light);
+  padding: 2rem;
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--blue-4);
+  margin-bottom: 1.5rem;
+  text-shadow: 0 1px 2px #000;
+}
+
+.filter-form {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+  align-items: center;
+}
+
+.filter-form select,
+.filter-form input[type="date"],
+.filter-form button {
+  background: var(--blue-2);
+  border: 1px solid var(--blue-3);
+  color: var(--text-light);
+  padding: 0.6rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.95rem;
+  transition: var(--transition);
+}
+
+.filter-form button:hover {
+  background: var(--blue-3);
+  color: white;
+  cursor: pointer;
+  box-shadow: var(--shadow-glow);
+}
+
+.analytics-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.card {
+  background: var(--glass-bg);
+  border: 1px solid var(--blue-2);
+  border-radius: var(--card-radius);
+  padding: 1.5rem;
+  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-glow);
+  transition: var(--transition);
+  transform: translateY(0);
+  animation: popIn 0.6s ease forwards;
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 6px 30px rgba(59, 130, 246, 0.4);
+}
+
+.card p {
+  color: var(--text-muted);
+  margin-bottom: 0.4rem;
+}
+
+.card h3 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--text-light);
+}
+
+.chart-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: space-between;
+  margin-bottom: 3rem;
+}
+
+.chart-card {
+  flex: 1;
+  min-width: 300px;
+  background: var(--glass-bg);
+  padding: 1.5rem;
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-glow);
+  animation: fadeInUp 0.8s ease;
+}
+
+.chart-card h4 {
+  color: var(--blue-4);
+  margin-bottom: 1rem;
+}
+
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+.dashboardbottom {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.dashboardbottom .card {
+  background: var(--glass-bg);
+  border: 1px solid var(--blue-2);
+  border-radius: var(--card-radius);
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--shadow-glow);
+  animation: fadeInUp 0.6s ease-in-out;
+  backdrop-filter: blur(10px);
+  transition: var(--transition);
+}
+
+.dashboardbottom .card h4 {
+  color: var(--blue-4);
+  margin-bottom: 0.8rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.low-stock ul,
+.recent-orders ul {
+  list-style: none;
+  padding-left: 1rem;
+  color: var(--text-light);
+  font-size: 0.95rem;
+}
+
+.low-stock li,
+.recent-orders li {
+  margin: 0.3rem 0;
+  transition: var(--transition);
+  padding-left: 0.5rem;
+  border-left: 3px solid transparent;
+}
+
+.low-stock li:hover,
+.recent-orders li:hover {
+  color: var(--blue-4);
+  transform: translateX(6px);
+  border-left-color: var(--blue-4);
+}
+
+.blocked-users p {
+  font-size: 2rem;
+  color: #ef4444;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px #000;
+}
+
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(40px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.95); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@media (max-width: 768px) {
+  .chart-section {
+    flex-direction: column;
+  }
+
+  .filter-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+.report-downloads {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.download-btn {
+  padding: 0.6rem 1rem;
+  border-radius: 0.75rem;
+  background: var(--blue-3);
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  box-shadow: var(--shadow-glow);
+  transition: var(--transition);
+}
+
+.download-btn:hover {
+  background: var(--blue-4);
+  transform: scale(1.05);
+}

@@ -103,7 +103,8 @@ const updateOrderStatus = async (req, res) => {
       'cancelled',
       'cancel requested',
       'returned',
-      'return rejected'
+      'return rejected',
+      'paid'
     ];
 
     if (!validStatuses.includes(status)) {
@@ -115,8 +116,10 @@ const updateOrderStatus = async (req, res) => {
 
     order.status = status;
 
-    // 🔁 If order is cancelled, update all product statuses + restore stock
+    // 🔁 If order is being cancelled
     if (status === 'cancelled') {
+      let refundAmount = 0;
+
       for (const item of order.products) {
         if (item.status !== 'cancelled') {
           item.status = 'cancelled';
@@ -125,9 +128,20 @@ const updateOrderStatus = async (req, res) => {
           const product = item.productId;
           if (product) {
             product.stock += item.quantity;
-            await product.save(); // update the stock in DB
+            await product.save();
+          }
+
+          // 💰 Refund if prepaid and not already refunded
+          if ( !item.refunded) {
+            refundAmount += item.price * item.quantity;
+            item.refunded = true; // add this field in your schema if not already
           }
         }
+      }
+
+      if (refundAmount > 0) {
+        await creditToWallet(order.userEmail, refundAmount);
+        console.log(`₹${refundAmount} refunded to ${order.userEmail}'s wallet`);
       }
     }
 
@@ -146,7 +160,7 @@ const updateProductStatus = async (req, res) => {
     const { status } = req.body;
 
     const validProductStatuses = [
-      'ordered', 'shipped', 'out for delivery', 'delivered', 'cancelled', 'return requested', 'cancel requested','returned','return rejected'
+      'ordered', 'shipped', 'paid','out for delivery', 'delivered', 'cancelled', 'return requested', 'cancel requested','returned','return rejected'
     ];
 
     if (!validProductStatuses.includes(status)) {
@@ -181,6 +195,14 @@ const updateProductStatus = async (req, res) => {
       const refundAmount = productToUpdate.quantity * productToUpdate.price;
       order.totalPrice = Math.max(0, order.totalPrice - refundAmount); // prevent negative total
       console.log(`Order total reduced by ₹${refundAmount.toFixed(2)} for cancelled/returned product`);
+   if (
+        !productToUpdate.refunded) {
+        
+        await creditToWallet(order.userEmail, refundAmount);
+        productToUpdate.refunded = true;
+        console.log(`Refunded ₹${refundAmount} to ${order.userEmail} (wallet)`);
+      }
+
     }
     await order.save();
 
@@ -211,8 +233,12 @@ const verifyProductReturn = async (req, res) => {
       productItem.status = 'returned';
 
       // ✨ Wallet credit logic here
-      const refundAmount = productItem.price * productItem.quantity;
-      await creditToWallet(order.userEmail, refundAmount); // Defined below
+      if (!productItem.refunded ) {
+    const refundAmount = productItem.price * productItem.quantity;
+    await creditToWallet(order.userEmail, refundAmount);// Defined top
+    productItem.refunded = true; // mark refunded so no double refund
+    console.log(`Refunded ₹${refundAmount} for return`);
+  } 
     } else if (decision === 'reject') {
       productItem.status = 'return rejected';
     }
@@ -243,22 +269,38 @@ const verifyOrderReturn = async (req, res) => {
     }
 
     if (decision === 'accept') {
+      let refundAmount = 0;
+
       for (const item of order.products) {
         if (item.status === 'return requested') {
           item.status = 'returned';
+
+          // ✅ Refund only if prepaid and not already refunded
+          if (
+          
+            !item.refunded
+          ) {
+            refundAmount += item.price * item.quantity;
+            item.refunded = true; // ✅ mark as refunded
+          }
         }
       }
 
-      // ✨ Credit full amount to wallet
-      await creditToWallet(order.userEmail, order.totalPrice);
+      if (refundAmount > 0) {
+        await creditToWallet(order.userEmail, refundAmount);
+        console.log(`Refunded ₹${refundAmount} to ${order.userEmail}`);
+      }
+
       order.status = 'returned';
+
     } else if (decision === 'reject') {
       for (const item of order.products) {
         if (item.status === 'return requested') {
           item.status = 'return rejected';
         }
       }
-      order.status = 'delivered'; // or fallback status
+
+      order.status = 'delivered'; // fallback status
     }
 
     await order.save();

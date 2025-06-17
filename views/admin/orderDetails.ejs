@@ -16,6 +16,7 @@
     <option value="cancel requested" <%= order.status === 'cancel requested' ? 'selected' : '' %>>Cancel Requested</option>
     <option value="returned" <%= order.status === 'returned' ? 'selected' : '' %>>Returned</option>
     <option value="return rejected" <%= order.status === 'return rejected' ? 'selected' : '' %>>Return Rejected</option>
+    <option value="paid" <%= order.status === 'paid' ? 'selected' : '' %>>Paid</option>
   </select>
   <button type="submit">Update</button>
 
@@ -63,6 +64,7 @@
     <option value="returned" <%= item.status === 'returned' ? 'selected' : '' %>>Returned</option>
     <option value="cancel requested" <%= item.status === 'cancel requested' ? 'selected' : '' %>>Cancel Requested</option>
     <option value="return rejected" <%= item.status === 'return rejected' ? 'selected' : '' %>>Return Rejected</option>
+    <option value="paid" <%= item.status === 'paid' ? 'selected' : '' %>>Paid</option>
   </select>
   <button type="submit">Update</button>
 </form>

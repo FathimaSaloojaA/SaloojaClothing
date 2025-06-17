@@ -1,48 +1,137 @@
-
 <div class="main-content">
-  <h2 class="page-title">Dashboard</h2>
+  <h2 class="page-title">Sales Dashboard</h2>
 
-  <!-- Analytics Cards -->
+  <!-- 🔍 Filter Form -->
+  <form method="GET" action="/admin/dashboard" class="filter-form">
+    <label for="range">Select Range:</label>
+    <select name="range" id="range" onchange="this.form.submit()">
+      <option value="today" <%= selectedRange === 'today' ? 'selected' : '' %>>Today</option>
+      <option value="week" <%= selectedRange === 'week' ? 'selected' : '' %>>This Week</option>
+      <option value="month" <%= selectedRange === 'month' ? 'selected' : '' %>>This Month</option>
+      <option value="year" <%= selectedRange === 'year' ? 'selected' : '' %>>This Year</option>
+      <option value="custom" <%= selectedRange === 'custom' ? 'selected' : '' %>>Custom</option>
+    </select>
+
+    <% if (selectedRange === 'custom') { %>
+      <input type="date" name="startDate" value="<%= startDate || '' %>" required />
+      <input type="date" name="endDate" value="<%= endDate || '' %>" required />
+      <button type="submit">Apply</button>
+    <% } %>
+
+<!-- 📁 Download Report -->
+<div class="report-downloads">
+  <a href="/admin/dashboard/download?type=pdf&range=<%= selectedRange %>&startDate=<%= startDate %>&endDate=<%= endDate %>" class="download-btn">⬇️ PDF</a>
+  <a href="/admin/dashboard/download?type=excel&range=<%= selectedRange %>&startDate=<%= startDate %>&endDate=<%= endDate %>" class="download-btn">⬇️ Excel</a>
+</div>
+
+
+  </form>
+
+  <!-- 📈 Analytics Cards -->
   <div class="analytics-cards">
-    <div class="card">👤<p>Total Users</p><h3><%= totalUsers %></h3></div>
-    <div class="card">📦<p>Total Orders</p><h3>5678</h3></div> 
-    <div class="card">🕒<p>Total Sessions</p><h3><%= totalSessions %></h3></div> <!-- dummy -->
+    <div class="card">📦<p>Total Orders</p><h3><%= totalOrders %></h3></div>
+    <div class="card">💰<p>Total Revenue</p><h3>₹<%= totalRevenue %></h3></div>
+    <div class="card">🎟️<p>Total Discounts</p><h3>₹<%= totalDiscounts %></h3></div>
+    <div class="card">📊<p>Net Sales</p><h3>₹<%= netRevenue %></h3></div>
   </div>
 
-  <!-- Sales Chart -->
-  <div class="chart-container">
-    <canvas id="salesChart"></canvas>
+  <!-- Sales & Payment Charts -->
+  <div class="chart-section">
+    <div class="chart-card">
+      <h4>Sales Over Time</h4>
+      <canvas id="salesLineChart"></canvas>
+    </div>
+
+    <div class="chart-card">
+      <h4>Payment Method Breakdown</h4>
+      <canvas id="paymentPieChart"></canvas>
+    </div>
   </div>
 
-<!--bottom-->
-<section class="dashboardbottom">
-  <div class="card low-stock">
-    <h4>Low Stock Alerts</h4>
-    <ul>
-      <% lowStockProducts.forEach(product => { %>
-        <li><%= product.name %> (Qty: <%= product.totalStock %>)</li>
-      <% }) %>
-    </ul>
-  </div>
+  <!-- 📉 Low Stock / Blocked / Recent Orders -->
+  <section class="dashboardbottom">
+    <!-- Low Stock -->
+    <div class="card low-stock">
+      <h4>Low Stock Alerts</h4>
+      <% if (lowStockProducts.length > 0) { %>
+        <ul>
+          <% lowStockProducts.forEach(product => { %>
+            <li><%= product.name %> (Qty: <%= product.stock %>)</li>
+          <% }) %>
+        </ul>
+      <% } else { %>
+        <p>All products are well stocked!</p>
+      <% } %>
+    </div>
 
-  <div class="card blocked-users">
-    <h4>Blocked Users</h4>
-    <p><%= blockedUsersCount %></p>
-  </div>
+    <!-- Blocked Users -->
+    <div class="card blocked-users">
+      <h4>Blocked Users</h4>
+      <p><%= blockedUsersCount %></p>
+    </div>
 
- <div class="card recent-orders">
+    <!-- Recent Orders  -->
+    <div class="card recent-orders">
   <h4>Recent Orders</h4>
   <ul>
-    <li>Order #A1234 - Delivered</li>
-    <li>Order #B5678 - Pending</li>
-    <li>Order #C9101 - Shipped</li>
-    <li>Order #D1121 - Cancelled</li>
-    <li>Order #E3141 - Processing</li>
+    <% if (recentOrders.length > 0) { %>
+      <% recentOrders.forEach(order => { %>
+        <li>
+          Order #<%= order.orderID %> - 
+          <%= order.status.charAt(0).toUpperCase() + order.status.slice(1) %>
+        </li>
+      <% }) %>
+    <% } else { %>
+      <li>No recent orders available.</li>
+    <% } %>
   </ul>
 </div>
 
-</section>
-
-
+  </section>
 </div>
+<!-- ✅ Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+<!-- Chart Script -->
+<script>
+  const salesLineChart = new Chart(document.getElementById('salesLineChart'), {
+    type: 'line',
+    data: {
+      labels: <%- JSON.stringify(lineChart.labels) %>,
+      datasets: [{
+        label: 'Sales (₹)',
+        data: <%- JSON.stringify(lineChart.data) %>,
+        fill: true,
+        borderColor: 'rgba(54, 162, 235, 1)',
+        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+        tension: 0.4
+      }]
+    },
+    options: {
+      animation: {
+        duration: 1000
+      },
+      responsive: true,
+      plugins: {
+        legend: { display: false }
+      }
+    }
+  });
+
+  const paymentPieChart = new Chart(document.getElementById('paymentPieChart'), {
+    type: 'doughnut',
+    data: {
+      labels: <%- JSON.stringify(paymentData.labels) %>,
+      datasets: [{
+        label: 'Payment Methods',
+        data: <%- JSON.stringify(paymentData.values) %>,
+        backgroundColor: ['#3b82f6', '#1e40af', '#60a5fa']
+      }]
+    },
+    options: {
+      animation: {
+        animateScale: true
+      }
+    }
+  });
+</script>

@@ -344,6 +344,7 @@ const postPlaceOrder = async (req, res) => {
     if (!selectedAddress) return res.redirect('/checkout');
 
     // Prepare product details
+    const productStatus = paymentMethod === 'Razorpay' ? 'paid' : 'ordered';
     const products = user.cart.map(item => {
       const product = item.productId;
       const discountedPrice = product.price * (1 - (product.discountPercentage || 0) / 100);
@@ -352,7 +353,7 @@ const postPlaceOrder = async (req, res) => {
         name: product.name,
         quantity: item.quantity,
         price: discountedPrice,
-        status: 'ordered'
+        status: productStatus
       };
     });
 

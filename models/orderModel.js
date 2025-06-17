@@ -12,7 +12,8 @@ const orderSchema = new Schema({
       quantity: Number,
       price: Number,
       returnReason: { type: String, default: '' },
-      status: { type: String, default: 'ordered' }, // e.g. ordered, shipped, cancelled
+      status: { type: String, default: 'ordered' },//e.g. ordered, shipped, cancelled
+      refunded: { type: Boolean, default: false } 
     },
   ],
   totalPrice: Number,

@@ -13,6 +13,8 @@ router.post('/login', adminController.verifyLogin);
 
 // GET: Admin dashboard (after login)
 router.get('/dashboard',isAdminLoggedIn, adminController.loadDashboard);
+router.get('/dashboard/download', isAdminLoggedIn,adminController.downloadSalesReport);
+
 
 // GET: Admin logout
 router.get('/logout',isAdminLoggedIn, adminController.logout);
