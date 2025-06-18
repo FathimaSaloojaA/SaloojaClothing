@@ -6,6 +6,12 @@ const Subcategory = require('../../models/subCategoryModel');
 
 const loadHome = async (req, res) => {
   try {
+
+    const showPreloader = req.session.showPreloader || false;
+
+  // After showing it once, disable it
+  req.session.showPreloader = false;
+
     const { category, subcategory, search, price } = req.query;
 
     const filter = { isListed: true, isDeleted: false, isBlocked: false };
@@ -172,7 +178,8 @@ const newArrivalsWithImages = filteredNewArrivals.map(product => {
       subcategory: req.query.subcategory,
       categories: categoryMap,
       categoriesWithData,
-      layout: 'user/indexLayout'
+      layout: 'user/indexLayout',
+      showPreloader
     });
 
   } catch (error) {

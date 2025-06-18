@@ -230,7 +230,8 @@ try {
 }
 
     req.session.user = user;
-    res.redirect('/product'); //  or wherever you i want
+    req.session.showPreloader = true;
+    res.redirect('/'); //  or wherever you i want
   } catch (err) {
     console.error('Login Error:', err);
     res.render('user/login', { error: 'Something went wrong', layout: false });

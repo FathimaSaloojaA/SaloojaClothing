@@ -265,7 +265,7 @@ const postApplyCoupon = async (req, res) => {
     const user = await User.findById(userId).populate('cart.productId');
 
     // ✅ First, check if coupon exists in the Coupon collection
-    const coupon = await Coupon.findOne({ code: couponCode, isActive: true, isDeleted: false });
+    const coupon = await Coupon.findOne({ code: couponCode, isActive: true, isDeleted: false ,expiryDate: { $gte: new Date() }});
 
     // ✅ Check if it's a regular coupon
     if (coupon) {
@@ -277,6 +277,11 @@ const postApplyCoupon = async (req, res) => {
 
       if (subtotal < coupon.minPurchase) {
         req.session.couponError = `Minimum purchase of ₹${coupon.minPurchase} required to use this coupon.`;
+        return res.redirect('/checkout');
+      }
+
+      if ( coupon.usageLimit<=0) {
+        req.session.couponError = `Coupon limit has crossed`;
         return res.redirect('/checkout');
       }
 

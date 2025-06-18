@@ -1,10 +1,18 @@
 <div class="create-coupon-container">
   <h1 class="create-title">➕ Create New Coupon</h1>
 
+  <% if (error) { %>
+  <div class="error-box" style="color: red; font-weight: bold; margin-bottom: 10px;">
+    <%= error %>
+  </div>
+<% } %>
+
+
   <form action="/admin/coupons/create" method="POST" class="form-card">
     <div class="form-group">
       <label for="code">Coupon Code</label>
       <input type="text" name="code" id="code" required />
+      <span class="error-msg" id="codeError"></span>
     </div>
 
     <div class="form-group">
@@ -18,23 +26,90 @@
     <div class="form-group">
       <label for="discountValue">Discount Value</label>
       <input type="number" name="discountValue" id="discountValue" step="0.01" required />
+      <span class="error-msg" id="discountValueError"></span>
     </div>
 
     <div class="form-group">
       <label for="minPurchase">Minimum Purchase Amount</label>
       <input type="number" name="minPurchase" id="minPurchase" step="0.01" required />
+      <span class="error-msg" id="minPurchaseError"></span>
     </div>
 
     <div class="form-group">
       <label for="expiryDate">Expiry Date</label>
       <input type="date" name="expiryDate" id="expiryDate" required />
+      <span class="error-msg" id="expiryDateError"></span>
     </div>
 
     <div class="form-group">
       <label for="usageLimit">Usage Limit</label>
       <input type="number" name="usageLimit" id="usageLimit" required />
+      <span class="error-msg" id="usageLimitError"></span>
     </div>
 
     <button type="submit" class="btn-submit">Create Coupon</button>
   </form>
 </div>
+<script>
+  const form = document.querySelector('.form-card');
+
+  form.addEventListener('submit', function (e) {
+    let hasError = false;
+
+    // Clear all previous error messages
+    document.querySelectorAll('.error-msg').forEach(span => span.textContent = '');
+
+    const code = document.getElementById('code').value.trim();
+    const discountValue = parseFloat(document.getElementById('discountValue').value);
+    const discountType = document.getElementById('discountType').value;
+    const minPurchase = parseFloat(document.getElementById('minPurchase').value);
+    const expiryDateValue = document.getElementById('expiryDate').value;
+    const usageLimit = parseInt(document.getElementById('usageLimit').value);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // reset time
+
+    const expiryDate = expiryDateValue ? new Date(expiryDateValue) : null;
+
+    // Validate Coupon Code
+    if (!code) {
+      document.getElementById('codeError').textContent = 'Coupon code is required.';
+      hasError = true;
+    } else if (!/^[A-Za-z0-9]+$/.test(code)) {
+      document.getElementById('codeError').textContent = 'Only alphabets and numbers allowed.';
+      hasError = true;
+    }
+
+    // Validate Discount Value
+    if (isNaN(discountValue) || discountValue <= 0) {
+  document.getElementById('discountValueError').textContent = 'Enter a valid discount value.';
+  hasError = true;
+} else if (discountType === 'percentage' && discountValue > 90) {
+  document.getElementById('discountValueError').textContent = 'Percentage discount cannot be more than 90%.';
+  hasError = true;
+}
+
+    // Validate Minimum Purchase
+    if (isNaN(minPurchase) || minPurchase <= 0) {
+      document.getElementById('minPurchaseError').textContent = 'Minimum purchase must be greater than 0.';
+      hasError = true;
+    }
+
+    // Validate Usage Limit
+    if (isNaN(usageLimit) || usageLimit <= 0) {
+      document.getElementById('usageLimitError').textContent = 'Usage limit must be greater than 0.';
+      hasError = true;
+    }
+
+    // Validate Expiry Date
+    if (!expiryDate) {
+      document.getElementById('expiryDateError').textContent = 'Expiry date is required.';
+      hasError = true;
+    } else if (expiryDate < today) {
+      document.getElementById('expiryDateError').textContent = 'Expiry date must be today or later.';
+      hasError = true;
+    }
+
+    if (hasError) e.preventDefault();
+  });
+</script>

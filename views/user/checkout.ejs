@@ -109,6 +109,10 @@
       <li>Tax: ₹<%= tax.toFixed(2) %></li>
       <li>Discount: - ₹<%= discount.toFixed(2) %></li>
       <li>Shipping: ₹<%= shipping.toFixed(2) %></li>
+<li><% if (couponDiscount && couponDiscount > 0) { %>
+    <p>Coupon Discount: - ₹<%= couponDiscount.toFixed(2) %></p>
+  <% } %></li>
+
       <li class="final">Total: ₹<%= finalTotal.toFixed(2) %></li>
     </ul>
 

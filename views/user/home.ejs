@@ -1,11 +1,41 @@
 
 
 
-    <!-- Topbar Start -->
-    
-    <!-- Navbar End -->
+    <!-- Preloader Section -->
+<% if (showPreloader) { %>
+  <div id="preloader">
+    <a href="" class="text-decoration-none">
+      <h3 class="m-0 display-5 font-weight-semi-bold" style="margin-bottom: 0;">
+        <span class="text-primary font-weight-bold border px-3 mr-1">Salooja</span>CLOTHING
+      </h3>
+    </a>
+  </div>
+
+  <script>
+    window.addEventListener("load", () => {
+      setTimeout(() => {
+        document.getElementById("preloader").style.display = "none";
+      }, 2500);
+    });
+  </script>
+
+  <style>
+    #preloader h3 {
+      animation: vibrate 0.3s linear infinite;
+    }
+
+    @keyframes vibrate {
+      0% { transform: translateX(-1px); }
+      25% { transform: translateX(1px); }
+      50% { transform: translateX(-1px); }
+      75% { transform: translateX(1px); }
+      100% { transform: translateX(-1px); }
+    }
+  </style>
+<% } %>
 
 
+<div id="main-content">
     <!-- Featured Start -->
     <div class="container-fluid pt-5">
         <div class="row px-xl-5 pb-3">
@@ -161,6 +191,7 @@
     </div>
     <!-- Vendor End -->
 
-
+</div>
     <!-- Footer Start -->
-    
+   
+

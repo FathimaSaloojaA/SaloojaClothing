@@ -2371,3 +2371,13 @@ canvas {
   background: var(--blue-4);
   transform: scale(1.05);
 }
+.error-msg {
+    color: red;
+    font-size: 0.9rem;
+    margin-top: 4px;
+    display: block;
+  }
+
+  .form-group input:invalid {
+    border-color: red;
+  }
