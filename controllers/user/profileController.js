@@ -334,7 +334,8 @@ const getWalletDetails = async (req, res) => {
 
     const wallet = await Wallet.findOne({ userEmail });
     if (!wallet) {
-      return res.render('wallet', { balance: 0, transactions: [] });
+      return res.render('user/wallet', { balance: 0, transactions: [], userName: req.session.user ? req.session.user.firstName : '',
+    layout: 'user/detailsLayout'});
     }
 
     res.render('user/wallet', {

@@ -33,7 +33,10 @@ paymentMethod: { type: String, default: 'Cash on Delivery' },
 razorpayPaymentId: {
   type: String,
   default: null
-}
+},
+couponCode: { type: String, default: null },
+couponDiscount: { type: Number, default: 0 },
+
  // For future methods
 
 });

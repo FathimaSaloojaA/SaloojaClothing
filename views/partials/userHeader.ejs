@@ -116,9 +116,11 @@
     
     <!-- Wishlist Button -->
     <a href="/wishlist" class="btn border position-relative">
-      <i class="fas fa-heart text-primary"></i>
-      <span class="badge">0</span>
-    </a>
+  <i class="fas fa-heart text-primary"></i>
+  <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill">
+    <%= wishlistCount %>
+  </span>
+</a>
 
     <!-- Cart Button -->
     <a href="/cart" class="btn border position-relative">

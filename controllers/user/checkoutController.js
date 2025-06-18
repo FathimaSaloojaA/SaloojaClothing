@@ -225,7 +225,8 @@ const getCheckoutPage = async (req, res) => {
     }
 
     const shipping = 0;
-    const finalTotal = subtotal + tax - discount - couponDiscount + shipping;
+    //const finalTotal = subtotal + tax - discount - couponDiscount + shipping;
+const finalTotal = subtotal + tax - couponDiscount + shipping;
 
     const defaultAddress = user.addresses.find(addr => addr.isDefault);
     const allAddresses = user.addresses;
@@ -386,7 +387,9 @@ const postPlaceOrder = async (req, res) => {
         state: selectedAddress.state,
         zip: selectedAddress.zip,
         country: selectedAddress.country
-      }
+      },
+      couponCode: appliedCoupon?.code || null,
+  couponDiscount: couponDiscount || 0
     });
 
     await order.save();
@@ -516,7 +519,7 @@ const getPaymentFailure = async (req, res) => {
 
   // If no order exists (like in Razorpay cancel), show a generic page
   if (orderId === 'temp') {
-    return res.render('user/payment-failed', {
+    return res.render('user/payment-failure', {
       orderId: null,
       userName: req.session.user ? req.session.user.firstName : '',
       layout: 'user/detailsLayout'

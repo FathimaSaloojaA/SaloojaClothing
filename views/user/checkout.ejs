@@ -143,7 +143,7 @@
 
     <form  id="paymentForm"  action="/checkout/place-order" method="POST">
       <input type="hidden" name="selectedAddress" value="<%= defaultAddressId %>" id="selectedAddressInput">
-      <button type="submit" class="place-order-btn">📦 Place Order - COD</button>
+      <button type="submit" class="place-order-btn">📦 Place Order </button>
     </form>
   </div>
 </div>
@@ -326,7 +326,7 @@ function createError(input, message) {
         key: data.keyId,
         amount: data.amount,
         currency: data.currency,
-        name: 'Your Brand Name',
+        name: 'Salooja CLOTHING',
         description: 'Order Payment',
         order_id: data.orderId,
         handler: async function (response) {

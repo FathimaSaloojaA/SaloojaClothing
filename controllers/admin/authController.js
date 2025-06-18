@@ -1,6 +1,7 @@
 const User = require('../../models/userModel');
 const Product = require('../../models/productModel');
 const Order = require('../../models/orderModel');
+const Coupon = require('../../models/couponModel');
 const bcrypt = require('bcrypt');
 const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit');
@@ -33,13 +34,12 @@ const verifyLogin = async (req, res) => {
   res.redirect('/admin/dashboard');
 };
 
-const loadDashboard =async (req, res) => {
+const loadDashboard = async (req, res) => {
   try {
     const { range, startDate, endDate } = req.query;
 
     let start = new Date();
     let end = new Date();
-
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -61,21 +61,19 @@ const loadDashboard =async (req, res) => {
         break;
       case 'custom':
         if (!startDate || !endDate || isNaN(new Date(startDate)) || isNaN(new Date(endDate))) {
-    // Fallback to today if custom dates are invalid
-    start = new Date(today);
-    end = new Date();
-  } else {
-    start = new Date(startDate);
-    end = new Date(endDate);
-    end.setHours(23, 59, 59, 999); // include entire day
-  }
-  break;
+          start = new Date(today);
+          end = new Date();
+        } else {
+          start = new Date(startDate);
+          end = new Date(endDate);
+          end.setHours(23, 59, 59, 999);
+        }
+        break;
       default:
         start = new Date(today);
         end = new Date();
     }
 
-    // ✅ Use correct field: orderDate (not createdAt)
     const orders = await Order.find({
       status: 'delivered',
       orderDate: { $gte: start, $lte: end }
@@ -84,49 +82,65 @@ const loadDashboard =async (req, res) => {
     const totalOrders = orders.length;
     const totalRevenue = orders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
 
-    // You can add discounts logic later if stored separately
-    const totalDiscounts = 0;
-    const netRevenue = totalRevenue - totalDiscounts;
+    let totalDiscounts = 0;
+    let couponDiscountTotal = 0;
 
-    // Other dashboard values
+    for (const order of orders) {
+      let productLevelDiscount = 0;
+
+      for (const item of order.products) {
+        const product = await Product.findById(item.productId).lean();
+        if (!product) continue;
+
+        const originalPrice = product.price;
+        const discountedPrice = item.price;
+        const quantity = item.quantity;
+
+        const itemOriginalTotal = originalPrice * quantity;
+        const itemDiscountedTotal = discountedPrice * quantity;
+        const itemDiscount = itemOriginalTotal - itemDiscountedTotal;
+
+        productLevelDiscount += itemDiscount;
+      }
+
+      totalDiscounts += productLevelDiscount;
+
+      // ✅ Use stored coupon discount directly
+      couponDiscountTotal += order.couponDiscount || 0;
+    }
+
+    const netRevenue = totalRevenue - totalDiscounts - couponDiscountTotal;
+
+    // 🟢 Other dashboard values
     const totalUsers = await User.countDocuments({ isBlocked: false });
     const blockedUsersCount = await User.countDocuments({ isBlocked: true });
     const lowStockProducts = await Product.find({ stock: { $lt: 10 } });
-    const lineChart = {
-  labels: [],
-  data: []
-};
 
-const dailySales = {};
+    const lineChart = { labels: [], data: [] };
+    const dailySales = {};
 
-orders.forEach(order => {
-  const date = order.orderDate.toISOString().split('T')[0];
-  dailySales[date] = (dailySales[date] || 0) + order.totalPrice;
-});
+    orders.forEach(order => {
+      const date = order.orderDate.toISOString().split('T')[0];
+      dailySales[date] = (dailySales[date] || 0) + order.totalPrice;
+    });
 
-lineChart.labels = Object.keys(dailySales);
-lineChart.data = Object.values(dailySales);
+    lineChart.labels = Object.keys(dailySales);
+    lineChart.data = Object.values(dailySales);
 
-// Payment method breakdown
-const paymentData = {
-  labels: [],
-  values: []
-};
+    const paymentData = { labels: [], values: [] };
+    const paymentCounts = {};
+    orders.forEach(order => {
+      const method = order.paymentMethod || 'Unknown';
+      paymentCounts[method] = (paymentCounts[method] || 0) + 1;
+    });
 
-const paymentCounts = {};
-orders.forEach(order => {
-  const method = order.paymentMethod || 'Unknown';
-  paymentCounts[method] = (paymentCounts[method] || 0) + 1;
-});
+    paymentData.labels = Object.keys(paymentCounts);
+    paymentData.values = Object.values(paymentCounts);
 
-paymentData.labels = Object.keys(paymentCounts);
-paymentData.values = Object.values(paymentCounts);
-
-const recentOrders = await Order.find()
-  .sort({ orderDate: -1 })  // newest first
-  .limit(5)
-  .lean();
-
+    const recentOrders = await Order.find()
+      .sort({ orderDate: -1 })
+      .limit(5)
+      .lean();
 
     res.render('admin/dashboard', {
       totalUsers,
@@ -135,13 +149,15 @@ const recentOrders = await Order.find()
       totalOrders,
       totalRevenue,
       totalDiscounts,
+      couponDiscountTotal, // ✅ Display separately if needed
       netRevenue,
       selectedRange: range || 'today',
       startDate,
       endDate,
-      layout:'admin/adminLayout',
+      layout: 'admin/adminLayout',
       lineChart,
-      paymentData,recentOrders
+      paymentData,
+      recentOrders
     });
   } catch (error) {
     console.error('Error loading dashboard:', error);

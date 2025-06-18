@@ -23,7 +23,7 @@ const productSchema = new mongoose.Schema({
 
   highlights: [String],
   discountPercentage: { type: Number, default: 0 },
-  couponNote: { type: String, default: null },
+  
 
   averageRating: { type: Number, default: 0 },
   numReviews: { type: Number, default: 0 },

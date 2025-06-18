@@ -23,6 +23,7 @@ const path = require("path");
 const indexRoutes = require('./routes/user/indexRoutes')
 const passport = require('./middlewares/passport');
 const setCartCount = require('./middlewares/cartCount');
+const setWishlistCount = require('./middlewares/setWishlistCount');
  // adjust path as needed
 const expressLayouts = require('express-ejs-layouts');
 const { EMAIL_FROM, EMAIL_PASS } = require('./utils/constants');
@@ -78,6 +79,7 @@ app.use((req, res, next) => {
 });
 
 app.use(setCartCount);
+app.use(setWishlistCount);
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.static(path.join(__dirname, "public")));

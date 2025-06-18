@@ -72,7 +72,7 @@ const addProduct = async (req, res) => {
       category,
       subcategory,
       highlights,
-      couponNote,
+      
       discountPercentage,
       price,
       stock
@@ -133,7 +133,7 @@ const subcategoryId = new mongoose.Types.ObjectId(subcategory);
       category :categoryId,
       subcategory:subcategoryId,
       highlights: highlights ? highlights.split(',').map(h => h.trim()) : [],
-      couponNote,
+      
       discountPercentage,
       price,
       stock,

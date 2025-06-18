@@ -102,4 +102,49 @@
       $("#zoomImage").removeClass("zoomed");
     });
   });
+
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const toggleButtons = document.querySelectorAll('.wishlist-toggle');
+
+    toggleButtons.forEach(button => {
+      button.addEventListener('click', async function () {
+        const productId = this.getAttribute('data-product-id');
+        const icon = this.querySelector('.wishlist-icon');
+
+        try {
+          const response = await fetch(`/wishlist/toggle/${productId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            // ✅ Toggle heart icon styles
+            if (data.added) {
+              icon.classList.remove('far', 'text-secondary');
+              icon.classList.add('fas', 'text-pink');
+            } else {
+              icon.classList.remove('fas', 'text-pink');
+              icon.classList.add('far', 'text-secondary');
+            }
+
+            // ✅ Update wishlist badge count
+            const wishlistBadge = document.querySelector('.fa-heart + .badge');
+            if (wishlistBadge) {
+              wishlistBadge.textContent = data.count;
+            }
+          }
+
+        } catch (err) {
+          console.error('Wishlist toggle failed', err);
+        }
+      });
+    });
+  });
+
+
 </script>
