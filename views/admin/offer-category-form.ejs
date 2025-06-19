@@ -5,6 +5,7 @@
       <div class="form-group">
         <label for="name">Offer Name</label>
         <input type="text" name="name" id="name" required />
+        <span class="error-msg" id="nameError"></span>
       </div>
 
       <div class="form-group">
@@ -15,24 +16,94 @@
             <option value="<%= category._id %>"><%= category.name %></option>
           <% }); %>
         </select>
+        <span class="error-msg" id="categoryError"></span>
       </div>
 
       <div class="form-group">
         <label for="discountPercentage">Discount Percentage</label>
-        <input type="number" name="discountPercentage" id="discountPercentage" min="1" max="90" required />
+        <input type="number" name="discountPercentage" id="discountPercentage" min="1" max="89" required />
+        <span class="error-msg" id="discountError"></span>
       </div>
 
       <div class="form-group">
         <label for="startDate">Start Date</label>
         <input type="date" name="startDate" id="startDate" required />
+        <span class="error-msg" id="startDateError"></span>
       </div>
 
       <div class="form-group">
         <label for="endDate">End Date</label>
         <input type="date" name="endDate" id="endDate" required />
+        <span class="error-msg" id="endDateError"></span>
       </div>
 
       <button type="submit" class="submit-btn">Create Category Offer</button>
     </form>
   </div>
 </div>
+<script>
+  document.querySelector('form').addEventListener('submit', function (e) {
+    let hasError = false;
+
+    // Clear previous errors
+    document.querySelectorAll('.error-msg').forEach(el => el.textContent = '');
+
+    const name = document.getElementById('name').value.trim();
+    const category = document.getElementById('category').value;
+    const discountPercentage = parseFloat(document.getElementById('discountPercentage').value);
+    const startDateValue = document.getElementById('startDate').value;
+    const endDateValue = document.getElementById('endDate').value;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const startDate = startDateValue ? new Date(startDateValue) : null;
+    const endDate = endDateValue ? new Date(endDateValue) : null;
+
+    // Offer name validation
+    if (!name) {
+      document.getElementById('nameError').textContent = 'Offer name is required.';
+      hasError = true;
+    } else if (!/^[A-Za-z0-9 ]+$/.test(name)) {
+      document.getElementById('nameError').textContent = 'Only alphabets and numbers allowed.';
+      hasError = true;
+    }
+
+    // Category validation
+    if (!category) {
+      document.getElementById('categoryError').textContent = 'Please select a category.';
+      hasError = true;
+    }
+
+    // Discount percentage validation
+    if (isNaN(discountPercentage) || discountPercentage <= 0) {
+      document.getElementById('discountError').textContent = 'Enter a valid discount percentage.';
+      hasError = true;
+    } else if (discountPercentage === 90) {
+      document.getElementById('discountError').textContent = 'give a discount of less than 90%.';
+      hasError = true;
+    }
+
+    // Start date validation
+    if (!startDate) {
+      document.getElementById('startDateError').textContent = 'Start date is required.';
+      hasError = true;
+    } else if (startDate < today) {
+      document.getElementById('startDateError').textContent = 'Start date must be today or later.';
+      hasError = true;
+    }
+
+    // End date validation
+    if (!endDate) {
+      document.getElementById('endDateError').textContent = 'End date is required.';
+      hasError = true;
+    } else if (endDate < today) {
+      document.getElementById('endDateError').textContent = 'End date must be today or later.';
+      hasError = true;
+    }
+
+    if (hasError) {
+      e.preventDefault();
+    }
+  });
+</script>

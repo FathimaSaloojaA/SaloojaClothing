@@ -9776,51 +9776,65 @@ form[action="/product"] {
 /* Make all sections stack on small screens but with tight spacing */
 @media (max-width: 768px) {
   form[action="/product"] {
-    flex-direction: column;
-    gap: 0.75rem;
-    padding: 12px 12px;
+    display: flex;
+    flex-direction: row;
+    padding: 3px;
+    gap: 3px;
+    background: #fff0f6;
+    border-radius: 8px;
+    border: 1px solid #ffcce5;
   }
 
   form[action="/product"] > div,
   form[action="/product"] > a,
   form[action="/product"] button[type="submit"] {
-    flex: 1 1 100% !important;
+    width: 100% !important;
+    flex: unset !important;
     max-width: 100% !important;
+    margin: 0;
   }
 
   form[action="/product"] input[type="text"],
   form[action="/product"] select {
-    width: 100% !important;
-    font-size: 0.95rem;
-    padding: 8px 10px;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    border-radius: 5px;
+    border: 1px solid #ec8fc5;
+  }
+
+  form[action="/product"] label {
+    font-size: 0.8rem;
+    margin-bottom: 3px;
+    color: #555;
+  }
+
+  form[action="/product"] .apply-btn {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    background-color: #ff69b4;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(255, 105, 180, 0.2);
   }
 
   form[action="/product"] .clear-filter-btn {
-    display: block;
+    font-size: 0.8rem;
     text-align: center;
-    padding: 8px 12px;
-    margin-top: 6px;
-    width: 100%;
-    font-size: 0.85rem;
-    color: #444;
+    color: #ff69b4;
     text-decoration: underline;
-  }
-  form[action="/product"] .apply-btn {
-    display: block;
-    text-align: center;
-    padding: 8px 12px;
-    margin-top: 6px;
-    width: 100%;
-    font-size: 0.85rem;
-    color: #444;
-    text-decoration: none;
+    margin-top: 3px;
   }
 
-  /* Hide dropdown box shadow clutter on small screens */
+  form[action="/product"] label,
+  form[action="/product"] input[type="checkbox"] {
+    font-size: 0.8rem;
+  }
+
   form[action="/product"] .dropdown-menu {
     position: static !important;
     box-shadow: none !important;
-    color: #bd726b !important ;
   }
 }
 

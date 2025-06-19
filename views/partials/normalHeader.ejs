@@ -45,7 +45,7 @@
 
         <!--searchbar-->
         <div class="col-12" style="padding: 1rem;">
-  <form action="/product" method="GET" class="sticky-filter-bar" 
+  <form action="/product" method="GET" class="sticky-filter-bar filter-mobile-container" 
     style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; 
            padding: 12px 16px; border: 1px solid #ec8fc5; border-radius: 10px; background-color: #f67ec83b; box-shadow: 0 1px 6px rgba(0,0,0,0.1);">
 
@@ -76,7 +76,8 @@
     </div>
 
     <!-- Sorting Dropdown -->
-    <div style="display: flex; flex-direction: column; min-width: 180px; max-width: 220px; flex: 1 1 180px;">
+     
+    <div  class=" sort-dropdown   sort-price-wrapper"  style="display: flex; flex-direction: column; min-width: 180px; max-width: 220px; flex: 1 1 180px;">
       <label for="sortSelect" style="font-weight: 600; font-size: 0.9rem; margin-bottom: 4px; color: #333;">Sort By</label>
       <select id="sortSelect" name="sort" style="padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 0.9rem; outline: none;">
         <option value="">-- Select --</option>
@@ -88,7 +89,7 @@
     </div>
 
     <!-- Price Filters -->
-    <div style="display: flex; flex-wrap: wrap; gap: 8px; min-width: 280px; max-width: 320px; font-size: 0.9rem; color: #444; font-weight: 500; flex: 1 1 320px;">
+    <div  class=" price-filters sort-price-wrapper"   style="display: flex; flex-wrap: wrap; gap: 8px; min-width: 280px; max-width: 320px; font-size: 0.9rem; color: #444; font-weight: 500; flex: 1 1 320px;">
       <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
         <input type="checkbox" name="price" value="0-999" <%= price?.includes('0-999') ? 'checked' : '' %> style="cursor: pointer;">
         Under ₹1000
@@ -116,14 +117,14 @@
     <% } %>
 
     <!-- Apply Button -->
-    <div style="min-width: 120px; text-align: right; flex: 1 1 120px;">
+    <div  class="button-group" style="min-width: 120px; text-align: right; flex: 1 1 120px;">
       <button type="submit" class="apply-btn" 
               style="padding: 10px 20px; border: none; border-radius: 8px; background-color: #ec8fc5; color: rgb(15, 14, 14); font-weight: 600; cursor: pointer; font-size: 1rem; box-shadow: 0 2px 5px rgba(0,123,255,0.4); transition: background-color 0.3s;"
               onmouseover="this.style.backgroundColor='#ec8fc5'" onmouseout="this.style.backgroundColor='#ec8fc5'">
         Apply Filters
       </button>
     </div>
-    <a href="/product" class="clear-filter-btn" style="color: black;">
+    <a href="/product" class="clear-filter-btn  button-group " style="color: black;">
    
       Clear Filters
    </a>
