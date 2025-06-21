@@ -41,8 +41,6 @@ router.post('/reset-password', authController.postResetPassword);
 
 
 
-// Protected example route (like dashboard)
-//router.get('/dashboard', isUserLoggedIn, authController.dashboard); // Only logged-in users can access
 
 // Logout
 router.get('/logout', authController.logoutUser);

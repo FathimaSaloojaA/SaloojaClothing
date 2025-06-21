@@ -2,6 +2,8 @@ const Product = require('../../models/productModel');
 const Category = require('../../models/categoryModel');
 const Subcategory = require('../../models/subCategoryModel');
 const User = require('../../models/userModel');
+const applyBestOfferToProduct = require('../../utils/applyBestOfferToProduct');
+
 
 
 exports.loadShopPage = async (req, res) => {
@@ -106,6 +108,11 @@ exports.loadShopPage = async (req, res) => {
 
     // Filter out invalid
     const trulyFiltered = allMatchingProducts.filter(prod => prod.category && prod.subcategory);
+    // Reapply valid offers to ensure expired ones are ignored
+for (let product of trulyFiltered) {
+  await applyBestOfferToProduct(product._id);
+}
+
 
     const totalProducts = trulyFiltered.length;
     const totalPages = Math.ceil(totalProducts / limit);
@@ -183,6 +190,9 @@ exports.loadProductDetails = async (req, res) => {
       .populate({ path: 'category', match: { isListed: true, isDeleted: false } })
       .populate({ path: 'subcategory', match: { isListed: true, isDeleted: false } })
       .lean();
+
+      await applyBestOfferToProduct(product._id);
+
 
     if (!product || product.isBlocked || !product.category || !product.subcategory) {
       return res.redirect('/product');

@@ -2381,3 +2381,8 @@ canvas {
   .form-group input:invalid {
     border-color: red;
   }
+  .expired-label {
+  color: #e74c3c;
+  font-weight: bold;
+  margin-right: 8px;
+}

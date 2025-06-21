@@ -15,6 +15,8 @@ router.get('/offers/category', offerController.loadCategoryOfferForm);
 router.post('/offers/category', offerController.createCategoryOffer);
 
 router.get('/offers/list', offerController.getAllOffers);
+router.patch('/offers/delete/:id', offerController.softDeleteOffer);
+
 
 
 

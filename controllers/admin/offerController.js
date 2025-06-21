@@ -96,7 +96,7 @@ const createCategoryOffer = async (req, res) => {
 
 const getAllOffers = async (req, res) => {
   try {
-    const offers = await Offer.find()
+    const offers = await Offer.find({ isActive: true })
       .populate('product')
       .populate('category')
       .sort({ createdAt: -1 });
@@ -112,8 +112,39 @@ const getAllOffers = async (req, res) => {
   }
 };
 
+const softDeleteOffer = async (req, res) => {
+  try {
+    const offerId = req.params.id;
+
+    const offer = await Offer.findById(offerId);
+    if (!offer) {
+      return res.status(404).json({ success: false, message: 'Offer not found' });
+    }
+
+    // Soft delete the offer
+    offer.isActive = false;
+    await offer.save();
+
+    // Re-apply offers to affected product(s)
+    if (offer.type === 'product' && offer.product) {
+      await applyBestOfferToProduct(offer.product);
+    } else if (offer.type === 'category' && offer.category) {
+      const products = await Product.find({ category: offer.category });
+      for (const product of products) {
+        await applyBestOfferToProduct(product._id);
+      }
+    }
+
+    res.json({ success: true, message: 'Offer successfully deactivated' });
+  } catch (error) {
+    console.error('Error in softDeleteOffer:', error);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+};
+
+
 
 module.exports = {
   createProductOffer,loadOfferLandingPage,createCategoryOffer,loadProductOfferForm,
-  loadCategoryOfferForm,getAllOffers
+  loadCategoryOfferForm,getAllOffers,softDeleteOffer
 };
