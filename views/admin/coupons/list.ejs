@@ -19,16 +19,18 @@
             <p><strong>Usage Limit:</strong> <%= coupon.usageLimit %></p>
           </div>
 
-          <div class="coupon-actions">
-            <form method="POST" action="/admin/coupons/delete/<%= coupon._id %>">
-              <button type="submit" class="btn btn-danger">Delete</button>
-            </form>
-            <form method="POST" action="/admin/coupons/toggle/<%= coupon._id %>">
-              <button type="submit" class="btn">
-                <%= coupon.isActive ? 'Deactivate' : 'Activate' %>
-              </button>
-            </form>
-          </div>
+          <div class="coupon-actions d-flex align-items-center gap-2">
+  <form method="POST" action="/admin/coupons/delete/<%= coupon._id %>">
+    <button type="submit" class="btn btn-danger btn-sm fixed-action-btn">Delete</button>
+  </form>
+  <form method="POST" action="/admin/coupons/toggle/<%= coupon._id %>">
+    <button type="submit" class="btn btn-sm fixed-action-btn <%= coupon.isActive ? 'btn-warning' : 'btn-success' %>">
+      <%= coupon.isActive ? 'Deactivate' : 'Activate' %>
+    </button>
+  </form>
+</div>
+
+
         </div>
       <% }) %>
     </div>

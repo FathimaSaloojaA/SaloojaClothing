@@ -10,7 +10,9 @@ router.get('/', checkoutController.getCheckoutPage);
 router.get('/address/:id',checkoutController.getAddress)
 router.post('/add-address',checkoutController.postAddAddress)
 router.post('/edit-address/:id',checkoutController.postEditAddress)
-router.post('/place-order',checkoutController.postPlaceOrder)
+router.post('/place-order',express.json(),checkoutController.postPlaceOrder)
+router.post('/verify-stock', checkoutController.verifyStockBeforePayment);
+
 router.post('/create-razorpay-order', checkoutController.createRazorpayOrder);
 
 router.get('/order-success/:id', checkoutController.getOrderSuccess);

@@ -31,7 +31,7 @@
             <td><%= offer.endDate.toDateString() %></td>
             <td class="action-btns">
               <!-- Future: Add edit page -->
-              <a href="#">Edit</a>
+              
              <% if (new Date() > new Date(offer.endDate)) { %>
   <span class="expired-label">Expired</span>
   <a href="#" class="delete-offer-btn" data-offer-id="<%= offer._id %>">Delete</a>

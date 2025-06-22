@@ -298,6 +298,7 @@ function createError(input, message) {
   });
 
 
+  
   const form = document.getElementById('paymentForm');
   const paymentOptions = document.getElementsByName('paymentMethod');
 
@@ -305,27 +306,45 @@ function createError(input, message) {
     const selectedMethod = [...paymentOptions].find(r => r.checked).value;
 
     if (selectedMethod === 'Razorpay') {
-      e.preventDefault(); // stop default form submit
+      e.preventDefault(); // Stop normal form submit
 
-      const amount = <%= finalTotal %>; // make sure you pass this from backend
+      // ✅ Step 0: Verify stock before payment
+      const stockRes = await fetch('/checkout/verify-stock', {
+        method: 'POST'
+      });
 
-      // 🔶 1. Create Razorpay order from backend
+      const stockData = await stockRes.json();
+      if (!stockData.success) {
+        return Swal.fire({
+          icon: 'error',
+          title: 'Stock Issue',
+          text: stockData.message,
+          confirmButtonColor: '#ec8fc5'
+        });
+      }
+
+      // ✅ Step 1: Get final amount from backend
+      const amount = <%- JSON.stringify(finalTotal || 0) %>;
+
+      // ✅ Step 2: Create Razorpay order on backend
       const res = await fetch('/checkout/create-razorpay-order', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount })
       });
 
       const data = await res.json();
 
       if (!data.success) {
-        alert('Failed to initiate payment.');
-        return;
+        return Swal.fire({
+          icon: 'error',
+          title: 'Payment Error',
+          text: 'Failed to initiate Razorpay payment.',
+          confirmButtonColor: '#ec8fc5'
+        });
       }
 
-      // 🔶 2. Open Razorpay checkout
+      // ✅ Step 3: Razorpay options
       const options = {
         key: data.keyId,
         amount: data.amount,
@@ -334,43 +353,47 @@ function createError(input, message) {
         description: 'Order Payment',
         order_id: data.orderId,
         handler: async function (response) {
-          // 🔶 3. On successful payment, submit form with Razorpay flag
           const razorpayPaymentId = response.razorpay_payment_id;
+          const selectedAddress = document.getElementById('selectedAddressInput').value;
 
-          const hiddenPaymentMethod = document.createElement('input');
-          hiddenPaymentMethod.type = 'hidden';
-          hiddenPaymentMethod.name = 'paymentMethod';
-          hiddenPaymentMethod.value = 'Razorpay';
+          const placeOrderRes = await fetch('/checkout/place-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              paymentMethod: 'Razorpay',
+              paymentId: razorpayPaymentId,
+              selectedAddress
+            })
+          });
 
-          const hiddenPaymentId = document.createElement('input');
-          hiddenPaymentId.type = 'hidden';
-          hiddenPaymentId.name = 'paymentId';
-          hiddenPaymentId.value = razorpayPaymentId;
+          const result = await placeOrderRes.json();
 
-          form.appendChild(hiddenPaymentMethod);
-          form.appendChild(hiddenPaymentId);
-
-          form.submit();
+          if (result.success) {
+            window.location.href = `/checkout/order-success/${result.orderId}`;
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Order Failed',
+              text: result.message || 'Payment succeeded but order failed.',
+              confirmButtonColor: '#ec8fc5'
+            });
+          }
         },
         prefill: {
           name: '<%= userName %>',
           email: '<%= userEmail %>'
         },
-        theme: {
-          color: '#ff69b4'
-        },
+        theme: { color: '#ff69b4' },
         modal: {
-  ondismiss: function () {
-    // Razorpay popup closed without payment
-    window.location.href = '/checkout/payment-failed/temp';
-  }
-}
-
+          ondismiss: function () {
+            window.location.href = '/checkout/payment-failed/temp';
+          }
+        }
       };
 
+      // ✅ Step 4: Open Razorpay Checkout
       const razorpay = new Razorpay(options);
       razorpay.open();
     }
   });
-
 </script>

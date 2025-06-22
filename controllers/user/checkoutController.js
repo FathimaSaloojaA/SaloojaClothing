@@ -17,123 +17,71 @@ const razorpay = new Razorpay({
 // 👇 This is NEW and only for payment pre-processing
 const createRazorpayOrder = async (req, res) => {
   try {
-    const amount = req.body.amount; // amount in rupees
+    const userId = req.session.user._id;
+    const selectedAddressId = req.body.selectedAddress;
+
+    const user = await User.findById(userId).populate('cart.productId').lean();
+
+    if (!user || user.cart.length === 0) {
+      return res.status(400).json({ success: false, message: "Cart is empty." });
+    }
+
+    // ✅ Stock validation
+    for (const item of user.cart) {
+      const product = item.productId;
+      if (!product || product.isDeleted || product.isBlocked) {
+        return res.status(400).json({ success: false, message: `${product?.name || 'A product'} is not available.` });
+      }
+
+      if (item.quantity > product.stock) {
+        return res.status(400).json({
+          success: false,
+          message: `Insufficient stock for "${product.name}". Only ${product.stock} left.`
+        });
+      }
+    }
+
+    // ✅ Final price calculation
+    const subtotal = user.cart.reduce((sum, item) => {
+      const product = item.productId;
+      const discountedPrice = product.price * (1 - (product.discountPercentage || 0) / 100);
+      return sum + (discountedPrice * item.quantity);
+    }, 0);
+
+    // ✅ Apply coupon from session (if any)
+    let total = subtotal;
+    const coupon = req.session.appliedCoupon;
+    if (coupon) {
+      const discount = coupon.discountType === 'percentage'
+        ? subtotal * (coupon.discountValue / 100)
+        : coupon.discountValue;
+      total = Math.max(0, subtotal - discount);
+    }
+
+    const finalAmount = Math.round(total); // ensure integer in rupees
+
+    // ✅ Create Razorpay order
     const razorpayOrder = await razorpay.orders.create({
-      amount: amount * 100, // convert to paisa
+      amount: finalAmount * 100, // in paisa
       currency: "INR",
-      receipt: "receipt_order_" + new Date().getTime()
+      receipt: "receipt_" + new Date().getTime()
     });
 
     res.json({
       success: true,
-      orderId: razorpayOrder.id,
+      razorpayOrderId: razorpayOrder.id,
       keyId: process.env.RAZORPAY_KEY_ID,
-      amount: razorpayOrder.amount,
-      currency: razorpayOrder.currency
+      amount: razorpayOrder.amount
     });
+
   } catch (err) {
-    console.error("Razorpay Order Creation Error:", err);
-    res.status(500).json({ success: false, message: "Failed to create Razorpay order" });
+    console.error("❌ Razorpay Order Error:", err);
+    res.status(500).json({ success: false, message: "Server error while creating order." });
   }
 };
 
 
 
-
-/*const getCheckoutPage = async (req, res) => {
-  try {
-    const userId = req.session.user._id;
-
-    const user = await User.findById(userId)
-      .populate('cart.productId')
-      .lean();
-// 👇 Add this below the user fetch
-const availableCoupons = await Coupon.find({
-  isActive: true,
-  isDeleted: false,
-  expiryDate: { $gte: new Date() },
-  usageLimit: { $gt: 0 }
-}).lean();
-
-
-
-    if (!user) return res.redirect('/login');
-
-    const cartItems = user.cart.map(item => {
-      const product = item.productId;
-      const quantity = item.quantity;
-
-      const originalPrice = product.price;
-      const discountPercent = product.discountPercentage || 0;
-      const discountedPrice = originalPrice * (1 - discountPercent / 100);
-      const itemTotal = discountedPrice * quantity;
-
-      return {
-        _id: product._id,
-        name: product.name,
-        image: product.images?.[0], // Show first image
-        originalPrice,
-        discountedPrice,
-        discountPercent,
-        quantity,
-        itemTotal,
-        couponNote: product.couponNote
-      };
-    });
-
-    const subtotal = cartItems.reduce((acc, item) => acc + item.itemTotal, 0);
-    const tax = 0;
-    const discount = cartItems.reduce((acc, item) => {
-  const totalOriginal = item.originalPrice * item.quantity;
-  const totalDiscounted = item.discountedPrice * item.quantity;
-  return acc + (totalOriginal - totalDiscounted);
-}, 0);
-
-const coupon = req.session.appliedCoupon || null;
-let couponDiscount = 0;
-
-if (coupon) {
-  if (coupon.discountType === 'percentage') {
-    couponDiscount = subtotal * (coupon.discountValue / 100);
-  } else {
-    couponDiscount = coupon.discountValue;
-  }
-}
-
-
-    const shipping = 0;
-    const finalTotal = subtotal + tax - discount - couponDiscount + shipping;
-    
-
-    const defaultAddress = user.addresses.find(addr => addr.isDefault);
-    const allAddresses = user.addresses;
-    const couponError = req.session.couponError || null;
-    req.session.couponError = null;
-
-
-    res.render('user/checkout', {
-  cartItems,
-  subtotal,
-  tax,
-  discount,
-  shipping,
-  finalTotal,
-  couponDiscount,
-  appliedCoupon: coupon,
-  couponError,
-  
-  userEmail: user.email,
-  availableCoupons,
-  addresses: allAddresses,
-  defaultAddressId: defaultAddress?._id?.toString() || null,
-  userName: req.session.user ? req.session.user.firstName : '',
-  layout: 'user/detailsLayout'
-});
-  } catch (err) {
-    console.error('Checkout Page Error:', err);
-    res.status(500).send('Internal Server Error');
-  }
-};*/
 
 const getCheckoutPage = async (req, res) => {
   try {
@@ -337,6 +285,34 @@ const postRemoveCoupon = (req, res) => {
 };
 
 
+// controllers/orderController.js
+const verifyStockBeforePayment = async (req, res) => {
+  try {
+    const userId = req.session.user._id;
+    const user = await User.findById(userId).populate('cart.productId');
+
+    for (const item of user.cart) {
+      const product = item.productId;
+      if (!product || product.isDeleted || product.isBlocked) {
+        return res.status(400).json({ success: false, message: `Product not available` });
+      }
+      if (item.quantity > product.stock) {
+        return res.status(400).json({
+          success: false,
+          message: `Not enough stock for ${product.name}. Only ${product.stock} left.`
+        });
+      }
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('❌ Stock Verification Error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+
+
 const postPlaceOrder = async (req, res) => {
   try {
     const userId = req.session.user._id;
@@ -348,6 +324,20 @@ const postPlaceOrder = async (req, res) => {
     const user = await User.findById(userId).populate('cart.productId').populate('rewardCoupons');
     const selectedAddress = user.addresses.id(selectedAddressId);
     if (!selectedAddress) return res.redirect('/checkout');
+
+    for (const item of user.cart) {
+      if (!item.productId || item.productId.isDeleted || item.productId.isBlocked) {
+        return res.status(400).send('Invalid product in cart.');
+      }
+
+      if (item.quantity > item.productId.stock) {
+        return res.status(400).json({
+  success: false,
+  message: `Insufficient stock for "${item.productId.name}". Only ${item.productId.stock} left.`
+});
+
+      }
+    }
 
     // Prepare product details
     const productStatus = paymentMethod === 'Razorpay' ? 'paid' : 'ordered';
@@ -434,7 +424,16 @@ await user.save();
     req.session.appliedCoupon = null;
 
     // ✅ Redirect to success page
-    res.redirect(`/checkout/order-success/${order._id}`);
+    //res.redirect(`/checkout/order-success/${order._id}`);
+//res.status(200).json({ success: true, orderId: order._id });
+
+if (req.headers['content-type'] === 'application/json') {
+      // Razorpay AJAX call
+      res.status(200).json({ success: true, orderId: order._id });
+    } else {
+      // COD form submit
+      res.redirect(`/checkout/order-success/${order._id}`);
+    }
 
   } catch (err) {
     console.error('❌ Error placing order:', err);
@@ -551,5 +550,5 @@ const getPaymentFailure = async (req, res) => {
 module.exports = {
   getCheckoutPage,getAddress,postAddAddress,
   postEditAddress,postPlaceOrder,getOrderSuccess,
-  postApplyCoupon,postRemoveCoupon,createRazorpayOrder,getPaymentFailure
+  postApplyCoupon,postRemoveCoupon,createRazorpayOrder,getPaymentFailure,verifyStockBeforePayment
 };
