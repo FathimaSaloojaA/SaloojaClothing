@@ -58,7 +58,7 @@ const addToCart = async (req, res) => {
         : res.redirect(`/product/${productId}?error=${encodeURIComponent(message)}`);
     }
 
-    // Calculate per-user max limit based on product stock
+    
     const maxQtyPerUser = product.stock >= 5 ? 5 : 2;
 
     const user = await User.findById(userId);
@@ -104,7 +104,7 @@ const addToCart = async (req, res) => {
 
 
 
-// updateQuantity
+
 const updateQuantity = async (req, res) => {
   try {
     const userId = req.session.user._id;
@@ -149,7 +149,8 @@ const updateQuantity = async (req, res) => {
   }
 };
 
-// removeFromCart
+
+
 const removeFromCart = async (req, res) => {
   try {
     const userId = req.session.user._id;

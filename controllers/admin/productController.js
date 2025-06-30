@@ -4,7 +4,7 @@ const Product=require('../../models/productModel');
 const mongoose = require('mongoose');
 
 const sharp = require('sharp');
-const fs = require('fs');
+
 const path = require('path');
 
 const loadProductList = async (req, res) => {
@@ -23,8 +23,8 @@ const loadProductList = async (req, res) => {
     const totalPages = Math.ceil(totalProducts / limit);
 
     const products = await Product.find(filter)
-      .populate('category') // show category even if soft-deleted
-      .populate('subcategory') // same for subcategory
+      .populate('category') 
+      .populate('subcategory') 
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
@@ -49,7 +49,7 @@ const loadProductList = async (req, res) => {
 const loadAddProductPage = async (req, res) => {
   try {
     const categories = await Category.find({ isDeleted: false });
-    //const subcategories = await Subcategory.find({ isDeleted: false });
+    
     const subcategories = await Subcategory.find({ isDeleted: false }).populate('category', '_id');
 
 
@@ -77,8 +77,7 @@ const addProduct = async (req, res) => {
       price,
       stock
     } = req.body;
-console.log("FILES:", req.files);
-    console.log("BODY:", req.body);
+
     const trimmedName = name?.trim();
     if (!trimmedName) {
       return renderWithError('Product name cannot be empty or just spaces.');
@@ -98,18 +97,20 @@ console.log("FILES:", req.files);
     const categoryId = new mongoose.Types.ObjectId(category);
 const subcategoryId = new mongoose.Types.ObjectId(subcategory);
 
-    // Check for existing product under same category/subcategory
+    
     const existingProduct = await Product.findOne({
       name: trimmedName,
       category:categoryId,
       subcategory:subcategoryId
     });
 
+  
+    
     if (existingProduct) {
       return renderWithError('Product name already exists under this category and subcategory.');
     }
 
-    // Process images
+    
     const imageFiles = req.files || [];
     if (imageFiles.length === 0 || imageFiles.length > 3) {
       return renderWithError('Please upload between 1 to 3 product images.');
@@ -144,7 +145,7 @@ const subcategoryId = new mongoose.Types.ObjectId(subcategory);
     await product.save();
     res.redirect('/admin/products');
 
-    // Helper
+    
     async function renderWithError(errorMessage) {
       return res.render('admin/addProduct', {
         error: errorMessage,
@@ -172,7 +173,7 @@ const loadEditProductPage = async (req, res) => {
     const categories = await Category.find({ isDeleted: false });
     const subcategories = await Subcategory.find({ isDeleted: false });
 
-    // Group subcategories by category ID
+    
     const subcategoriesByCategory = {};
     subcategories.forEach(subcat => {
       const catId = subcat.category.toString();
@@ -206,7 +207,7 @@ const editProduct = async (req, res) => {
       discountPercentage,
       price,
       stock,
-      existingImages // get from req.body here!
+      existingImages 
     } = req.body;
 
     let existingImgs = existingImages || [];
@@ -243,6 +244,34 @@ const editProduct = async (req, res) => {
       return renderWithError('Product not found.');
     }
 
+
+     const categoryId = new mongoose.Types.ObjectId(category);
+
+let subcategoryId = null;
+if (subcategory && mongoose.Types.ObjectId.isValid(subcategory)) {
+  subcategoryId = new mongoose.Types.ObjectId(subcategory);
+}
+
+   
+    const existingProduct = await Product.findOne({
+  _id: { $ne: productId },
+  name: trimmedName,
+  category: categoryId,
+  ...(subcategoryId
+    ? { subcategory: subcategoryId }
+    : {
+        $or: [
+          { subcategory: null },
+          { subcategory: { $exists: false } },
+        ]
+      })
+});
+
+    
+if(existingProduct){
+  return renderWithError("product alreday exists..")
+}
+
     product.name = trimmedName;
     product.description = trimmedDesc;
     product.category = category;
@@ -252,7 +281,7 @@ const editProduct = async (req, res) => {
     product.totalStock = parsedStock;
     product.discountPercentage = discount;
     product.couponNote = trimmedCouponNote || '';
-    product.highlights = trimmedHighlights
+    product.highlights = trimmedHighlights 
       ? trimmedHighlights.split(',').map(h => h.trim())
       : [];
 
@@ -278,14 +307,14 @@ const editProduct = async (req, res) => {
 
     product.images = finalImages;
 
+
+
     await product.save();
     return res.redirect('/admin/products');
 
-    // ================================
-    // Helper for rendering with error
-    // ================================
+   
     async function renderWithError(errorMessage) {
-      // Fetch categories and all subcategories again
+      
       const categories = await Category.find({ isDeleted: false });
       const subcategories = await Subcategory.find({ isDeleted: false });
 
@@ -296,7 +325,7 @@ const editProduct = async (req, res) => {
         subcategoriesByCategory[catId].push(subcat);
       });
 
-      // Construct a product-like object with current values so form keeps inputs
+      
       const productData = {
         _id: productId,
         name: trimmedName,
@@ -309,7 +338,8 @@ const editProduct = async (req, res) => {
         discountPercentage: discount,
         couponNote: trimmedCouponNote,
         highlights: trimmedHighlights ? trimmedHighlights.split(',').map(h => h.trim()) : [],
-        images: existingImgs,
+        images: Array.isArray(existingImgs) ? existingImgs : [],
+
       };
 
       return res.render('admin/editProduct', {
@@ -323,7 +353,7 @@ const editProduct = async (req, res) => {
   } catch (error) {
     console.error('Edit Product Error:', error);
 
-    // fallback render with minimal data to avoid crashing
+    
     return res.status(500).render('admin/editProduct', {
       error: 'Internal Server Error',
       product: {},
@@ -338,10 +368,10 @@ const softDeleteProduct = async (req, res) => {
   try {
     const productId = req.params.id;
 
-    // Soft delete: set a flag like isDeleted = true
+    
     await Product.findByIdAndUpdate(productId, { isDeleted: true });
 
-    res.redirect('/admin/products'); // redirect to product list after deletion
+    res.redirect('/admin/products'); 
   } catch (err) {
     console.error('Error deleting product:', err);
     res.status(500).send('Internal Server Error');
@@ -351,7 +381,7 @@ const restoreProduct = async (req, res) => {
   try {
     const productId = req.params.id;
 
-    // Restore: set isDeleted = false
+   
     await Product.findByIdAndUpdate(productId, { isDeleted: false });
 
     res.redirect('/admin/products');

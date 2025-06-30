@@ -24,7 +24,7 @@ const loadCategoryList = async (req, res) => {
       .skip(skip)
       .limit(limit);
 
-    // Fetch subcategories for each category
+    
     const categoriesWithSubs = await Promise.all(
       categories.map(async (category) => {
         const subcategories = await Subcategory.find({
@@ -59,25 +59,25 @@ const softDeleteCategory = async (req, res) => {
   const categoryId = req.params.id;
 
   try {
-    // Soft delete category
+    
     await Category.findByIdAndUpdate(categoryId, { isDeleted: true });
 
-    // Soft delete all subcategories under this category
+    
     await Subcategory.updateMany(
       { category: categoryId },
       { isDeleted: true }
     );
 
-    // Get all subcategory IDs of this category
+    
     const subcatIds = await Subcategory.find({ category: categoryId }).distinct('_id');
 
-    // Soft delete all products in this category
+    
     await Product.updateMany(
-      { category: categoryId },
+      { category: categoryId,stock:{$lt:10} },
       { isDeleted: true }
     );
 
-    // Soft delete all products in these subcategories
+    
     if (subcatIds.length > 0) {
       await Product.updateMany(
         { subcategory: { $in: subcatIds } },
@@ -91,29 +91,32 @@ const softDeleteCategory = async (req, res) => {
     res.status(500).send("Failed to delete category");
   }
 };
+
+
+
 const restoreCategory = async (req, res) => {
   const categoryId = req.params.id;
 
   try {
-    // Restore category
+    
     await Category.findByIdAndUpdate(categoryId, { isDeleted: false });
 
-    // Restore all subcategories under this category
+    
     await Subcategory.updateMany(
       { category: categoryId },
       { isDeleted: false }
     );
 
-    // Get subcategory IDs of this category
+    
     const subcatIds = await Subcategory.find({ category: categoryId }).distinct('_id');
 
-    // Restore all products under this category
+    
     await Product.updateMany(
       { category: categoryId },
       { isDeleted: false }
     );
 
-    // Restore all products in subcategories
+    
     if (subcatIds.length > 0) {
       await Product.updateMany(
         { subcategory: { $in: subcatIds } },
@@ -133,12 +136,12 @@ const softDeleteSubcategory = async (req, res) => {
   const subcategoryId = req.params.id;
 
   try {
-    // Soft delete subcategory
+    
     await Subcategory.findByIdAndUpdate(subcategoryId, { isDeleted: true });
 
-    // Soft delete all products with this subcategory
+    
     await Product.updateMany(
-      { subcategory: subcategoryId },
+      { subcategory: subcategoryId,stock:{$lte:0} },
       { isDeleted: true }
     );
 
@@ -153,10 +156,10 @@ const restoreSubcategory = async (req, res) => {
   const subcategoryId = req.params.id;
 
   try {
-    // Restore subcategory
+    
     await Subcategory.findByIdAndUpdate(subcategoryId, { isDeleted: false });
 
-    // Restore all products with this subcategory
+    
     await Product.updateMany(
       { subcategory: subcategoryId },
       { isDeleted: false }
@@ -179,10 +182,10 @@ const addCategory = async (req, res) => {
   try {
     let { name, subcategories } = req.body;
 
-    // ✅ Trim the category name
+   
     name = name.trim();
 
-    // ✅ Reject if category name is empty after trimming
+    
     if (!name) {
       return res.render('admin/addCategory', {
         error: 'Category name cannot be empty or just spaces.',
@@ -190,7 +193,7 @@ const addCategory = async (req, res) => {
       });
     }
 
-    // ✅ Check if category already exists (case-insensitive)
+    
     const existingCategory = await Category.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') } });
     if (existingCategory) {
       return res.render('admin/addCategory', {
@@ -199,38 +202,38 @@ const addCategory = async (req, res) => {
       });
     }
 
-    // ✅ Create category
+    
     const category = new Category({ name });
     await category.save();
 
     if (subcategories && subcategories.length > 0) {
-      // Normalize into array and trim each entry
+      
       const subArray = Array.isArray(subcategories) ? subcategories : [subcategories];
 
       const trimmedSubs = subArray.map(sub => sub.trim()).filter(sub => sub !== '');
 
-      // ✅ Ensure no empty subcategory after trimming
+      
       if (trimmedSubs.length === 0) {
-        await Category.findByIdAndDelete(category._id); // optional cleanup
+        await Category.findByIdAndDelete(category._id); 
         return res.render('admin/addCategory', {
           error: 'Subcategory names cannot be empty or just spaces.',
           layout: 'admin/adminLayout'
         });
       }
 
-      // ✅ Check for duplicates (case-insensitive)
+      
       const lowerCaseNames = trimmedSubs.map(name => name.toLowerCase());
       const hasDuplicate = new Set(lowerCaseNames).size !== lowerCaseNames.length;
 
       if (hasDuplicate) {
-        await Category.findByIdAndDelete(category._id); // optional cleanup
+        await Category.findByIdAndDelete(category._id); 
         return res.render('admin/addCategory', {
           error: 'Duplicate subcategories are not allowed under the same category.',
           layout: 'admin/adminLayout'
         });
       }
 
-      // ✅ Save subcategories
+      
       const subcategoryDocs = trimmedSubs.map(sub => ({
         name: sub,
         category: category._id
@@ -272,14 +275,14 @@ const updateCategory = async (req, res) => {
     categoryName,
     existingSubcategories,
     newSubcategories = [],
-    deleteSubcategories = [] // ⬅️ GET deleted subcategories
+    deleteSubcategories = [] 
   } = req.body;
 
   try {
     const currentCategory = await Category.findById(categoryId);
     const allCategories = await Category.find({ _id: { $ne: categoryId } });
 
-    // 1. Check for duplicate category name
+    
     const duplicateCategory = allCategories.find(
       cat => cat.name.trim().toLowerCase() === categoryName.trim().toLowerCase()
     );
@@ -292,7 +295,7 @@ const updateCategory = async (req, res) => {
       });
     }
 
-    // 2. Prepare names and check for duplicates
+    
     const existingNames = existingSubcategories
       ? Object.values(existingSubcategories).map(name => name.trim().toLowerCase())
       : [];
@@ -309,23 +312,23 @@ const updateCategory = async (req, res) => {
       });
     }
 
-    // 3. Update category name
+   
     await Category.findByIdAndUpdate(categoryId, { name: categoryName.trim() });
 
-    // 4. Soft delete subcategories
+    
     const deleteArray = Array.isArray(deleteSubcategories) ? deleteSubcategories : [deleteSubcategories];
     for (const subcatId of deleteArray) {
       await Subcategory.findByIdAndUpdate(subcatId, { isDeleted: true });
     }
 
-    // 5. Update existing subcategories
+    
     if (existingSubcategories) {
       for (const [subcatId, subcatName] of Object.entries(existingSubcategories)) {
         await Subcategory.findByIdAndUpdate(subcatId, { name: subcatName.trim() });
       }
     }
 
-    // 6. Add new subcategories
+    
     const newSubcatDocs = newSubcategories
       .filter(name => name && name.trim() !== '')
       .map(name => ({

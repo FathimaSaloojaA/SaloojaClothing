@@ -1,5 +1,11 @@
 <main class="product-form-container" style="max-width: 800px; margin: auto; padding: 2rem; background: #fff; border-radius: 12px; box-shadow: 0 0 15px rgba(0,0,0,0.1);">
   <h2 style="text-align: center; margin-bottom: 1.5rem; font-size: 2rem;">Edit Product</h2>
+  <% if (error) { %>
+  <div style="color: red; background: #ffe6e6; border: 1px solid red; padding: 12px; margin-bottom: 1rem; border-radius: 8px; text-align: center; font-weight: 500;">
+    <%= error %>
+  </div>
+<% } %>
+
   <form action="/admin/products/edit/<%= product._id %>" method="POST" enctype="multipart/form-data">
 
     <!-- Basic Fields -->
@@ -12,7 +18,8 @@
     <label style="display:block; margin-top: 1rem;">Category</label>
     <select name="category" required style="width:100%; padding: 10px; border:1px solid #ccc; border-radius: 8px;">
       <% categories.forEach(cat => { %>
-        <option value="<%= cat._id %>" <%= product.category.equals(cat._id) ? 'selected' : '' %>><%= cat.name %></option>
+        <option value="<%= cat._id %>" <%= String(product.category) === String(cat._id) ? 'selected' : '' %>><%= cat.name %></option>
+
       <% }) %>
     </select>
 
@@ -22,7 +29,7 @@
     </select>
 
     <label style="display:block; margin-top: 1rem;">Highlights (comma-separated)</label>
-    <input type="text" name="highlights" value="<%= product.highlights.join(', ') %>" style="width:100%; padding: 10px; border:1px solid #ccc; border-radius: 8px;">
+    <input type="text" name="highlights" value="<%= (product.highlights || []).join(', ') %>" style="width:100%; padding: 10px; border:1px solid #ccc; border-radius: 8px;">
 
     <label style="display:block; margin-top: 1rem;">Coupon Note</label>
     <input type="text" name="couponNote" value="<%= product.couponNote %>" style="width:100%; padding: 10px; border:1px solid #ccc; border-radius: 8px;">
@@ -39,14 +46,19 @@
     <label style="display:block; margin-top: 1.5rem;">Current Images & Replacements</label>
     <div class="image-replace-group" style="display: flex; gap: 20px; flex-wrap: wrap;">
 
-      <% product.images.forEach((img, index) => { %>
-        <div style="flex: 1 1 30%; text-align: center;">
-          <img src="<%= img %>" alt="Image <%= index + 1 %>" style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; border: 1px solid #ccc;">
-          <label style="display:block; margin-top: 0.5rem;">Replace Image <%= index + 1 %></label>
-          <input type="file" name="replaceImage<%= index %>" accept="image/*">
-          <input type="hidden" name="existingImages[]" value="<%= img %>">
-        </div>
-      <% }) %>
+      <% if (product.images && Array.isArray(product.images)) { %>
+  <% product.images.forEach((img, index) => { %>
+    <div style="flex: 1 1 30%; text-align: center;">
+      <img src="<%= img %>" alt="Image <%= index + 1 %>" style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; border: 1px solid #ccc;">
+      <label style="display:block; margin-top: 0.5rem;">Replace Image <%= index + 1 %></label>
+      <input type="file" name="replaceImage<%= index %>" accept="image/*">
+      <input type="hidden" name="existingImages[]" value="<%= img %>">
+    </div>
+  <% }) %>
+<% } else { %>
+  <p style="color: gray;">No images available.</p>
+<% } %>
+
 
     </div>
     <div id="formError" style="color: red; margin-top: 1rem; font-weight: 500;"></div>
@@ -69,9 +81,10 @@
       const option = document.createElement('option');
       option.value = sub._id;
       option.textContent = sub.name;
-      if ('<%= product.subcategory ? product.subcategory._id.toString() : "" %>' === sub._id) {
-        option.selected = true;
-      }
+      if ('<%= product.subcategory ? product.subcategory.toString() : "" %>' === sub._id) {
+  option.selected = true;
+}
+
       subcategorySelect.appendChild(option);
     });
   }

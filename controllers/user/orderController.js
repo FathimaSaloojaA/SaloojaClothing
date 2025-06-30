@@ -12,7 +12,7 @@ const getUserOrders = async (req, res) => {
 
     let orders = await Order.find({ userEmail }).sort({ orderDate: -1 }).populate('products.productId');
 
-    // Filter orders in-memory if search query is present
+    
     if (searchQuery) {
       orders = orders.filter(order => {
         const matchOrderID = order.orderID.toLowerCase().includes(searchQuery);
@@ -54,17 +54,17 @@ const postCancelOrder = async (req, res) => {
       return res.redirect('/orders');
     }
 
-    // Update stock and mark each product as cancelled
+    
     for (const item of order.products) {
       if (item.status !== 'cancelled') {
         await Product.findByIdAndUpdate(item.productId, {
           $inc: { stock: item.quantity }
         });
-        item.status = 'cancel requested'; // VERY IMPORTANT
+        item.status = 'cancel requested'; 
       }
     }
 
-    // Update overall order
+    
     order.status = 'cancel requested';
     order.cancelReason = reason || '';
     await order.save();
@@ -93,15 +93,15 @@ const cancelProduct = async (req, res) => {
       return res.redirect('/orders');
     }
 
-    // Check if order already cancelled or delivered (optional safeguard)
+    
     if (order.status === 'cancelled' || productItem.status === 'delivered') {
       return res.redirect('/orders');
     }
 
-    // Update the product status in the order
+    
     productItem.status = 'cancel requested';
 
-    // Restock the cancelled product
+    
     
     order.totalPrice = order.products
       .filter((p) => p.status !== 'cancelled')
@@ -118,7 +118,7 @@ if (allRequestingCancel) {
 }
 
 
-    // Optional: Save cancellation reason somewhere — e.g. in productItem, if you add a field like `cancelReason`
+    
 
     await order.save();
 
@@ -167,13 +167,13 @@ const returnOrder = async (req, res) => {
     const order = await Order.findOne({ orderID: orderId });
     if (!order) return res.status(404).json({ error: 'Order not found' });
 
-    // Only allow return if the order is delivered
+    
     if (order.status !== 'delivered') {
       return res.status(400).json({ error: 'Order not eligible for return' });
     }
 
     order.status = 'return requested';
-    order.returnReason = reason; // Reuse cancelReason field to store return reason
+    order.returnReason = reason; 
     await order.save();
 
     return res.status(200).json({ message: 'Order returned successfully' });

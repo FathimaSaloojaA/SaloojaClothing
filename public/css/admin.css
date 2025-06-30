@@ -132,7 +132,7 @@ body {
   padding: 2rem;
   background: #f0f4f8;
   margin-left: 100px;
-  background-image: url('https://static.vecteezy.com/system/resources/thumbnails/052/401/834/small/art-abstract-blurred-beautiful-spring-background-with-fresh-leaves-photo.jpg'); /* update the path */
+  
   background-size: cover;         /* scales the image to cover the container */
   background-position: center;    /* centers the image */
   background-repeat: no-repeat;   /* prevents tiling */
@@ -386,7 +386,7 @@ body {
   background: #fff;
   border-radius: 10px;
   box-shadow: 0 0 8px rgba(0,0,0,0.1);
-  background-image: url('https://static.vecteezy.com/system/resources/thumbnails/052/401/834/small/art-abstract-blurred-beautiful-spring-background-with-fresh-leaves-photo.jpg'); /* update the path */
+  
   background-size: cover;         /* scales the image to cover the container */
   background-position: center;    /* centers the image */
   background-repeat: no-repeat;   /* prevents tiling */
@@ -649,7 +649,7 @@ body {
   border-radius: 16px;
   backdrop-filter: blur(10px);
   box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
-  background-image: url('https://static.vecteezy.com/system/resources/thumbnails/052/401/834/small/art-abstract-blurred-beautiful-spring-background-with-fresh-leaves-photo.jpg'); /* update the path */
+  
   background-size: cover;         /* scales the image to cover the container */
   background-position: center;    /* centers the image */
   background-repeat: no-repeat;   /* prevents tiling */
@@ -761,7 +761,7 @@ body {
   background: rgba(224, 220, 220, 0.2);
   border-radius: 20px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-  background-image: url('https://static.vecteezy.com/system/resources/thumbnails/052/401/834/small/art-abstract-blurred-beautiful-spring-background-with-fresh-leaves-photo.jpg'); /* update the path */
+  
   background-size: cover;         /* scales the image to cover the container */
   background-position: center;    /* centers the image */
   background-repeat: no-repeat;   /* prevents tiling */
@@ -2411,6 +2411,8 @@ canvas {
 
   
 }
+
+
 
 /* On larger screens: show sidebar always and hide toggle button */
 

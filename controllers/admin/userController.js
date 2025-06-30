@@ -5,13 +5,13 @@ const loadUserList = async (req, res) => {
   try {
 
     const searchQuery = req.query.search || '';
-    const page = parseInt(req.query.page) || 1; // Current page number
-    const limit = 3; // Users per page
+    const page = parseInt(req.query.page) || 1; 
+    const limit = 6; 
     const skip = (page - 1) * limit;
 
     let filter = {isAdmin: false};
     if (searchQuery) {
-      // Case-insensitive partial match on firstName or email
+     
       filter = {
         $or: [
           { firstName: { $regex: searchQuery, $options: 'i' } },
@@ -19,7 +19,7 @@ const loadUserList = async (req, res) => {
         ]
       };
     }
-     const totalUsers = await User.countDocuments(filter); // Total matching users
+     const totalUsers = await User.countDocuments(filter); 
     const totalPages = Math.ceil(totalUsers / limit);
 
 
@@ -33,6 +33,7 @@ const loadUserList = async (req, res) => {
     res.status(500).send("Error loading users");
   }
 };
+
 const blockUser = async (req, res) => {
   try {
     await User.findByIdAndUpdate(req.params.id, { isBlocked: true });

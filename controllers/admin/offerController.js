@@ -42,7 +42,7 @@ const createProductOffer = async (req, res) => {
   try {
     const { name, product, discountPercentage, startDate, endDate } = req.body;
 
-    // Create new offer
+    
     const newOffer = new Offer({
       name,
       type: 'product',
@@ -54,10 +54,10 @@ const createProductOffer = async (req, res) => {
 
     await newOffer.save();
 
-    // Apply best offer logic
+    
     await applyBestOfferToProduct(product);
 
-    res.redirect('/admin/offers'); // Change this if your redirect path is different
+    res.redirect('/admin/offers'); 
   } catch (error) {
     console.error('Error creating product offer:', error);
     res.status(500).send('Something went wrong');
@@ -80,7 +80,7 @@ const createCategoryOffer = async (req, res) => {
 
     await newOffer.save();
 
-    // Apply offer to all products in that category
+    
     const products = await Product.find({ category });
 
     for (let product of products) {
@@ -121,11 +121,11 @@ const softDeleteOffer = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Offer not found' });
     }
 
-    // Soft delete the offer
+   
     offer.isActive = false;
     await offer.save();
 
-    // Re-apply offers to affected product(s)
+    
     if (offer.type === 'product' && offer.product) {
       await applyBestOfferToProduct(offer.product);
     } else if (offer.type === 'category' && offer.category) {

@@ -14,7 +14,7 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// 👇 This is NEW and only for payment pre-processing
+
 const createRazorpayOrder = async (req, res) => {
   try {
     const userId = req.session.user._id;
@@ -26,7 +26,7 @@ const createRazorpayOrder = async (req, res) => {
       return res.status(400).json({ success: false, message: "Cart is empty." });
     }
 
-    // ✅ Stock validation
+    
     for (const item of user.cart) {
       const product = item.productId;
       if (!product || product.isDeleted || product.isBlocked) {
@@ -41,14 +41,14 @@ const createRazorpayOrder = async (req, res) => {
       }
     }
 
-    // ✅ Final price calculation
+    
     const subtotal = user.cart.reduce((sum, item) => {
       const product = item.productId;
       const discountedPrice = product.price * (1 - (product.discountPercentage || 0) / 100);
       return sum + (discountedPrice * item.quantity);
     }, 0);
 
-    // ✅ Apply coupon from session (if any)
+    
     let total = subtotal;
     const coupon = req.session.appliedCoupon;
     if (coupon) {
@@ -58,9 +58,9 @@ const createRazorpayOrder = async (req, res) => {
       total = Math.max(0, subtotal - discount);
     }
 
-    const finalAmount = Math.round(total); // ensure integer in rupees
+    const finalAmount = Math.round(total); 
 
-    // ✅ Create Razorpay order
+   
     const razorpayOrder = await razorpay.orders.create({
       amount: finalAmount * 100, // in paisa
       currency: "INR",
@@ -83,6 +83,8 @@ const createRazorpayOrder = async (req, res) => {
 
 
 
+
+
 const getCheckoutPage = async (req, res) => {
   try {
     const userId = req.session.user._id;
@@ -94,7 +96,7 @@ const getCheckoutPage = async (req, res) => {
       isActive: true,
       isDeleted: false,
       expiryDate: { $gte: new Date() },
-      usageLimit: { $gt: 0 }
+      usageLimit: { $gt: 0 } 
     }).lean();
 
     const cartItems = user.cart.map(item => {
@@ -149,32 +151,22 @@ const getCheckoutPage = async (req, res) => {
           isActive: true,
           isDeleted: false,
           expiryDate: { $gte: new Date() },
+          usageLimit: { $gte: 1 }
         });
 
         if (!dbCoupon) {
           req.session.appliedCoupon = null;
           coupon = null;
         } else {
-          const usageCount = await Order.countDocuments({
-            userEmail: user.email,
-            couponCode: coupon.code
-          });
-
-          if (usageCount >= dbCoupon.usageLimit) {
-            req.session.appliedCoupon = null;
-            coupon = null;
-          } else {
-            couponDiscount = coupon.discountType === 'percentage'
-              ? subtotal * (coupon.discountValue / 100)
-              : coupon.discountValue;
-          }
+          couponDiscount = coupon.discountType === 'percentage'
+            ? subtotal * (coupon.discountValue / 100)
+            : coupon.discountValue;
         }
       }
     }
 
     const shipping = 0;
-    //const finalTotal = subtotal + tax - discount - couponDiscount + shipping;
-const finalTotal = subtotal + tax - couponDiscount + shipping;
+    const finalTotal = subtotal + tax - couponDiscount + shipping;
 
     const defaultAddress = user.addresses.find(addr => addr.isDefault);
     const allAddresses = user.addresses;
@@ -212,10 +204,15 @@ const postApplyCoupon = async (req, res) => {
 
     const user = await User.findById(userId).populate('cart.productId');
 
-    // ✅ First, check if coupon exists in the Coupon collection
-    const coupon = await Coupon.findOne({ code: couponCode, isActive: true, isDeleted: false ,expiryDate: { $gte: new Date() }});
+    
+    const coupon = await Coupon.findOne({
+      code: couponCode,
+      isActive: true,
+      isDeleted: false,
+      expiryDate: { $gte: new Date() },
+      usageLimit: { $gte: 1 }
+    });
 
-    // ✅ Check if it's a regular coupon
     if (coupon) {
       const subtotal = user.cart.reduce((sum, item) => {
         const product = item.productId;
@@ -228,11 +225,7 @@ const postApplyCoupon = async (req, res) => {
         return res.redirect('/checkout');
       }
 
-      if ( coupon.usageLimit<=0) {
-        req.session.couponError = `Coupon limit has crossed`;
-        return res.redirect('/checkout');
-      }
-
+     
       req.session.appliedCoupon = {
         id: coupon._id,
         code: coupon.code,
@@ -244,20 +237,18 @@ const postApplyCoupon = async (req, res) => {
       return res.redirect('/checkout');
     }
 
-    // ✅ If not found in Coupon collection, check user's rewarded coupons
+    
     const userRewardedCoupon = user.rewardedCoupons.find(c => c.code === couponCode && !c.used);
-if (!userRewardedCoupon) {
-  req.session.couponError = 'This referral coupon has already been used.';
-  return res.redirect('/checkout');
-}
-
+    if (!userRewardedCoupon) {
+      req.session.couponError = 'This referral coupon has already been used.';
+      return res.redirect('/checkout');
+    }
 
     if (userRewardedCoupon) {
-      // You can define a default flat value or percentage for rewarded coupons
-      const REWARD_DISCOUNT = 100; // ₹100 flat discount for referral
+      const REWARD_DISCOUNT = 100; 
 
       req.session.appliedCoupon = {
-        id: 'reward', // any placeholder
+        id: 'reward',
         code: userRewardedCoupon.code,
         discountType: 'flat',
         discountValue: REWARD_DISCOUNT,
@@ -267,7 +258,7 @@ if (!userRewardedCoupon) {
       return res.redirect('/checkout');
     }
 
-    // ❌ Invalid coupon
+   
     req.session.couponError = 'Invalid or expired coupon code.';
     return res.redirect('/checkout');
 
@@ -279,13 +270,14 @@ if (!userRewardedCoupon) {
 };
 
 
+
 const postRemoveCoupon = (req, res) => {
   req.session.appliedCoupon = null;
   res.redirect('/checkout');
 };
 
 
-// controllers/orderController.js
+
 const verifyStockBeforePayment = async (req, res) => {
   try {
     const userId = req.session.user._id;
@@ -339,7 +331,7 @@ const postPlaceOrder = async (req, res) => {
       }
     }
 
-    // Prepare product details
+   
     const productStatus = paymentMethod === 'Razorpay' ? 'paid' : 'ordered';
     const products = user.cart.map(item => {
       const product = item.productId;
@@ -355,7 +347,7 @@ const postPlaceOrder = async (req, res) => {
 
     let totalPrice = products.reduce((sum, item) => sum + item.quantity * item.price, 0);
 
-    // 🔐 Apply coupon
+    
     let appliedCoupon = req.session.appliedCoupon || null;
     let couponDiscount = 0;
 
@@ -367,14 +359,14 @@ const postPlaceOrder = async (req, res) => {
       totalPrice -= couponDiscount;
     }
 
-    // ✅ Create Order
+   
     const order = new Order({
       orderID: uuidv4().slice(0, 8),
       userEmail: user.email,
       products,
       totalPrice,
       paymentMethod,
-      razorpayPaymentId, // Store it if Razorpay
+      razorpayPaymentId, 
       status: paymentMethod === 'Razorpay' ? 'paid' : 'pending',
       shippingAddress: {
         street: selectedAddress.street,
@@ -396,9 +388,7 @@ const postPlaceOrder = async (req, res) => {
       await product.save();
     }
 
-    // ✅ Mark rewarded coupon as used
-  // ✅ Mark rewarded coupon as used
-
+    
   if (appliedCoupon?.type === 'referral') {
   const rewardedCoupon = user.rewardCoupons.find(c =>
     c.code === appliedCoupon.code && !c.used
@@ -409,7 +399,7 @@ const postPlaceOrder = async (req, res) => {
 } else if (appliedCoupon?.type === 'regular') {
   await Coupon.updateOne(
     { code: appliedCoupon.code },
-    { $inc: { usageLimit: -1 } } // 👈 decrease usageLimit by 1
+    { $inc: { usageLimit: -1 } } 
   );
 }
 
@@ -418,15 +408,12 @@ await user.save();
   
 
 
-    // ✅ Clear cart & session coupon
+    
     user.cart = [];
     await user.save();
     req.session.appliedCoupon = null;
 
-    // ✅ Redirect to success page
-    //res.redirect(`/checkout/order-success/${order._id}`);
-//res.status(200).json({ success: true, orderId: order._id });
-
+    
 if (req.headers['content-type'] === 'application/json') {
       // Razorpay AJAX call
       res.status(200).json({ success: true, orderId: order._id });

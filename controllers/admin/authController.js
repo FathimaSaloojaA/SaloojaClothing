@@ -12,7 +12,7 @@ const sessionCollection = mongoose.connection.collection('sessions');
 
 const loadLogin = (req, res) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-  res.render('admin/login',{error:null,layout:false}); // EJS view
+  res.render('admin/login',{error:null,layout:false}); 
 };
 
 const verifyLogin = async (req, res) => {
@@ -105,13 +105,13 @@ const loadDashboard = async (req, res) => {
 
       totalDiscounts += productLevelDiscount;
 
-      // ✅ Use stored coupon discount directly
+      
       couponDiscountTotal += order.couponDiscount || 0;
     }
 
     const netRevenue = totalRevenue - totalDiscounts - couponDiscountTotal;
 
-    // 🟢 Other dashboard values
+    
     const totalUsers = await User.countDocuments({ isBlocked: false });
     const blockedUsersCount = await User.countDocuments({ isBlocked: true });
     const lowStockProducts = await Product.find({ stock: { $lt: 10 } });
@@ -149,7 +149,7 @@ const loadDashboard = async (req, res) => {
       totalOrders,
       totalRevenue,
       totalDiscounts,
-      couponDiscountTotal, // ✅ Display separately if needed
+      couponDiscountTotal, 
       netRevenue,
       selectedRange: range || 'today',
       startDate,
@@ -205,9 +205,9 @@ const downloadSalesReport=async (req, res) => {
       orders.forEach(order => {
         doc.fontSize(12).text(`Order ID: ${order.orderID}`);
 doc.text(`Email: ${order.userEmail}`);
-doc.text(`Total: ₹${order.totalPrice}`); // Use correct field
+doc.text(`Total: ₹${order.totalPrice}`); 
 doc.text(`Status: ${order.status}`);
-doc.text(`Date: ${new Date(order.orderDate).toLocaleString()}`); // Use correct field
+doc.text(`Date: ${new Date(order.orderDate).toLocaleString()}`); 
 doc.moveDown();
 
       });
@@ -240,7 +240,7 @@ function generateDateFilter(range, startDate, endDate) {
     return {
       orderDate: {
         $gte: new Date(startDate),
-        $lte: new Date(new Date(endDate).setHours(23, 59, 59, 999)) // include full day
+        $lte: new Date(new Date(endDate).setHours(23, 59, 59, 999))
       }
     };
   }
@@ -258,8 +258,8 @@ const logout = (req, res) => {
         
         return res.status(500).send('Logout failed.');
       }
-      res.clearCookie('admin.sid'); // Clear session cookie
-      res.redirect('/admin/'); // Redirect to login or landing page
+      res.clearCookie('admin.sid'); 
+      res.redirect('/admin/'); 
     })
 };
 

@@ -32,7 +32,7 @@ const getAllOrders = async (req, res) => {
   try {
     const search = req.query.search || '';
     const page = parseInt(req.query.page) || 1;
-    const limit = 5; // Orders per page
+    const limit = 5; 
     const skip = (page - 1) * limit;
 
     let query = {};
@@ -89,7 +89,7 @@ const getOrderDetails = async (req, res) => {
 
  
 
-// Update order-level status
+
 const updateOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
@@ -116,7 +116,7 @@ const updateOrderStatus = async (req, res) => {
 
     order.status = status;
 
-    // 🔁 If order is being cancelled
+    
     if (status === 'cancelled') {
       let refundAmount = 0;
 
@@ -124,17 +124,19 @@ const updateOrderStatus = async (req, res) => {
         if (item.status !== 'cancelled') {
           item.status = 'cancelled';
 
-          // 🔧 Restore stock
+          
           const product = item.productId;
           if (product) {
             product.stock += item.quantity;
             await product.save();
           }
+          
 
-          // 💰 Refund if prepaid and not already refunded
+
+          
           if ( !item.refunded) {
             refundAmount += item.price * item.quantity;
-            item.refunded = true; // add this field in your schema if not already
+            item.refunded = true; 
           }
         }
       }
@@ -152,6 +154,7 @@ const updateOrderStatus = async (req, res) => {
     res.status(500).send('Server error');
   }
 };
+
 
 
 const updateProductStatus = async (req, res) => {
@@ -180,7 +183,7 @@ const updateProductStatus = async (req, res) => {
     productToUpdate.status = status;
     await order.save();
 
-    // ✅ Stock Management Logic
+    
     if (
       (oldStatus !== 'cancelled' && status === 'cancelled') ||
       (oldStatus !== 'returned' && status === 'returned')
@@ -191,7 +194,7 @@ const updateProductStatus = async (req, res) => {
         await product.save();
         console.log(`Stock updated: ${product.name} stock increased by ${productToUpdate.quantity}`);
       }
-       // 💰 Deduct cancelled/returned product amount from total price
+       
       const refundAmount = productToUpdate.quantity * productToUpdate.price;
       order.totalPrice = Math.max(0, order.totalPrice - refundAmount); // prevent negative total
       console.log(`Order total reduced by ₹${refundAmount.toFixed(2)} for cancelled/returned product`);
@@ -213,7 +216,7 @@ const updateProductStatus = async (req, res) => {
   }
 };
 
-// POST /admin/orders/:orderID/products/:productId/verify-return
+
 const verifyProductReturn = async (req, res) => {
   try {
     const { orderID, productId } = req.params;
@@ -232,21 +235,35 @@ const verifyProductReturn = async (req, res) => {
     if (decision === 'accept') {
       productItem.status = 'returned';
 
-      // ✨ Wallet credit logic here
+      
       if (!productItem.refunded ) {
-    const refundAmount = productItem.price * productItem.quantity;
-    await creditToWallet(order.userEmail, refundAmount);// Defined top
-    productItem.refunded = true; // mark refunded so no double refund
+
+
+
+    const totalCouponDiscount = order.couponDiscount || 0; 
+const totalOrderValue = order.products.reduce((sum, item) => {
+  return sum + (item.price * item.quantity);
+}, 0);
+
+
+const productTotal = productItem.price * productItem.quantity;
+
+
+const productShare = (productTotal / totalOrderValue) * totalCouponDiscount;
+
+const refundAmount = productTotal - productShare;
+    await creditToWallet(order.userEmail, refundAmount);
+    productItem.refunded = true; 
     console.log(`Refunded ₹${refundAmount} for return`);
   } 
     } else if (decision === 'reject') {
       productItem.status = 'return rejected';
     }
 
-    // If all return requests are accepted or rejected, update order status
+    
     const allResolved = order.products.every(p => p.status !== 'return requested');
     if (allResolved && order.status === 'return requested') {
-      order.status = 'delivered'; // or any neutral/default status
+      order.status = 'delivered'; 
     }
 
     await order.save();
@@ -269,31 +286,42 @@ const verifyOrderReturn = async (req, res) => {
     }
 
     if (decision === 'accept') {
-      let refundAmount = 0;
+  let refundAmount = 0;
 
-      for (const item of order.products) {
-        if (item.status === 'return requested') {
-          item.status = 'returned';
+  const totalCouponDiscount = order.couponDiscount || 0;
 
-          // ✅ Refund only if prepaid and not already refunded
-          if (
-          
-            !item.refunded
-          ) {
-            refundAmount += item.price * item.quantity;
-            item.refunded = true; // ✅ mark as refunded
-          }
-        }
+  // Calculate total order value before discount
+  const totalOrderValue = order.products.reduce((sum, item) => {
+    return sum + (item.price * item.quantity);
+  }, 0);
+
+  for (const item of order.products) {
+    if (item.status === 'return requested') {
+      item.status = 'returned';
+
+      if (!item.refunded) {
+        const itemTotal = item.price * item.quantity;
+
+        // Coupon share for this item
+        const itemCouponShare = (itemTotal / totalOrderValue) * totalCouponDiscount;
+
+        const itemRefund = itemTotal - itemCouponShare;
+
+        refundAmount += itemRefund;
+
+        item.refunded = true;
       }
+    }
+  }
 
-      if (refundAmount > 0) {
-        await creditToWallet(order.userEmail, refundAmount);
-        console.log(`Refunded ₹${refundAmount} to ${order.userEmail}`);
-      }
+  if (refundAmount > 0) {
+    await creditToWallet(order.userEmail, Math.round(refundAmount));
+    console.log(`Refunded ₹${Math.round(refundAmount)} to ${order.userEmail}`);
+  }
 
-      order.status = 'returned';
-
-    } else if (decision === 'reject') {
+  order.status = 'returned';
+}
+ else if (decision === 'reject') {
       for (const item of order.products) {
         if (item.status === 'return requested') {
           item.status = 'return rejected';

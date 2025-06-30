@@ -10,12 +10,12 @@ exports.loadShopPage = async (req, res) => {
   try {
     let { category, subcategory, search, price, sort } = req.query;
 
-    // Normalize price to array for safe EJS iteration
+    
     if (price && !Array.isArray(price)) {
       price = [price];
     }
 
-    // Normalize sort to array for safe EJS iteration
+    
     if (sort && !Array.isArray(sort)) {
       sort = [sort];
     } else if (!sort) {
@@ -24,11 +24,11 @@ exports.loadShopPage = async (req, res) => {
 
     const filter = { isListed: true, isDeleted: false, isBlocked: false };
 
-    // Filter by category/subcategory
+    
     if (category) filter.category = category;
     if (subcategory) filter.subcategory = subcategory;
 
-    // Price filtering logic
+    
     if (price && price.length > 0) {
       const priceFilters = price;
       filter.$or = priceFilters.map(range => {
@@ -48,7 +48,7 @@ exports.loadShopPage = async (req, res) => {
       else if (val === 'nameDesc') sortOption['name'] = -1;
     });
 
-    // Search Logic (unchanged)
+    
     if (search) {
       const searchWords = search.trim().split(/\s+/);
 
@@ -88,12 +88,12 @@ exports.loadShopPage = async (req, res) => {
       filter.$and = orFilters;
     }
 
-    // Pagination
+    
     const page = parseInt(req.query.page) || 1;
     const limit = 6;
     const skip = (page - 1) * limit;
 
-    // Fetch products
+    
     const allMatchingProducts = await Product.find(filter)
       .populate({
         path: 'category',
@@ -106,9 +106,9 @@ exports.loadShopPage = async (req, res) => {
       .sort(sortOption)
       .lean();
 
-    // Filter out invalid
+   
     const trulyFiltered = allMatchingProducts.filter(prod => prod.category && prod.subcategory);
-    // Reapply valid offers to ensure expired ones are ignored
+    
 for (let product of trulyFiltered) {
   await applyBestOfferToProduct(product._id);
 }
@@ -117,10 +117,10 @@ for (let product of trulyFiltered) {
     const totalProducts = trulyFiltered.length;
     const totalPages = Math.ceil(totalProducts / limit);
 
-    // Paginate
+    
     const paginatedProducts = trulyFiltered.slice(skip, skip + limit);
 
-    // Fetch categories & subcategories for filter UI
+    
     const categories = await Category.find({ isListed: true, isDeleted: false }).lean();
     const subcategories = await Subcategory.find({ isListed: true, isDeleted: false }).lean();
 
@@ -181,7 +181,7 @@ exports.loadProductDetails = async (req, res) => {
 
     const products = productsRaw.filter(p => p.category && p.subcategory);
 
-    // Fetch main product
+    
     const product = await Product.findOne({
       _id: productId,
       isListed: true,
@@ -200,11 +200,7 @@ exports.loadProductDetails = async (req, res) => {
 
     
 
-    // ✅ Corrected version: maintain original extension
-
-
-
-    // Related products
+    
     const relatedRaw = await Product.find({
       _id: { $ne: productId },
       category: product.category._id,

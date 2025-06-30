@@ -11157,6 +11157,41 @@ tbody tr:hover {
     75% { transform: translateX(1px); }
     100% { transform: translateX(-1px); }
   }
+  @media (max-width: 600px) {
+    .container.my-5 table {
+      display: block;
+      overflow-x: none;
+      width: 100%;
+    }
+
+    .container.my-5 th,
+    .container.my-5 td {
+      padding: 5px 3px;
+      white-space: nowrap;
+      font-size: 13px;
+    }
+
+    .container.my-5 img {
+      width: 45px !important;
+      height: 45px !important;
+    }
+
+    .container.my-5 .btn {
+      font-size: 12px;
+      padding: 4px 6px;
+    }
+
+    .container.my-5 .form-control {
+      font-size: 12px;
+      padding: 4px;
+      width: 45px !important;
+    }
+
+    .container.my-5 h2 {
+      font-size: 20px;
+      text-align: center;
+    }
+  }
 
 
   

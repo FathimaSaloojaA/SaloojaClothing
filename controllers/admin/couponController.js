@@ -1,6 +1,6 @@
 const Coupon = require('../../models/couponModel');
 
-// GET /admin/coupons
+
 const loadCoupons = async (req, res) => {
   try {
     const coupons = await Coupon.find({ isDeleted: false }).sort({ createdAt: -1 });
@@ -11,12 +11,12 @@ const loadCoupons = async (req, res) => {
   }
 };
 
-// GET /admin/coupons/create
+
 const loadCreateForm = (req, res) => {
   res.render('admin/coupons/create', { error: null,layout: 'admin/adminLayout', });
 };
 
-// POST /admin/coupons/create
+
 const createCoupon = async (req, res) => {
   try {
     const {
@@ -60,7 +60,7 @@ const createCoupon = async (req, res) => {
   }
 };
 
-// POST /admin/coupons/delete/:id
+
 const deleteCoupon = async (req, res) => {
   try {
     await Coupon.findByIdAndUpdate(req.params.id, { isDeleted: true });
@@ -71,7 +71,7 @@ const deleteCoupon = async (req, res) => {
   }
 };
 
-// POST /admin/coupons/toggle/:id
+
 const toggleCouponStatus = async (req, res) => {
   try {
     const coupon = await Coupon.findById(req.params.id);

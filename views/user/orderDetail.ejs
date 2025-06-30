@@ -94,7 +94,7 @@ document.getElementById('returnBtn')?.addEventListener('click', () => {
         })
         .then(res => {
           if(res.ok) {
-            Swal.fire('Returned!', 'Your return request has been submitted.', 'success')
+            Swal.fire('Return Requested!', 'Your return request has been submitted.', 'success')
               .then(() => location.reload());
           } else {
             Swal.fire('Error', 'Something went wrong.', 'error');

@@ -12,17 +12,17 @@ const crypto=require('crypto');
 const { error } = require('console');
 
 module.exports = {
-  // 1️⃣ Show Register Page
+  
   showRegisterPage: (req, res) => {
     res.render('user/register',{layout:false});
   },
 
-  // 2️⃣ Handle Registration and Send OTP
+ 
   handleRegisterPost: async (req, res) => {
     try {
       const { firstName, lastName, email, password,confirmPassword,referredBy } = req.body;
 
-      // Check if user already exists
+     
       const existingUser = await User.findOne({ email });
       if (existingUser) {
         return res.render('user/register', { error: 'User already exists',layout:false });
@@ -30,16 +30,16 @@ module.exports = {
 if (password !== confirmPassword) {
       return res.render('user/register', { error: 'Passwords do not match' ,layout:false});
     }
-      // Save data temporarily in session
+     
       req.session.tempUser = { firstName, lastName, email, password,confirmPassword,referredBy: referredBy ? referredBy.trim().toUpperCase() : null };
 
-      // Generate OTP using your utility
+      
       const otpCode = generateOtp();
 
-      // Save OTP to DB
+     
       await Otp.create({ email, code: otpCode });
 
-      // Send OTP email using your mailer utility
+      
       
       await mailer.sendEmail(
   email,
@@ -48,7 +48,7 @@ if (password !== confirmPassword) {
 );
 
 
-      // Redirect to OTP verification page
+     
       res.redirect('/verify-otp');
 
     } catch (err) {
@@ -56,8 +56,7 @@ if (password !== confirmPassword) {
       res.render('user/register', { error: 'Something went wrong!' ,layout:false});
     }
   },
-  // Show OTP Verification Page
-// 3️⃣ Show OTP Page
+ 
 showOtpPage: async (req, res) => {
   try {
     const tempUser = req.session.tempUser;
@@ -80,7 +79,7 @@ showOtpPage: async (req, res) => {
   }
 },
 
-// 4️⃣ Handle OTP Verification
+
 verifyOtp: async (req, res) => {
   try {
     const userOtp = req.body.otp;
@@ -90,7 +89,7 @@ verifyOtp: async (req, res) => {
       return res.redirect('/register');
     }
 
-    // Get the latest OTP for the email
+   
     const otpDoc = await Otp.findOne({ email: tempUser.email }).sort({ createdAt: -1 });
 
     const now = new Date();
@@ -105,7 +104,7 @@ verifyOtp: async (req, res) => {
       });
     }
 
-    // Register the user
+    
     const hashedPassword = await bcrypt.hash(tempUser.password, 10);
 
     const referralCode = `${tempUser.firstName}${Date.now()}`.toUpperCase();
@@ -140,16 +139,16 @@ verifyOtp: async (req, res) => {
 
     await coupon.save();
 
-    // Attach coupon code to referrer (assuming you show coupons per user)
+    
     if (!referrer.rewardCoupons) referrer.rewardCoupons = [];
     referrer.rewardCoupons.push(coupon._id);
     await referrer.save();
   }
 }
 
-    // Clear temp data
+    
     req.session.tempUser = null;
-    //await Otp.deleteMany({ email: tempUser.email }); // optional
+    //await Otp.deleteMany({ email: tempUser.email }); 
 
     res.redirect('/login');
 
@@ -164,24 +163,24 @@ resendOtp: async (req, res) => {
     const tempUser = req.session.tempUser;
     if (!tempUser) return res.redirect('/register');
 
-    // Generate a new OTP
+   
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Store it in DB with new timestamp
+    
     const newOtp = await Otp.create({
       email: tempUser.email,
       code: otpCode,
       createdAt: new Date()
     });
 
-    // Send OTP email
+    
     await mailer.sendEmail(
       tempUser.email,
       'Your New OTP Code',
       `Your new OTP code is ${otpCode}. It expires in 1 minute.`
     );
 
-    // Show the OTP page again with updated timestamp
+    
     res.render('user/verify-otp', {
       layout: false,
       error: null,
@@ -204,7 +203,7 @@ googleCallback: (req, res) => {
   req.session.save((err) => {
     if (err) {
       console.error('Session save error:', err);
-      return res.redirect('/login'); // or show error
+      return res.redirect('/login'); 
     }
     
     res.redirect('/product');
@@ -231,7 +230,7 @@ try {
 
     req.session.user = user;
     req.session.showPreloader = true;
-    res.redirect('/'); //  or wherever you i want
+    res.redirect('/'); 
   } catch (err) {
     console.error('Login Error:', err);
     res.render('user/login', { error: 'Something went wrong', layout: false });
@@ -307,7 +306,7 @@ postResetPassword: async (req, res) => {
 
   await user.save();
 
-  res.redirect('/login'); // or show success message
+  res.redirect('/login'); 
 },
 logoutUser: async (req, res) => {
   
@@ -319,8 +318,8 @@ logoutUser: async (req, res) => {
       
       return res.status(500).send('Logout failed.');
     }
-    res.clearCookie('user.sid'); // Clear session cookie
-    res.redirect('/'); // Redirect to login or landing page
+    res.clearCookie('user.sid'); 
+    res.redirect('/'); 
   })
 }
 
