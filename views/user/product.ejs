@@ -64,11 +64,11 @@
     <% products.forEach(product => { %>
   <div class="col-lg-4 col-md-6 col-sm-12 pb-1">
     <% 
-      let imgPath = product.images && product.images.length > 0 ? product.images[0] : 'default.jpg';
-      if (!imgPath.startsWith('/')) {
-        imgPath = '/product-images/' + imgPath;
-      }
-    %>
+  let imgPath = (product.images && product.images.length > 0) 
+    ? product.images[0] 
+    : 'https://res.cloudinary.com/demo/image/upload/v1234567890/default.jpg'; // fallback if needed
+%>
+
     <div class="card product-item border-0 mb-4">
       <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
         <% if(product.discountPercentage > 0) { %>

@@ -9,7 +9,7 @@ const loadHome = async (req, res) => {
 
     const showPreloader = req.session.showPreloader || false;
 
-  // After showing it once, disable it
+  
   req.session.showPreloader = false;
 
     const { category, subcategory, search, price } = req.query;
@@ -119,12 +119,11 @@ const loadHome = async (req, res) => {
         const products = await Product.find({ category: category._id, isDeleted: false });
 
         const productCount = products.length;
-
-        let image = '';
+let image = '';
 if (products.length > 0 && products[0].images && products[0].images.length > 0) {
-  const rawImage = products[0].images[0] || '';
-  image = rawImage.replace(/^\/?product-images\//, '');
+  image = products[0].images[0];  // Full Cloudinary URL
 }
+
 
 
         return {
@@ -153,8 +152,9 @@ const filteredNewArrivals = newArrivals.filter(prod => prod.category && prod.sub
 
 const newArrivalsWithImages = filteredNewArrivals.map(product => {
   const image = (product.images && product.images.length > 0)
-    ? product.images[0].replace(/^\/?product-images\//, '')
-    : 'default.jpg';
+    ? product.images[0]
+    : 'https://res.cloudinary.com/YOUR_CLOUD_NAME/image/upload/v.../default.jpg';
+
   
   return {
     _id: product._id,

@@ -134,10 +134,21 @@ const updateOrderStatus = async (req, res) => {
 
 
           
-          if ( !item.refunded) {
-            refundAmount += item.price * item.quantity;
-            item.refunded = true; 
-          }
+          if (!item.refunded) {
+  const totalCouponDiscount = order.couponDiscount || 0;
+
+  const totalOrderValue = order.products.reduce((sum, item) => {
+    return sum + (item.price * item.quantity);
+  }, 0);
+
+  const itemTotal = item.price * item.quantity;
+  const couponShare = (itemTotal / totalOrderValue) * totalCouponDiscount;
+
+  const refund = itemTotal - couponShare;
+  refundAmount += refund;
+  item.refunded = true;
+}
+
         }
       }
 
@@ -196,15 +207,27 @@ const updateProductStatus = async (req, res) => {
       }
        
       const refundAmount = productToUpdate.quantity * productToUpdate.price;
-      order.totalPrice = Math.max(0, order.totalPrice - refundAmount); // prevent negative total
+      order.totalPrice = Math.max(0, order.totalPrice - refundAmount); 
       console.log(`Order total reduced by ₹${refundAmount.toFixed(2)} for cancelled/returned product`);
-   if (
-        !productToUpdate.refunded) {
-        
-        await creditToWallet(order.userEmail, refundAmount);
-        productToUpdate.refunded = true;
-        console.log(`Refunded ₹${refundAmount} to ${order.userEmail} (wallet)`);
-      }
+
+   if (!productToUpdate.refunded) {
+  const totalCouponDiscount = order.couponDiscount || 0;
+
+  const totalOrderValue = order.products.reduce((sum, item) => {
+    return sum + (item.price * item.quantity);
+  }, 0);
+
+  const productTotal = productToUpdate.price * productToUpdate.quantity;
+  const couponShare = (productTotal / totalOrderValue) * totalCouponDiscount;
+
+  const refund = productTotal - couponShare;
+
+  await creditToWallet(order.userEmail, refund);
+  productToUpdate.refunded = true;
+
+  console.log(`Refunded ₹${refund} for cancelled product to ${order.userEmail} (wallet)`);
+}
+
 
     }
     await order.save();
@@ -274,7 +297,7 @@ const refundAmount = productTotal - productShare;
   }
 };
 
-// POST /admin/orders/:orderID/verify-return
+
 const verifyOrderReturn = async (req, res) => {
   try {
     const { orderID } = req.params;

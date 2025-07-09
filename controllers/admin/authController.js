@@ -1,5 +1,6 @@
 const User = require('../../models/userModel');
 const Product = require('../../models/productModel');
+const Category = require('../../models/categoryModel');
 const Order = require('../../models/orderModel');
 const Coupon = require('../../models/couponModel');
 const bcrypt = require('bcrypt');
@@ -142,6 +143,62 @@ const loadDashboard = async (req, res) => {
       .limit(5)
       .lean();
 
+// 🥇 Best Selling Products
+const productSalesMap = {};
+
+for (const order of orders) {
+  for (const item of order.products) {
+    const id = item.productId.toString();
+    if (!productSalesMap[id]) {
+      productSalesMap[id] = { quantity: 0, revenue: 0 };
+    }
+    productSalesMap[id].quantity += item.quantity;
+    productSalesMap[id].revenue += item.price * item.quantity;
+  }
+}
+
+const bestSellingProductIds = Object.keys(productSalesMap);
+
+const bestSellingProductsRaw = await Product.find({ _id: { $in: bestSellingProductIds } }).lean();
+
+const bestSellingProducts = bestSellingProductsRaw.map(product => ({
+  _id: product._id,
+  name: product.name,
+  quantitySold: productSalesMap[product._id.toString()].quantity,
+  revenue: productSalesMap[product._id.toString()].revenue
+}));
+
+bestSellingProducts.sort((a, b) => b.quantitySold - a.quantitySold);
+
+// Limit to top 10
+const topSellingProducts = bestSellingProducts.slice(0, 10);
+
+// 🥇 Best Selling Categories
+const categorySalesMap = {};
+
+for (const product of bestSellingProductsRaw) {
+  const catId = product.category.toString();
+  if (!categorySalesMap[catId]) {
+    categorySalesMap[catId] = { quantity: 0 };
+  }
+  categorySalesMap[catId].quantity += productSalesMap[product._id.toString()].quantity;
+}
+
+const categoryIds = Object.keys(categorySalesMap);
+const categoriesRaw = await Category.find({ _id: { $in: categoryIds } }).lean();
+
+const bestSellingCategories = categoriesRaw.map(cat => ({
+  _id: cat._id,
+  name: cat.name,
+  quantitySold: categorySalesMap[cat._id.toString()].quantity
+}));
+
+bestSellingCategories.sort((a, b) => b.quantitySold - a.quantitySold);
+
+const topSellingCategories = bestSellingCategories.slice(0, 10);
+
+
+
     res.render('admin/dashboard', {
       totalUsers,
       blockedUsersCount,
@@ -157,7 +214,10 @@ const loadDashboard = async (req, res) => {
       layout: 'admin/adminLayout',
       lineChart,
       paymentData,
-      recentOrders
+      recentOrders,
+      topSellingProducts,
+topSellingCategories,
+
     });
   } catch (error) {
     console.error('Error loading dashboard:', error);

@@ -122,7 +122,17 @@
 
   <div class="payment-options">
     <label class="payment-option ">
-      <input type="radio" name="paymentMethod" value="Cash on Delivery" checked />
+      <input 
+  type="radio" 
+  name="paymentMethod" 
+  value="Cash on Delivery" 
+  <%= finalTotal > 1000 ? 'disabled' : 'checked' %> 
+/>
+<% if (finalTotal > 1000) { %>
+  <p style="color:red; font-weight:bold;"> COD is not available for orders above ₹1000.</p>
+<% } %>
+
+
       <div class="card">
         <span class="emoji">💵</span>
         <span class="text">Cash on Delivery</span>
@@ -130,10 +140,7 @@
     </label>
 
     
-
-    
-
-    <label class="payment-option">
+<label class="payment-option">
   <input type="radio" name="paymentMethod" value="Razorpay" />
   <div class="card">
     <span class="emoji">💳</span>

@@ -88,6 +88,28 @@
   </ul>
 </div>
 
+
+<!-- Best Selling Products -->
+<div class="card">
+  <h4>Best Selling Products</h4>
+  <ul>
+    <% topSellingProducts.forEach(prod => { %>
+      <li><%= prod.name %> - <%= prod.quantitySold %> sold</li>
+    <% }) %>
+  </ul>
+</div>
+
+<!-- Best Selling Categories -->
+<div class="card">
+  <h4>Top Categories</h4>
+  <ul>
+    <% topSellingCategories.forEach(cat => { %>
+      <li><%= cat.name %> - <%= cat.quantitySold %> items sold</li>
+    <% }) %>
+  </ul>
+</div>
+
+
   </section>
 </div>
 <!-- ✅ Chart.js CDN -->

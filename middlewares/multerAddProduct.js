@@ -2,7 +2,7 @@
 const multer = require('multer');
 const path = require('path');
 
-const storage = multer.memoryStorage();
+const storage = require('../config/cloudinaryStorage'); // ⬅️ IMPORTANT: This uses Cloudinary;
 
 const fileFilter = (req, file, cb) => {
   const allowedTypes = /jpeg|jpg|png|webp/;

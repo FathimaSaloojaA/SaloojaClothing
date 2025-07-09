@@ -111,7 +111,7 @@ const subcategoryId = new mongoose.Types.ObjectId(subcategory);
     }
 
     
-    const imageFiles = req.files || [];
+    /*const imageFiles = req.files || [];
     if (imageFiles.length === 0 || imageFiles.length > 3) {
       return renderWithError('Please upload between 1 to 3 product images.');
     }
@@ -126,7 +126,16 @@ const subcategoryId = new mongoose.Types.ObjectId(subcategory);
         .toFile(outputPath);
 
       imagePaths.push(`/product-images/${fileName}`);
-    }
+    }*/
+
+      const imageFiles = req.files || [];
+if (imageFiles.length === 0 || imageFiles.length > 3) {
+  return renderWithError('Please upload between 1 to 3 product images.');
+}
+
+// Cloudinary URLs are already available in req.files[].path
+const imagePaths = imageFiles.map(file => file.path); // file.path = Cloudinary URL
+
 
     const product = new Product({
       name: trimmedName,
