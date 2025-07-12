@@ -32,7 +32,7 @@ const getUserProfile = async (req, res) => {
 
 const getEditProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id); // assuming JWT puts user in req.user
+    const user = await User.findById(req.user._id); 
     res.render('user/edit-profile', { user,
         userName: req.session.user ? req.session.user.firstName : '',
         errorMessage: null,
@@ -52,9 +52,9 @@ const postEditProfile = async (req, res) => {
     const { firstName, lastName, email } = req.body;
     const profileImage = req.file ? req.file.filename : user.profileImage;
 
-    // ✅ If email is changed
+    
     if (email !== user.email) {
-      // Check if email is already in use
+      
       const existingUser = await User.findOne({ email });
       if (existingUser) {
         return res.render('user/edit-profile', {
@@ -88,7 +88,7 @@ const postEditProfile = async (req, res) => {
       });
     }
 
-    // ✅ If email not changed, update other details
+    
     user.firstName = firstName;
     user.lastName = lastName;
     user.profileImage = profileImage;
@@ -143,7 +143,7 @@ const postChangePassword = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
 
-    // Check if current password is correct
+    
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) {
       return res.render('user/change-userpassword', { error: 'Current password is incorrect', success: null,userName: req.session.user ? req.session.user.firstName : '',
@@ -197,7 +197,7 @@ const postCancelOrder=async (req, res) => {
     order.status = 'cancel requested';
     await order.save();
 
-    // TODO: Increase stock of products in inventory here
+    
 
     res.redirect('/profile');
   } catch (err) {
@@ -232,7 +232,7 @@ const getEditAddressForm = async (req, res) => {
 
   try {
     const user = await User.findById(userId);
-    const address = user.addresses.id(addressId); // Mongoose subdoc lookup
+    const address = user.addresses.id(addressId); 
 
     if (!address) {
       return res.status(404).send('Address not found');
@@ -285,7 +285,7 @@ const deleteAddress = async (req, res) => {
       );
     }
 
-    // remove the sub-document
+    
     user.addresses = user.addresses.filter(
       a => a._id.toString() !== addressId
     );
@@ -312,7 +312,7 @@ const setDefaultAddress = async (req, res) => {
       return res.redirect('/profile?alert=error&msg=User not found');
     }
 
-    // Set all addresses to isDefault: false
+    
     user.addresses.forEach(address => {
       address.isDefault = address._id.toString() === addressId;
     });
@@ -327,10 +327,10 @@ const setDefaultAddress = async (req, res) => {
 };
 
 
-// GET /user/wallet
+
 const getWalletDetails = async (req, res) => {
   try {
-    const userEmail = req.session.user.email; // Or however you store the session
+    const userEmail = req.session.user.email; 
 
     const wallet = await Wallet.findOne({ userEmail });
     if (!wallet) {

@@ -143,7 +143,8 @@ const loadDashboard = async (req, res) => {
       .limit(5)
       .lean();
 
-// 🥇 Best Selling Products
+
+// Best Selling Products
 const productSalesMap = {};
 
 for (const order of orders) {
@@ -173,7 +174,7 @@ bestSellingProducts.sort((a, b) => b.quantitySold - a.quantitySold);
 // Limit to top 10
 const topSellingProducts = bestSellingProducts.slice(0, 10);
 
-// 🥇 Best Selling Categories
+//  Best Selling Categories
 const categorySalesMap = {};
 
 for (const product of bestSellingProductsRaw) {

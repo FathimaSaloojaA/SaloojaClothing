@@ -141,7 +141,7 @@ const softDeleteSubcategory = async (req, res) => {
 
     
     await Product.updateMany(
-      { subcategory: subcategoryId,stock:{$lte:0} },
+      { subcategory: subcategoryId},
       { isDeleted: true }
     );
 
@@ -348,4 +348,6 @@ const updateCategory = async (req, res) => {
 };
 
 
-module.exports = { loadCategoryList,softDeleteCategory,restoreCategory,softDeleteSubcategory,restoreSubcategory,loadAddCategoryForm,addCategory,getEditCategory,updateCategory};
+module.exports = { loadCategoryList,softDeleteCategory,restoreCategory,
+                  softDeleteSubcategory,restoreSubcategory,loadAddCategoryForm,
+                  addCategory,getEditCategory,updateCategory};

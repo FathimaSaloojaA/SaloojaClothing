@@ -111,31 +111,19 @@ const subcategoryId = new mongoose.Types.ObjectId(subcategory);
     }
 
     
-    /*const imageFiles = req.files || [];
-    if (imageFiles.length === 0 || imageFiles.length > 3) {
-      return renderWithError('Please upload between 1 to 3 product images.');
-    }
-
-    const imagePaths = [];
-    for (const file of imageFiles) {
-      const fileName = `product_${Date.now()}_${file.originalname}`;
-      const outputPath = path.join(__dirname, '../../public/product-images', fileName);
-
-      await sharp(file.buffer)
-        .resize(600, 600)
-        .toFile(outputPath);
-
-      imagePaths.push(`/product-images/${fileName}`);
-    }*/
+    
 
       const imageFiles = req.files || [];
 if (imageFiles.length === 0 || imageFiles.length > 3) {
   return renderWithError('Please upload between 1 to 3 product images.');
 }
 
-// Cloudinary URLs are already available in req.files[].path
-const imagePaths = imageFiles.map(file => file.path); // file.path = Cloudinary URL
 
+const imagePaths = imageFiles.map(file => {
+  const originalUrl = file.path; // Cloudinary image URL
+  const transformedUrl = originalUrl.replace('/upload/', '/upload/c_fill,w_600,h_600/');
+  return transformedUrl;
+});
 
     const product = new Product({
       name: trimmedName,
@@ -283,8 +271,9 @@ if(existingProduct){
 
     product.name = trimmedName;
     product.description = trimmedDesc;
-    product.category = category;
-    product.subcategory = subcategory || null;
+   product.category = categoryId;
+product.subcategory = subcategoryId || null;
+
     product.price = parsedPrice;
     product.stock = parsedStock;
     product.totalStock = parsedStock;
@@ -294,25 +283,23 @@ if(existingProduct){
       ? trimmedHighlights.split(',').map(h => h.trim())
       : [];
 
-    const finalImages = [];
+   
+   const finalImages = [];
 
-    for (let i = 0; i < 3; i++) {
-      const existingImage = existingImgs[i];
-      const uploadedFile = req.files?.[`replaceImage${i}`]?.[0];
+for (let i = 0; i < 3; i++) {
+  const existingImage = existingImgs[i];
+  const uploadedFile = req.files?.[`replaceImage${i}`]?.[0];
 
-      if (uploadedFile) {
-        const fileName = `product_${Date.now()}_${uploadedFile.originalname}`;
-        const outputPath = path.join(__dirname, '../../public/product-images', fileName);
+  if (uploadedFile && uploadedFile.path) {
+    const originalUrl = uploadedFile.path;
+    const transformedUrl = originalUrl.replace('/upload/', '/upload/c_fill,w_600,h_600/');
+    finalImages.push(transformedUrl);
+  } else if (existingImage) {
+    finalImages.push(existingImage); 
+  }
+}
 
-        await sharp(uploadedFile.buffer)
-          .resize(600, 600)
-          .toFile(outputPath);
 
-        finalImages.push(fileName);
-      } else if (existingImage) {
-        finalImages.push(existingImage);
-      }
-    }
 
     product.images = finalImages;
 

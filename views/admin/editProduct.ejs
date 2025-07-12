@@ -18,7 +18,7 @@
     <label style="display:block; margin-top: 1rem;">Category</label>
     <select name="category" required style="width:100%; padding: 10px; border:1px solid #ccc; border-radius: 8px;">
       <% categories.forEach(cat => { %>
-        <option value="<%= cat._id %>" <%= String(product.category) === String(cat._id) ? 'selected' : '' %>><%= cat.name %></option>
+        <option value="<%= cat._id %>" <%= String(product.category?._id) === String(cat._id) ? 'selected' : '' %>><%= cat.name %></option>
 
       <% }) %>
     </select>
@@ -81,9 +81,10 @@
       const option = document.createElement('option');
       option.value = sub._id;
       option.textContent = sub.name;
-      if ('<%= product.subcategory ? product.subcategory.toString() : "" %>' === sub._id) {
+      if ('<%= product.subcategory?._id?.toString() || "" %>' === sub._id) {
   option.selected = true;
 }
+
 
       subcategorySelect.appendChild(option);
     });

@@ -85,7 +85,7 @@ const loadHome = async (req, res) => {
       filter.$and = orFilters;
     }
 
-    // Fetch products with filtering and proper populate
+    
     let products = await Product.find(filter)
       .populate({
         path: 'category',
@@ -98,14 +98,14 @@ const loadHome = async (req, res) => {
       .sort(sortOption)
       .lean();
 
-    // Filter out products whose category or subcategory got filtered out (null after populate)
+    
     products = products.filter(prod => prod.category && prod.subcategory);
 
-    // Fetch all categories and subcategories (same as your code)
+   
     const categories = await Category.find({ isListed: true, isDeleted: false }).lean();
     const subcategories = await Subcategory.find({ isListed: true, isDeleted: false }).lean();
 
-    // Group subcategories under each category
+    
     const categoryMap = categories.map(cat => {
       return {
         ...cat,
@@ -113,7 +113,7 @@ const loadHome = async (req, res) => {
       };
     });
 
-    // Your categoriesWithData, newArrivals logic remains the same:
+    
     const categoriesWithData = await Promise.all(
       categories.map(async (category) => {
         const products = await Product.find({ category: category._id, isDeleted: false });
@@ -121,7 +121,7 @@ const loadHome = async (req, res) => {
         const productCount = products.length;
 let image = '';
 if (products.length > 0 && products[0].images && products[0].images.length > 0) {
-  image = products[0].images[0];  // Full Cloudinary URL
+  image = products[0].images[0];  
 }
 
 
@@ -165,7 +165,7 @@ const newArrivalsWithImages = filteredNewArrivals.map(product => {
 });
 
 
-    // Render the page
+    
     res.render('user/home', {
       userName: req.session.user ? req.session.user.firstName : '',
       products,
@@ -190,5 +190,5 @@ const newArrivalsWithImages = filteredNewArrivals.map(product => {
 
 module.exports = {
   loadHome,
-  // ... export other methods too
+  
 };

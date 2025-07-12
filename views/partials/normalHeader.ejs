@@ -139,72 +139,72 @@
         
      
 
-        <div class="col-lg-9" style="margin-bottom: 0; padding-bottom: 0;">
-            <nav class="navbar navbar-expand-lg bg-light navbar-light py-3 py-lg-0 px-0"
-                style="margin-bottom: 0 !important; padding-bottom: 0 !important;">
-                <a href="" class="text-decoration-none d-block d-lg-none">
-                    <h3 class="m-0 display-5 font-weight-semi-bold" style="margin-bottom: 0;">
-                        <span class="text-primary font-weight-bold border px-3 mr-1">Salooja</span>Clothing
-                    </h3>
-                </a>
-                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse justify-content-between" id="navbarCollapse">
-                    <div class="navbar-nav mr-auto py-0">
-                        <a href="/" class="nav-item nav-link active">Home</a>
-                        <a href="/product" class="nav-item nav-link">Shop</a>
-                        
-                        <div class="nav-item dropdown">
-                            <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Pages</a>
-                            <div class="dropdown-menu rounded-0 m-0">
-                                <a href="/cart" class="dropdown-item">Shopping Cart</a>
-                                <a href="/checkout" class="dropdown-item">Checkout</a>
-                            </div>
-                        </div>
-                        <a href="" class="nav-item nav-link">Contact</a>
-                    </div>
-                    
-                    <div class="col-lg-11 col-6 text-right mr-3">
-            
+        <div class="col-12 px-xl-5">
+  <nav class="navbar navbar-expand-lg bg-light navbar-light py-3 py-lg-0 px-0 w-100">
+    <a href="/" class="text-decoration-none d-block d-lg-none">
+      <h3 class="m-0 display-5 font-weight-semi-bold">
+        <span class="text-primary font-weight-bold border px-3 mr-1">Salooja</span>Clothing
+      </h3>
+    </a>
 
-            <a href="/wishlist" class="btn border position-relative">
-  <i class="fas fa-heart text-primary"></i>
-  <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill">
-    <%= wishlistCount %>
-  </span>
-</a>
+    <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-
-            <a href="/cart" class="btn border">
-                <i class="fas fa-shopping-cart text-primary"></i>
-                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill cart-badge">
-    <%= cartCount %>
-  </span>
-            </a>
-            </div>
-            <div class="navbar-nav ml-auto py-0 d-flex align-items-center">
-
-                        
-                        <a href="/profile" style="text-decoration: none; color: inherit;">
-  <span style="margin-right: 10px; font-weight: 500; display: flex; align-items: center;">
-    <i class="fas fa-user-circle" style="font-size: 20px; margin-right: 5px;"></i>
-    Welcome, <%= userName %>
-  </span>
-</a>
-
-                        <form action="/logout" method="get" style="display: inline;">
-                            <button type="submit" class="btn btn-sm btn-outline-danger"
-                                style="font-weight: 500; padding: 5px 10px;">
-                                Logout
-                            </button>
-                        </form>
-
-                        
-                    </div>
+    <div class="collapse navbar-collapse justify-content-between w-100" id="navbarCollapse">
+      
+      <!-- LEFT: Nav Links -->
+      <div class="navbar-nav mr-auto py-0">
+        <a href="/" class="nav-item nav-link active">Home</a>
+        <a href="/product" class="nav-item nav-link">Shop</a>
+        <div class="nav-item dropdown">
+          <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Pages</a>
+          <div class="dropdown-menu rounded-0 m-0">
+            <a href="/cart" class="dropdown-item">Shopping Cart</a>
+            <a href="/checkout" class="dropdown-item">Checkout</a>
+          </div>
         </div>
+        <a href="#" class="nav-item nav-link">Contact</a>
+      </div>
+
+      <!-- RIGHT: Wishlist, Cart, Welcome, Logout -->
+      <div class="d-flex align-items-center gap-3 ms-auto flex-wrap justify-content-end">
+
+        <!-- Wishlist -->
+        <a href="/wishlist" class="btn border position-relative">
+          <i class="fas fa-heart text-primary"></i>
+          <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill">
+            <%= wishlistCount %>
+          </span>
+        </a>
+
+        <!-- Cart -->
+        <a href="/cart" class="btn border position-relative">
+          <i class="fas fa-shopping-cart text-primary"></i>
+          <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill">
+            <%= cartCount %>
+          </span>
+        </a>
+
+        <!-- Welcome -->
+        <a href="/profile" class="d-flex align-items-center text-dark text-decoration-none fw-medium">
+          <i class="fas fa-user-circle me-2"></i>
+          Welcome, <%= userName %>
+        </a>
+
+        <!-- Logout -->
+        <form action="/logout" method="get" class="d-inline">
+          <button type="submit" class="btn btn-sm btn-outline-danger fw-semibold px-3 py-1">
+            Logout
+          </button>
+        </form>
+
+      </div>
+
     </div>
-                    
+  </nav>
+</div>
+    
                     
 
                 

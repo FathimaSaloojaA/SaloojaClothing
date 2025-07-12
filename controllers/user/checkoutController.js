@@ -83,8 +83,6 @@ const createRazorpayOrder = async (req, res) => {
 
 
 
-
-
 const getCheckoutPage = async (req, res) => {
   try {
     const userId = req.session.user._id;

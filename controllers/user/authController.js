@@ -148,8 +148,7 @@ verifyOtp: async (req, res) => {
 
     
     req.session.tempUser = null;
-    //await Otp.deleteMany({ email: tempUser.email }); 
-
+    
     res.redirect('/login');
 
   } catch (err) {
@@ -250,8 +249,7 @@ handleForgotPassword : async (req, res) => {
     }
 
     const token = crypto.randomBytes(32).toString('hex');
-    const tokenExpire = Date.now() + 15 * 60 * 1000; // 15 minutes
-
+    const tokenExpire = Date.now() + 15 * 60 * 1000; 
     user.resetToken = token;
     user.resetTokenExpire = tokenExpire;
     await user.save();
@@ -265,6 +263,7 @@ handleForgotPassword : async (req, res) => {
     res.render('user/forgot-password', { error: 'Something went wrong', layout: false });
   }
 },
+
 getResetPasswordForm : async (req, res) => {
   const token = req.query.token;
 
@@ -283,6 +282,7 @@ getResetPasswordForm : async (req, res) => {
 
   res.render('user/reset-password', { token, layout: false });
 },
+
 postResetPassword: async (req, res) => {
   const { token, newPassword, confirmPassword } = req.body;
 
@@ -308,6 +308,8 @@ postResetPassword: async (req, res) => {
 
   res.redirect('/login'); 
 },
+
+
 logoutUser: async (req, res) => {
   
   req.session.destroy((err) => {

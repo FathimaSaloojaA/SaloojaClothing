@@ -5,9 +5,9 @@ const passport = require('passport');
 exports.isUserLoggedIn = (req, res, next) => {
   if (req.session && req.session.user) {
     req.user = { _id: req.session.user };
-    next(); // Allow access
+    next(); 
   } else {
-    res.redirect('/login'); // Block and redirect
+    res.redirect('/login'); 
   }
 };
 exports.isAdminLoggedIn = (req, res, next) => {
@@ -22,7 +22,7 @@ exports.isAdminLoggedIn = (req, res, next) => {
 exports.checkUserBlocked = async (req, res, next) => {
   try {
     if (!req.session.user) {
-      return next(); // If not logged in, skip
+      return next(); 
     }
 
     const userId = req.session.user._id;
@@ -38,7 +38,7 @@ exports.checkUserBlocked = async (req, res, next) => {
 });
 
     } else {
-      next(); // user is fine
+      next(); 
     }
   } catch (error) {
     console.error("Block-check middleware error:", error);
@@ -54,7 +54,7 @@ exports.ensureAuthenticated=async(req, res, next)=> {
 }
 exports. redirectIfAuthenticated=async(req, res, next)=> {
   if (req.session.user||(req.isAuthenticated && req.isAuthenticated())) {
-    return res.redirect('/product'); // or wherever your user lands
+    return res.redirect('/product'); 
   }
   next();
 }
