@@ -215,46 +215,112 @@ if (allReturned) {
 };
 
 
+
 const downloadInvoice = async (req, res) => {
   try {
     const { orderId } = req.params;
     const order = await Order.findOne({ orderID: orderId }).populate('products.productId');
-
     if (!order) return res.status(404).send('Order not found');
 
-    // Create a PDF document
-    const doc = new PDFDocument();
-    const filename = `Invoice_${order.orderID}.pdf`;
+    const doc = new PDFDocument({ margin: 50 });
+    const filename = `Invoice_${order.orderID.replace(/[^a-zA-Z0-9_-]/g, '')}.pdf`;
 
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.setHeader('Content-Type', 'application/pdf');
 
     doc.pipe(res);
 
-    // Header
-    doc.fontSize(22).text('🧾 Order Invoice', { align: 'center' });
-    doc.moveDown();
-    doc.fontSize(14).text(`Order ID: ${order.orderID}`);
-    doc.text(`Order Date: ${order.orderDate.toDateString()}`);
-    doc.text(`Status: ${order.status}`);
-    doc.text(`Payment Method: ${order.paymentMethod}`);
-    doc.moveDown();
+    const pink = '#e91e63'; // Material pink
+    const lightPink = '#fce4ec'; // Light pink background
 
-    // Shipping Address
-    doc.fontSize(16).text('Shipping Address');
-    doc.fontSize(12).text(`${order.shippingAddress.street}, ${order.shippingAddress.city}, ${order.shippingAddress.state}, ${order.shippingAddress.zip}, ${order.shippingAddress.country}`);
-    doc.moveDown();
+    // --- Header ---
+    doc
+      .fillColor(pink)
+      .fontSize(22)
+      .text('Order Invoice', { align: 'center' })
+      .moveDown();
 
-    // Products
-    doc.fontSize(16).text('Products');
-    doc.moveDown(0.5);
+    doc
+      .fillColor('black')
+      .fontSize(14)
+      .text(`Order ID: ${order.orderID}`)
+      .text(`Order Date: ${order.orderDate.toDateString()}`)
+      .text(`Status: ${order.status}`)
+      .text(`Payment Method: ${order.paymentMethod}`)
+      .moveDown();
+
+    // --- Shipping Address ---
+    doc
+      .fillColor(pink)
+      .fontSize(16)
+      .text('Shipping Address');
+
+    const { street, city, state, zip, country } = order.shippingAddress;
+    doc
+      .fillColor('black')
+      .fontSize(12)
+      .text(`${street}, ${city}, ${state}, ${zip}, ${country}`)
+      .moveDown();
+
+    // --- Product List ---
+    doc
+      .fillColor(pink)
+      .fontSize(16)
+      .text('Products')
+      .moveDown(0.5);
+
+    let subtotal = 0;
+    let totalProductDiscount = 0;
+
     order.products.forEach((prod, i) => {
-      const name = prod.productId?.name || prod.name;
-      doc.fontSize(12).text(`${i + 1}. ${name} | Qty: ${prod.quantity} | Price: ₹${prod.price}`);
+      const product = prod.productId;
+      const quantity = prod.quantity;
+      const originalPrice = product?.price || prod.price || 0;
+      const discountPercent = product?.discountPercentage || 0;
+      const discountedPrice = originalPrice * (1 - discountPercent / 100);
+      const itemTotal = discountedPrice * quantity;
+
+      subtotal += itemTotal;
+      totalProductDiscount += (originalPrice - discountedPrice) * quantity;
+
+      const safeName = (product?.name || prod.name || '').replace(/[^\x00-\x7F]/g, '');
+      doc
+        .fillColor('black')
+        .fontSize(12)
+        .text(`${i + 1}. ${safeName}`);
+      doc
+        .fillColor('#555')
+        .text(`   Qty: ${quantity} | Price: Rs ${originalPrice.toFixed(2)} | Discount: ${discountPercent}% | Total: Rs ${itemTotal.toFixed(2)}`);
     });
 
     doc.moveDown();
-    doc.fontSize(14).text(`Total Price: ₹${order.totalPrice.toFixed(2)}`, { align: 'right' });
+
+    // --- Price Summary ---
+    doc
+      .fillColor(pink)
+      .fontSize(16)
+      .text('Price Details', { underline: true })
+      .moveDown(0.5);
+
+    doc.fillColor('black').fontSize(12);
+    doc.text(`Subtotal: Rs ${subtotal.toFixed(2)}`);
+    doc.text(`Product Discount: -Rs ${totalProductDiscount.toFixed(2)}`);
+
+    if (order.couponDiscount && order.couponDiscount > 0) {
+      doc.text(`Coupon Discount: -Rs ${order.couponDiscount.toFixed(2)}`);
+    }
+
+    const tax = order.tax || 0;
+    if (tax > 0) doc.text(`Tax: Rs ${tax.toFixed(2)}`);
+
+    const shipping = order.shipping || 0;
+    if (shipping > 0) doc.text(`Shipping: Rs ${shipping.toFixed(2)}`);
+
+    doc
+      .moveDown(0.5)
+      .fillColor(pink)
+      .fontSize(14)
+      .text(`Total Payable: Rs ${order.totalPrice.toFixed(2)}`, { align: 'right' });
 
     doc.end();
 

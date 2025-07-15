@@ -226,7 +226,8 @@ topSellingCategories,
   }
 };
 
-const downloadSalesReport=async (req, res) => {
+
+const downloadSalesReport = async (req, res) => {
   try {
     const { type, range, startDate, endDate } = req.query;
 
@@ -236,6 +237,7 @@ const downloadSalesReport=async (req, res) => {
     if (type === 'excel') {
       const workbook = new ExcelJS.Workbook();
       const sheet = workbook.addWorksheet('Sales Report');
+
       sheet.columns = [
         { header: 'Order ID', key: 'orderID', width: 20 },
         { header: 'User Email', key: 'userEmail', width: 30 },
@@ -243,12 +245,13 @@ const downloadSalesReport=async (req, res) => {
         { header: 'Status', key: 'status', width: 20 },
         { header: 'Date', key: 'createdAt', width: 25 }
       ];
+
       orders.forEach(o => sheet.addRow({
         orderID: o.orderID,
-  userEmail: o.userEmail,
-  total: o.totalPrice,
-  status: o.status,
-  createdAt: new Date(o.orderDate).toLocaleString()
+        userEmail: o.userEmail,
+        total: o.totalPrice,
+        status: o.status,
+        createdAt: new Date(o.orderDate).toLocaleString()
       }));
 
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -257,27 +260,67 @@ const downloadSalesReport=async (req, res) => {
       res.end();
 
     } else if (type === 'pdf') {
-      const doc = new PDFDocument();
+      const doc = new PDFDocument({ margin: 30 });
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', 'attachment; filename="sales_report.pdf"');
       doc.pipe(res);
-      doc.fontSize(20).text('Sales Report', { align: 'center' }).moveDown();
 
-      orders.forEach(order => {
-        doc.fontSize(12).text(`Order ID: ${order.orderID}`);
-doc.text(`Email: ${order.userEmail}`);
-doc.text(`Total: ₹${order.totalPrice}`); 
-doc.text(`Status: ${order.status}`);
-doc.text(`Date: ${new Date(order.orderDate).toLocaleString()}`); 
-doc.moveDown();
+      doc.fontSize(20).fillColor('#e91e63').text('Sales Report', { align: 'center' }).moveDown();
 
+      orders.forEach((order, index) => {
+        const subtotal = order.products.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const couponDiscount = order.couponDiscount || 0;
+        const shipping = 0;
+        const totalPaid = subtotal - couponDiscount + shipping;
+
+        // Order Info
+        doc
+          .moveDown(0.5)
+          .fillColor('black')
+          .fontSize(12)
+          .text(`Order ID: ${order.orderID}`)
+          .text(`User Email: ${order.userEmail}`)
+          .text(`Status: ${order.status}`)
+          .text(`Payment Method: ${order.paymentMethod}`)
+          .text(`Order Date: ${new Date(order.orderDate).toLocaleString()}`);
+
+        // Price Breakdown
+        doc
+          .moveDown(0.5)
+          .fillColor('#e91e63')
+          .text('Price Breakdown:', { underline: true });
+
+        doc.fillColor('black');
+        doc.text(`Subtotal: ₹${subtotal.toFixed(2)}`);
+        doc.text(`Product Discount: ₹0.00`); // Customize if needed
+        doc.text(`Coupon: ${order.couponCode || '—'}`);
+        doc.text(`Coupon Discount: ₹${couponDiscount.toFixed(2)}`);
+        doc.text(`Shipping: ₹${shipping.toFixed(2)}`);
+        doc.text(`Total Paid: ₹${totalPaid.toFixed(2)}`);
+
+        // Product Details
+        doc
+          .moveDown(0.5)
+          .fillColor('#e91e63')
+          .text('Products:', { underline: true });
+
+        doc.fillColor('black');
+        order.products.forEach((item, i) => {
+          doc
+            .text(`${i + 1}. ${item.name}`)
+            .text(`   Quantity: ${item.quantity}`)
+            .text(`   Price per Unit: ₹${item.price.toFixed(2)}`)
+            .text(`   Total: ₹${(item.quantity * item.price).toFixed(2)}`);
+        });
+
+        doc.moveDown().moveTo(30, doc.y).lineTo(550, doc.y).stroke();
       });
 
       doc.end();
     }
 
   } catch (err) {
-    console.error(err);
+    console.error('❌ Sales Report Generation Error:', err);
     res.status(500).send('Failed to download report.');
   }
 };

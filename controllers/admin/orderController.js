@@ -153,7 +153,7 @@ const updateOrderStatus = async (req, res) => {
       }
 
       if (refundAmount > 0) {
-        await creditToWallet(order.userEmail, refundAmount);
+        await creditToWallet(order.userEmail, refundAmount,`Refund for Order #${order.orderID}`);
         console.log(`₹${refundAmount} refunded to ${order.userEmail}'s wallet`);
       }
     }
@@ -222,7 +222,7 @@ const updateProductStatus = async (req, res) => {
 
   const refund = productTotal - couponShare;
 
-  await creditToWallet(order.userEmail, refund);
+  await creditToWallet(order.userEmail, refund,`Refund for Order #${order.orderID}`);
   productToUpdate.refunded = true;
 
   console.log(`Refunded ₹${refund} for cancelled product to ${order.userEmail} (wallet)`);
@@ -275,7 +275,7 @@ const productTotal = productItem.price * productItem.quantity;
 const productShare = (productTotal / totalOrderValue) * totalCouponDiscount;
 
 const refundAmount = productTotal - productShare;
-    await creditToWallet(order.userEmail, refundAmount);
+    await creditToWallet(order.userEmail, refundAmount,`Refund for Order #${order.orderID}`);
     productItem.refunded = true; 
     console.log(`Refunded ₹${refundAmount} for return`);
   } 
@@ -338,7 +338,7 @@ const verifyOrderReturn = async (req, res) => {
   }
 
   if (refundAmount > 0) {
-    await creditToWallet(order.userEmail, Math.round(refundAmount));
+    await creditToWallet(order.userEmail, Math.round(refundAmount),`Refund for Order #${order.orderID}`);
     console.log(`Refunded ₹${Math.round(refundAmount)} to ${order.userEmail}`);
   }
 

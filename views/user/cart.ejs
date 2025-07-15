@@ -25,7 +25,20 @@
             <td>
               <img src="<%= product.images[0] %>" alt="<%= product.name %>" style="width: 60px; height: 60px; object-fit: cover;">
             </td>
-            <td>₹<%= product.price.toFixed(2) %></td>
+
+            <td>
+  <span class="text-muted" style="text-decoration: line-through;">
+    ₹<%= item.originalPrice %>
+  </span>
+  <br>
+  <span class="text-danger font-weight-bold">
+    ₹<%= item.sellingPrice %>
+  </span>
+  <% if (item.discountPercent > 0) { %>
+    <small class="text-success">(<%= item.discountPercent %>% OFF)</small>
+  <% } %>
+</td>
+
 
             <td>
   <% if (unavailable) { %>
@@ -39,7 +52,8 @@
   <% } %>
 </td>
 
-            <td>₹<%= (product.price * item.quantity).toFixed(2) %></td>
+            <td>₹<%= item.itemTotal %></td>
+
             <td>
   <button 
   class="btn btn-sm <%= unavailable ? 'btn-secondary' : 'btn-danger' %> remove-from-cart" 

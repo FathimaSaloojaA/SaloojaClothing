@@ -120,34 +120,39 @@
 <div class="section payment-section">
   <h3>Select Payment Method</h3>
 
-  <div class="payment-options">
-    <label class="payment-option ">
+  <div class="payment-options" style="display: flex; gap: 20px; flex-wrap: wrap;">
+    <!-- Cash on Delivery -->
+    <label class="payment-option" style="flex: 1; min-width: 250px;">
       <input 
-  type="radio" 
-  name="paymentMethod" 
-  value="Cash on Delivery" 
-  <%= finalTotal > 1000 ? 'disabled' : 'checked' %> 
-/>
-<% if (finalTotal > 1000) { %>
-  <p style="color:red; font-weight:bold;"> COD is not available for orders above ₹1000.</p>
-<% } %>
+        type="radio" 
+        name="paymentMethod" 
+        value="Cash on Delivery" 
+        <%= finalTotal > 1000 ? 'disabled' : 'checked' %> 
+      />
 
-
-      <div class="card">
+      <div class="card" style="min-height: 120px; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 10px;">
         <span class="emoji">💵</span>
         <span class="text">Cash on Delivery</span>
+
+        <% if (finalTotal > 1000) { %>
+          <p style="color:red; font-weight:bold; margin-top: 10px;">COD is not available for orders above ₹1000.</p>
+        <% } else { %>
+          <!-- Invisible placeholder to keep height consistent -->
+          <p style="visibility: hidden; margin-top: 10px;">COD is not available</p>
+        <% } %>
       </div>
     </label>
 
-    
-<label class="payment-option">
-  <input type="radio" name="paymentMethod" value="Razorpay" />
-  <div class="card">
-    <span class="emoji">💳</span>
-    <span class="text">Pay Online (Razorpay)</span>
-  </div>
-</label>
-
+    <!-- Razorpay -->
+    <label class="payment-option" style="flex: 1; min-width: 250px;">
+      <input type="radio" name="paymentMethod" value="Razorpay" />
+      <div class="card" style="min-height: 120px; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 10px;">
+        <span class="emoji">💳</span>
+        <span class="text">Pay Online (Razorpay)</span>
+        <!-- Add a hidden element for height balance -->
+        <p style="visibility: hidden; margin-top: 10px;">Placeholder</p>
+      </div>
+    </label>
   </div>
 </div>
 

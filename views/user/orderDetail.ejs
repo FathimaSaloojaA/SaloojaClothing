@@ -19,8 +19,8 @@
   <div class="order-product-card">
 
     
-    <img src="<%= imagePath.startsWith('/product-images') ? imagePath : '/product-images/' + imagePath %>" 
-         alt="Product Image" class="order-product-img" />
+    <img src="<%= imagePath %>" alt="Product Image" class="order-product-img" />
+
          
     <div class="order-product-info">
       <h4><%= product ? product.name : prod.name %></h4>
@@ -45,8 +45,33 @@
 </div>
 
 
-  <p class="total">Total Price: ₹<%= order.totalPrice.toFixed(2) %></p>
-  <p><strong>Payment Method:</strong> <%= order.paymentMethod %></p>
+    <h3>Price Details</h3>
+  <div class="price-summary pink-theme">
+    <% 
+      let subtotal = 0;
+      let productDiscount = 0;
+
+      order.products.forEach(prod => {
+        const qty = prod.quantity;
+        const originalPrice = prod.productId?.price || prod.price; // fallback
+        const sellingPrice = prod.price;
+
+        subtotal += originalPrice * qty;
+        productDiscount += (originalPrice - sellingPrice) * qty;
+      });
+    %>
+
+    <p><strong>Subtotal:</strong> ₹<%= subtotal.toFixed(2) %></p>
+    <p><strong>Product Discount:</strong> -₹<%= productDiscount.toFixed(2) %></p>
+
+    <% if (order.couponCode) { %>
+      <p><strong>Coupon (<%= order.couponCode %>):</strong> -₹<%= order.couponDiscount.toFixed(2) %></p>
+    <% } %>
+
+    <p><strong>Shipping:</strong> ₹0.00</p>
+    <p class="total"><strong>Total Paid:</strong> ₹<%= order.totalPrice.toFixed(2) %></p>
+    <p><strong>Payment Method:</strong> <%= order.paymentMethod %></p>
+  </div>
 
   <% if (order.status === 'cancelled' && order.cancelReason) { %>
     <p><strong>Cancel Reason:</strong> <%= order.cancelReason %></p>
@@ -55,8 +80,12 @@
   <div class="order-actions">
     <a href="/orders" class="btn btn-secondary">⬅ Back to Orders</a>
 
-    <% if (order.status === 'delivered') { %>
+    <% if (order.status === 'delivered' ) { %>
       <button id="returnBtn" class="btn btn-warning">🔄 Return Order</button>
+      
+    <% } %>
+    <% if (order.status === 'delivered'|| order.status==='paid' ) { %>
+      
       <a href="/orders/invoice/<%= order.orderID %>" class="btn btn-primary">📄 Download Invoice</a>
     <% } %>
     

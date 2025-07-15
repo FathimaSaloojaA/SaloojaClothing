@@ -9,7 +9,7 @@ const viewCart = async (req, res) => {
     const userId = req.session.user._id;
     const user = await User.findById(userId).populate('cart.productId');
 
-    const cartItems = user.cart.map(item => {
+    /*const cartItems = user.cart.map(item => {
       const product = item.productId;
       const isUnavailable = !product || product.isDeleted || product.stock === 0;
 
@@ -18,7 +18,27 @@ const viewCart = async (req, res) => {
         product,
         isUnavailable
       };
-    });
+    });*/
+    const cartItems = user.cart.map(item => {
+  const product = item.productId;
+  const isUnavailable = !product || product.isDeleted || product.stock === 0;
+
+  const originalPrice = product.price;
+  const discountPercent = product.discountPercentage || 0;
+  const sellingPrice = originalPrice * (1 - discountPercent / 100);
+  const itemTotal = sellingPrice * item.quantity;
+
+  return {
+    ...item.toObject(),
+    product,
+    isUnavailable,
+    originalPrice: originalPrice.toFixed(2),
+    sellingPrice: sellingPrice.toFixed(2),
+    discountPercent,
+    itemTotal: itemTotal.toFixed(2)
+  };
+});
+
 
     const hasInvalidItems = cartItems.some(item => item.isUnavailable);
 

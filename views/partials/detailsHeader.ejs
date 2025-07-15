@@ -78,20 +78,21 @@
                         </div>
                         <a href="" class="nav-item nav-link">Contact</a>
 
-                        <div class="col-lg-12 col-6 text-right  ml-4 mt-2">
-            <a href="/wishlist" class="btn border position-relative">
-  <i class="fas fa-heart text-primary"></i>
-  <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill">
-    <%= wishlistCount %>
-  </span>
-</a>
-            <a href="/cart" class="btn border">
-                <i class="fas fa-shopping-cart text-primary"></i>
-                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill cart-badge">
-    <%= cartCount %>
-  </span>
-            </a>
-            </div>
+                        <div class="d-flex align-items-center ml-lg-4 mt-2">
+  <a href="/wishlist" class="btn border position-relative mr-2">
+    <i class="fas fa-heart text-primary"></i>
+    <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill">
+      <%= wishlistCount %>
+    </span>
+  </a>
+  <a href="/cart" class="btn border position-relative">
+    <i class="fas fa-shopping-cart text-primary"></i>
+    <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill cart-badge">
+      <%= cartCount %>
+    </span>
+  </a>
+</div>
+
                     </div>
                     
                     <div class="navbar-nav ml-auto py-0 d-flex align-items-center">
