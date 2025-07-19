@@ -189,6 +189,8 @@ const removeFromCart = async (req, res) => {
   }
 };
 
+
+
 const cartCount=async (req, res) => {
   try {
     if (!req.session.user) return res.json({ cartCount: 0 });

@@ -157,6 +157,7 @@ verifyOtp: async (req, res) => {
   }
 },
 
+
 resendOtp: async (req, res) => {
   try {
     const tempUser = req.session.tempUser;

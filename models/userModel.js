@@ -15,24 +15,24 @@ const addressSchema = new mongoose.Schema({
 const userSchema = new mongoose.Schema({
   firstName: {
     type: String,
-    required: true,
+    required: false,
     trim: true
   },
   lastName: {
     type: String,
-    required: true,
+    required: false,
     trim: true
   },
   email: {
     type: String,
-    required: true,
+    required: false,
     unique: true,
     lowercase: true,
     trim: true
   },
   password: {
     type: String,
-    required: true
+    required: false
   },
   isBlocked: {
     type: Boolean,
@@ -76,11 +76,15 @@ emailTemp: { type: String },
     }
   ],
   wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
-    referralCode: {
-    type: String,
-    unique: true,
-    uppercase: true
-  },
+
+    
+
+  referralCode: {
+  type: String,
+  unique: true,
+  uppercase: true,
+  sparse: true
+},
   referredBy: {
     type: String,
     default: null

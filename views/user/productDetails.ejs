@@ -259,9 +259,13 @@
                         <a href="/product/<%= item._id %>" class="btn btn-sm text-dark p-0">
                             <i class="fas fa-eye text-primary mr-1"></i>View
                         </a>
-                        <a href="/cart/add-to-cart/<%= item._id %>" class="btn btn-sm text-dark p-0">
-                            <i class="fas fa-shopping-cart text-primary mr-1"></i>Add
-                        </a>
+                        <form action="/cart/add-to-cart" method="POST" style="display:inline;">
+          <input type="hidden" name="productId" value="<%= product._id %>">
+          <input type="hidden" name="quantity" value="1">
+          <button type="submit" class="btn btn-sm text-dark p-0">
+            <i class="fas fa-shopping-cart text-primary mr-1"></i>Add To Cart
+          </button>
+        </form>
                         <button class="wishlist-toggle btn btn-sm p-0 border-0 bg-transparent"
         data-product-id="<%= product._id %>">
   <i class="fa-heart <%= wishlistProductIds.includes(product._id.toString()) ? 'fas text-pink' : 'far text-secondary' %> wishlist-icon"
