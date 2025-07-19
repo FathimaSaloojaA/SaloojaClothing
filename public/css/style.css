@@ -9515,6 +9515,15 @@ a.text-dark:hover, a.text-dark:focus {
   object-fit: cover;
 }
 
+@media (max-width: 767px) {
+    #navbar-vertical .navbar-nav {
+      max-height: 300px; /* Or adjust based on design */
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-right: 10px; /* For some scroll spacing */
+    }
+  }
+
 .carousel-caption {
   top: 0;
   left: 0;
