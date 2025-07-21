@@ -11169,7 +11169,7 @@ tbody tr:hover {
   @media (max-width: 600px) {
     .container.my-5 table {
       display: block;
-      overflow-x: none;
+      overflow-x: auto;
       width: 100%;
     }
 
