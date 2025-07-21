@@ -1,32 +1,35 @@
 <div class="wallet-container">
-    <a href="/profile" class="back-button">← Back to Profile</a>
+  <a href="/profile" class="wallet-back-button">← Back to Profile</a>
 
-  <h2>My Wallet</h2>
+  <h2 class="wallet-title">My Wallet</h2>
 
-  <div class="wallet-balance">
-    <h3>Available Balance:</h3>
-    <p class="balance-amount">₹<%= balance.toFixed(2) %></p>
+  <div class="wallet-balance-box">
+    <h3 class="wallet-balance-label">Available Balance:</h3>
+    <p class="wallet-balance-amount">₹<%= balance.toFixed(2) %></p>
   </div>
 
-  <h3>Transaction History</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Amount</th>
-        <th>Description</th>
-        <th>Date</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% transactions.forEach(tx => { %>
-        <tr class="<%= tx.type === 'credit' ? 'credit' : 'debit' %>">
-          <td><%= tx.type %></td>
-          <td>₹<%= tx.amount.toFixed(2) %></td>
-          <td><%= tx.description %></td>
-          <td><%= tx.date.toLocaleDateString() %></td>
+  <h3 class="wallet-history-title">Transaction History</h3>
+
+  <div class="wallet-table-wrapper"> <!-- ✅ Added wrapper for responsiveness -->
+    <table class="wallet-table">
+      <thead class="wallet-table-head">
+        <tr>
+          <th>Type</th>
+          <th>Amount</th>
+          <th>Description</th>
+          <th>Date</th>
         </tr>
-      <% }) %>
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        <% transactions.forEach(tx => { %>
+          <tr class="wallet-row <%= tx.type === 'credit' ? 'wallet-credit' : 'wallet-debit' %>">
+            <td data-label="Type"><%= tx.type %></td>
+            <td data-label="Amount">₹<%= tx.amount.toFixed(2) %></td>
+            <td data-label="Description"><%= tx.description %></td>
+            <td data-label="Date"><%= tx.date.toLocaleDateString() %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
 </div>

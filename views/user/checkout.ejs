@@ -151,6 +151,7 @@
         <span class="text">Pay Online (Razorpay)</span>
         <!-- Add a hidden element for height balance -->
         <p style="visibility: hidden; margin-top: 10px;">Placeholder</p>
+
       </div>
     </label>
   </div>
@@ -161,6 +162,8 @@
       <input type="hidden" name="selectedAddress" value="<%= defaultAddressId %>" id="selectedAddressInput">
       <button type="submit" class="place-order-btn">📦 Place Order </button>
     </form>
+    <input type="hidden" name="paymentMethod" id="selectedPaymentMethod" />
+
   </div>
 </div>
 <script>
@@ -407,5 +410,23 @@ function createError(input, message) {
       const razorpay = new Razorpay(options);
       razorpay.open();
     }
+  });
+
+  const paymentRadios = document.querySelectorAll('input[name="paymentMethod"]');
+  const hiddenPaymentInput = document.getElementById('selectedPaymentMethod');
+  
+  form.addEventListener('submit', function (e) {
+    const selected = [...paymentRadios].find(r => r.checked);
+    if (!selected) {
+      e.preventDefault();
+      Swal.fire({
+        icon: 'warning',
+        title: 'Select Payment Method',
+        text: 'Please choose a payment method before placing the order.',
+        confirmButtonColor: '#ff69b4' // optional pink theme
+      });
+      return;
+    }
+    hiddenPaymentInput.value = selected.value;
   });
 </script>

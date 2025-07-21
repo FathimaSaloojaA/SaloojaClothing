@@ -29,7 +29,7 @@ const orderSchema = new Schema({
   zip: String,
   country: String
 },
-paymentMethod: { type: String, default: 'Cash on Delivery' },
+paymentMethod: { type: String },
 razorpayPaymentId: {
   type: String,
   default: null

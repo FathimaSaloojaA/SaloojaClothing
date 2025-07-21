@@ -308,7 +308,8 @@ const postPlaceOrder = async (req, res) => {
     const userId = req.session.user._id;
     const selectedAddressId = req.body.selectedAddress;
 
-    const paymentMethod = req.body.paymentMethod || 'Cash on Delivery';
+    const paymentMethod = req.body.paymentMethod || null;
+    
     const razorpayPaymentId = req.body.paymentId || null;
 
     const user = await User.findById(userId).populate('cart.productId').populate('rewardCoupons');

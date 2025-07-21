@@ -11248,4 +11248,128 @@ tbody tr:hover {
   }
 }
 
-  
+
+  .wallet-container {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  background: #fff0f5;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  font-family: "Poppins", sans-serif;
+}
+
+.wallet-back-button {
+  display: inline-block;
+  margin-bottom: 10px;
+  text-decoration: none;
+  color: #ff69b4;
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+.wallet-back-button:hover {
+  color: #d94a8b;
+}
+
+.wallet-title {
+  font-size: 1.8rem;
+  color: #333;
+  text-align: center;
+}
+
+.wallet-balance-box {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.wallet-balance-label {
+  font-size: 1.2rem;
+  color: #333;
+}
+
+.wallet-balance-amount {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #ff69b4;
+  margin-top: 10px;
+}
+
+.wallet-history-title {
+  margin-top: 30px;
+  font-size: 1.4rem;
+  color: #444;
+}
+
+.wallet-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background-color: white;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.wallet-table th,
+.wallet-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #f0c9dc;
+}
+
+.wallet-table-head {
+  background-color: #ffb6c1;
+  color: white;
+}
+
+.wallet-credit {
+  color: green;
+  font-weight: bold;
+}
+
+.wallet-debit {
+  color: red;
+  font-weight: bold;
+}
+
+/* Responsive Table for Mobile */
+@media (max-width: 768px) {
+  .wallet-table,
+  .wallet-table thead,
+  .wallet-table tbody,
+  .wallet-table th,
+  .wallet-table td,
+  .wallet-table tr {
+    display: block;
+    width: 100%;
+  }
+
+  .wallet-table-head {
+    display: none;
+  }
+
+  .wallet-table tr {
+    background-color: #ffe4ec;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    padding: 10px;
+  }
+
+  .wallet-table td {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    border: none;
+    border-bottom: 1px solid #f7b4d0;
+  }
+
+  .wallet-table td::before {
+    content: attr(data-label);
+    font-weight: bold;
+    color: #ff69b4;
+  }
+}
+.wallet-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
