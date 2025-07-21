@@ -11202,5 +11202,50 @@ tbody tr:hover {
     }
   }
 
+/* Cart table responsive tweaks */
+@media (max-width: 768px) {
+  .table td,
+  .table th {
+    white-space: nowrap;
+    font-size: 14px;
+    vertical-align: middle;
+  }
+
+  .table img {
+    width: 50px;
+    height: 50px;
+  }
+
+  .qty-decrement,
+  .qty-increment {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .form-control.mx-1 {
+    width: 50px !important;
+    font-size: 14px;
+  }
+
+  .btn-sm {
+    font-size: 13px;
+    padding: 0.25rem 0.5rem;
+  }
+
+  h2.mb-4 {
+    font-size: 20px;
+    text-align: center;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .text-right {
+    text-align: center !important;
+    margin-top: 1rem;
+  }
+}
 
   
