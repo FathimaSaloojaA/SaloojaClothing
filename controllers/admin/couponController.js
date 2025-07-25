@@ -1,10 +1,14 @@
+
 const Coupon = require('../../models/couponModel');
 
 
 const loadCoupons = async (req, res) => {
   try {
     const coupons = await Coupon.find({ isDeleted: false }).sort({ createdAt: -1 });
-    res.render('admin/coupons/list', { coupons,layout: 'admin/adminLayout', });
+     
+     
+
+    res.render('admin/coupons/list', { coupons,layout: 'admin/adminLayout',totalprice });
   } catch (err) {
     console.error('Error loading coupons:', err);
     res.render('admin/500', { error: 'Failed to load coupons.',layout: 'admin/adminLayout', });

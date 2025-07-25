@@ -67,6 +67,12 @@
               <form action="/register" method="POST" id="registerForm">
 
                 <div id="errorMsg" class="alert alert-danger d-none"></div>
+                <% if (error) { %>
+  <div class="alert alert-danger text-center">
+    <%= error %>
+  </div>
+<% } %>
+
 
                 <div class="row">
                   <div class="col-md-6 mb-4">
@@ -108,7 +114,9 @@
 
 
 <button type="submit" class="btn btn-primary btn-block mb-4">Sign Up & Send OTP</button>
-
+<p class="mt-3">Already have an account?
+  <a href="/login" class="btn btn-outline-secondary ms-2">Login</a>
+</p>
                 <div class="text-center">
                   <p>or sign up with:</p>
                   <a href="/auth/google" class="btn btn-danger">
@@ -157,12 +165,20 @@
     }
   }
 
-  function validateField(input, name) {
+  function validateName(input, fieldName) {
     const value = input.value.trim();
-    if (value === '' || /\s/.test(value)) {
-      showError(input, `${name} cannot be empty or contain spaces`);
+    const nameRegex = /^[A-Za-z]+$/;
+
+    if (value === '') {
+      showError(input, `${fieldName} cannot be empty`);
       return false;
     }
+
+    if (!nameRegex.test(value)) {
+      showError(input, `${fieldName} must contain alphabets only`);
+      return false;
+    }
+
     clearError(input);
     return true;
   }
@@ -175,6 +191,7 @@
       showError(emailInput, 'Please enter a valid email');
       return false;
     }
+
     clearError(emailInput);
     return true;
   }
@@ -186,13 +203,11 @@
     clearError(passwordInput);
     clearError(confirmPasswordInput);
 
-    if (/\s/.test(password)) {
-      showError(passwordInput, 'Password cannot contain spaces');
-      return false;
-    }
+    const strongPasswordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
 
-    if (password.length < 6) {
-      showError(passwordInput, 'Password must be at least 6 characters');
+    if (!strongPasswordRegex.test(password)) {
+      showError(passwordInput, 'Password must be at least 8 characters and include uppercase, lowercase, number, and special character');
       return false;
     }
 
@@ -214,8 +229,8 @@
 
     let isValid = true;
 
-    if (!validateField(firstName, 'First name')) isValid = false;
-    if (!validateField(lastName, 'Last name')) isValid = false;
+    if (!validateName(firstName, 'First name')) isValid = false;
+    if (!validateName(lastName, 'Last name')) isValid = false;
     if (!validateEmail(email)) isValid = false;
     if (!validatePasswords(password, confirmPassword)) isValid = false;
 
@@ -235,6 +250,8 @@
       form.addEventListener('submit', handleRegisterValidation);
     }
   }
+
+  // Toggle password visibility
   document.querySelectorAll('.toggle-password').forEach(icon => {
     icon.addEventListener('click', function () {
       const targetInput = document.querySelector(this.getAttribute('toggle'));
@@ -248,6 +265,7 @@
 
   window.onload = attachValidation;
 </script>
+
 
   
 </body>

@@ -170,36 +170,39 @@
       <!-- RIGHT: Wishlist, Cart, Welcome, Logout -->
       <div class="d-flex align-items-center gap-3 ms-auto flex-wrap justify-content-end">
 
-        <!-- Wishlist -->
-        <a href="/wishlist" class="btn border position-relative">
-          <i class="fas fa-heart text-primary"></i>
-          <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill">
-            <%= wishlistCount %>
-          </span>
-        </a>
+  <!-- Wishlist -->
+  <a href="/wishlist" class="btn border position-relative">
+    <i class="fas fa-heart text-primary"></i>
+    <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill">
+      <%= wishlistCount %>
+    </span>
+  </a>
 
-        <!-- Cart -->
-        <a href="/cart" class="btn border position-relative">
-          <i class="fas fa-shopping-cart text-primary"></i>
-          <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill">
-            <%= cartCount %>
-          </span>
-        </a>
+  <!-- Cart -->
+  <a href="/cart" class="btn border position-relative">
+    <i class="fas fa-shopping-cart text-primary"></i>
+    <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill">
+      <%= cartCount %>
+    </span>
+  </a>
+  <!-- Welcome -->
+    <a href="/profile" class="d-flex align-items-center text-dark text-decoration-none fw-medium">
+      <i class="fas fa-user-circle me-2"></i>
+      Welcome <%= userName %>
+    </a>
 
-        <!-- Welcome -->
-        <a href="/profile" class="d-flex align-items-center text-dark text-decoration-none fw-medium">
-          <i class="fas fa-user-circle me-2"></i>
-          Welcome, <%= userName %>
-        </a>
+  <% if (userName) { %>
+    
 
-        <!-- Logout -->
-        <form action="/logout" method="get" class="d-inline">
-          <button type="submit" class="btn btn-sm btn-outline-danger fw-semibold px-3 py-1">
-            Logout
-          </button>
-        </form>
+    <!-- Logout -->
+    <form action="/logout" method="get" class="d-inline">
+      <button type="submit" class="btn btn-sm btn-outline-danger fw-semibold px-3 py-1">
+        Logout
+      </button>
+    </form>
+  <% } %>
 
-      </div>
+</div>
 
     </div>
   </nav>

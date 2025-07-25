@@ -16,7 +16,7 @@ function ensureAuthenticated(req, res, next) {
 
 router.get('/product',checkUserBlocked,productController.loadShopPage);
 // userRoutes/productRoutes.js,
-router.get('/product/:id',isUserLoggedIn,checkUserBlocked,productController.loadProductDetails);
+router.get('/product/:id',checkUserBlocked,productController.loadProductDetails);
 
 
 module.exports = router;

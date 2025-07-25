@@ -28,6 +28,7 @@ const setWishlistCount = require('./middlewares/setWishlistCount');
 const expressLayouts = require('express-ejs-layouts');
 const { EMAIL_FROM, EMAIL_PASS } = require('./utils/constants');
 
+const flash = require('connect-flash');
 dotenv.config();
 
 const app = express();
@@ -82,6 +83,7 @@ app.use(setCartCount);
 app.use(setWishlistCount);
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(flash());
 app.use(express.static(path.join(__dirname, "public")));
 
 // View engine

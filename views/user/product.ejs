@@ -193,9 +193,16 @@
             },
           });
 
+          // ✅ Detect if redirected (user not logged in)
+          if (res.redirected) {
+            window.location.href = res.url; // force redirect to login
+            return;
+          }
+
           const data = await res.json();
+
           if (data.success) {
-            // Toggle heart icon classes
+            // Toggle heart icon styles
             icon.classList.toggle('fas');
             icon.classList.toggle('far');
             icon.classList.toggle('text-pink');

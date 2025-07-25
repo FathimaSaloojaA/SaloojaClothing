@@ -65,7 +65,7 @@ body {
   color: #1b1a1a;
   text-align: left;
   background-color: #fff;
-  background-image: url('https://static.vecteezy.com/system/resources/thumbnails/017/709/604/small_2x/background-with-beautiful-white-bokeh-light-effect-free-vector.jpg'); /* update the path */
+  
   background-size: cover;         /* scales the image to cover the container */
   background-position: center;    /* centers the image */
   background-repeat: no-repeat;   /* prevents tiling */

@@ -6,6 +6,9 @@ const Product = require('../../models/productModel');
 
 const toggleWishlist = async (req, res) => {
   try {
+    if (!req.session.user) {
+      return res.redirect('/login'); 
+    }
     const userId = req.session.user._id;
     const productId = req.params.productId;
 
@@ -15,6 +18,7 @@ const toggleWishlist = async (req, res) => {
     }
 
     const user = await User.findById(userId);
+    
     const index = user.wishlist.indexOf(productId);
 
     let updatedUser;

@@ -14,7 +14,7 @@ const { error } = require('console');
 module.exports = {
   
   showRegisterPage: (req, res) => {
-    res.render('user/register',{layout:false});
+    res.render('user/register',{layout:false,error :null});
   },
 
  
@@ -211,31 +211,46 @@ googleCallback: (req, res) => {
 },
 
 
+  
   showLoginPage: (req, res) => {
-    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-    res.render('user/login',{error:null,layout:false});
-  },
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  const error = req.flash('error');
+  res.render('user/login', { error: error[0], layout: false });
+},
 
-  postLogin:async(req,res)=>{
-const { email, password } = req.body;
-try {
+
+  postLogin: async (req, res) => {
+  const { email, password } = req.body;
+  try {
     const user = await User.findOne({ email });
-    if (!user) return res.render('user/login', { error: 'Invalid credentials', layout: false });
+    if (!user) {
+      req.flash('error', 'Invalid credentials');
+      return res.redirect('/login');
+    }
 
     const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.render('user/login', { error: 'Invalid credentials', layout: false });
+    if (!match) {
+      req.flash('error', 'Invalid credentials');
+      return res.redirect('/login');
+    }
+
     if (user.isBlocked) {
-  return res.render('user/login', { error: "Your account is blocked by admin.",layout:false });
-}
+      req.flash('error', 'Your account is blocked by admin.');
+      return res.redirect('/login');
+    }
 
     req.session.user = user;
     req.session.showPreloader = true;
-    res.redirect('/'); 
+    res.redirect('/');
   } catch (err) {
     console.error('Login Error:', err);
-    res.render('user/login', { error: 'Something went wrong', layout: false });
+    req.flash('error', 'Something went wrong');
+    return res.redirect('/login');
   }
-  },
+},
+
+
+
   renderForgotPassword : (req, res) => {
   res.render('user/forgot-password', { layout: false,success:null,error:null });
 },
