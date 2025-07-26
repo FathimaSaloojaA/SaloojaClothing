@@ -114,9 +114,31 @@ const updateOrderStatus = async (req, res) => {
     const order = await Order.findOne({ orderID }).populate('products.productId');
     if (!order) return res.status(404).send('Order not found');
 
+    // ❌ Prevent cancelling if already delivered
+    if (status === 'cancelled') {
+      const allDelivered = order.products.every(p => p.status === 'delivered');
+      const anyDelivered = order.products.some(p => p.status === 'delivered');
+
+      if (allDelivered) {
+        return res.status(400).send("Cannot cancel: Entire order is already delivered.");
+      }
+
+      if (anyDelivered) {
+        return res.status(400).send("Cannot cancel: Some products are already delivered.");
+      }
+    }
+
+    // ✅ Apply status to order
     order.status = status;
 
-    
+    if (status === 'delivered') {
+      for (const item of order.products) {
+        if (item.status !== 'delivered') {
+          item.status = 'delivered';
+        }
+      }
+    }
+
     if (status === 'cancelled') {
       let refundAmount = 0;
 
@@ -124,36 +146,31 @@ const updateOrderStatus = async (req, res) => {
         if (item.status !== 'cancelled') {
           item.status = 'cancelled';
 
-          
           const product = item.productId;
           if (product) {
             product.stock += item.quantity;
             await product.save();
           }
-          
 
-
-          
           if (!item.refunded) {
-  const totalCouponDiscount = order.couponDiscount || 0;
+            const totalCouponDiscount = order.couponDiscount || 0;
 
-  const totalOrderValue = order.products.reduce((sum, item) => {
-    return sum + (item.price * item.quantity);
-  }, 0);
+            const totalOrderValue = order.products.reduce((sum, item) => {
+              return sum + (item.price * item.quantity);
+            }, 0);
 
-  const itemTotal = item.price * item.quantity;
-  const couponShare = (itemTotal / totalOrderValue) * totalCouponDiscount;
+            const itemTotal = item.price * item.quantity;
+            const couponShare = (itemTotal / totalOrderValue) * totalCouponDiscount;
 
-  const refund = itemTotal - couponShare;
-  refundAmount += refund;
-  item.refunded = true;
-}
-
+            const refund = itemTotal - couponShare;
+            refundAmount += refund;
+            item.refunded = true;
+          }
         }
       }
 
       if (refundAmount > 0) {
-        await creditToWallet(order.userEmail, refundAmount,`Refund for Order #${order.orderID}`);
+        await creditToWallet(order.userEmail, refundAmount, `Refund for Order #${order.orderID}`);
         console.log(`₹${refundAmount} refunded to ${order.userEmail}'s wallet`);
       }
     }
@@ -167,14 +184,14 @@ const updateOrderStatus = async (req, res) => {
 };
 
 
-
 const updateProductStatus = async (req, res) => {
   try {
     const { orderID, productId } = req.params;
     const { status } = req.body;
 
     const validProductStatuses = [
-      'ordered', 'shipped', 'paid','out for delivery', 'delivered', 'cancelled', 'return requested', 'cancel requested','returned','return rejected'
+      'ordered', 'shipped', 'paid', 'out for delivery', 'delivered',
+      'cancelled', 'return requested', 'cancel requested', 'returned', 'return rejected'
     ];
 
     if (!validProductStatuses.includes(status)) {
@@ -187,14 +204,18 @@ const updateProductStatus = async (req, res) => {
     const productToUpdate = order.products.find(item =>
       item.productId && item.productId._id.toString() === productId
     );
-
     if (!productToUpdate) return res.status(404).send('Product not found in order.');
+
+    // ✅ Prevent cancellation if the entire order is delivered
+    const allDelivered = order.products.every(item => item.status === 'delivered');
+    if (allDelivered && status === 'cancelled') {
+      return res.status(400).send('Cannot cancel a product from a fully delivered order.');
+    }
 
     const oldStatus = productToUpdate.status;
     productToUpdate.status = status;
-    await order.save();
 
-    
+    // ✅ If product is being cancelled or returned, update stock and refund
     if (
       (oldStatus !== 'cancelled' && status === 'cancelled') ||
       (oldStatus !== 'returned' && status === 'returned')
@@ -205,33 +226,29 @@ const updateProductStatus = async (req, res) => {
         await product.save();
         console.log(`Stock updated: ${product.name} stock increased by ${productToUpdate.quantity}`);
       }
-       
+
       const refundAmount = productToUpdate.quantity * productToUpdate.price;
-      order.totalPrice = Math.max(0, order.totalPrice - refundAmount); 
+      order.totalPrice = Math.max(0, order.totalPrice - refundAmount);
       console.log(`Order total reduced by ₹${refundAmount.toFixed(2)} for cancelled/returned product`);
 
-   if (!productToUpdate.refunded) {
-  const totalCouponDiscount = order.couponDiscount || 0;
+      if (!productToUpdate.refunded) {
+        const totalCouponDiscount = order.couponDiscount || 0;
+        const totalOrderValue = order.products.reduce((sum, item) =>
+          sum + (item.price * item.quantity), 0
+        );
 
-  const totalOrderValue = order.products.reduce((sum, item) => {
-    return sum + (item.price * item.quantity);
-  }, 0);
+        const productTotal = productToUpdate.price * productToUpdate.quantity;
+        const couponShare = (productTotal / totalOrderValue) * totalCouponDiscount;
+        const refund = productTotal - couponShare;
 
-  const productTotal = productToUpdate.price * productToUpdate.quantity;
-  const couponShare = (productTotal / totalOrderValue) * totalCouponDiscount;
+        await creditToWallet(order.userEmail, refund, `Refund for Order #${order.orderID}`);
+        productToUpdate.refunded = true;
 
-  const refund = productTotal - couponShare;
-
-  await creditToWallet(order.userEmail, refund,`Refund for Order #${order.orderID}`);
-  productToUpdate.refunded = true;
-
-  console.log(`Refunded ₹${refund} for cancelled product to ${order.userEmail} (wallet)`);
-}
-
-
+        console.log(`Refunded ₹${refund} for cancelled product to ${order.userEmail} (wallet)`);
+      }
     }
-    await order.save();
 
+    await order.save();
     res.redirect(`/admin/orders/${orderID}`);
   } catch (error) {
     console.error("Error updating product status:", error);

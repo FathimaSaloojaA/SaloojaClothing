@@ -90,7 +90,7 @@
 
 <div class="coupon-box">
   <% if (!appliedCoupon) { %>
-    <form action="/checkout/apply-coupon" method="POST" class="coupon-form">
+    <form action="/checkout/apply-coupon" method="POST"  data-ajax="true"   class="coupon-form">
       <input type="text" name="couponCode" placeholder="Enter coupon code" required>
       <button type="submit">Apply</button>
     </form>
@@ -98,9 +98,9 @@
     <div class="applied-coupon">
       ✅ Coupon "<strong><%= appliedCoupon.code %></strong>" applied
       (<%= appliedCoupon.discountType === 'percentage' ? appliedCoupon.discountValue + '%' : '₹' + appliedCoupon.discountValue %> off)
-      <form action="/checkout/remove-coupon" method="POST" style="display:inline;">
-        <button type="submit" class="remove-btn">Remove</button>
-      </form>
+      <form id="removeCouponForm" data-ajax="true" style="display:inline;">
+  <button type="submit" id="removeCouponBtn" class="remove-btn">Remove</button>
+</form>
     </div>
   <% } %>
 </div>

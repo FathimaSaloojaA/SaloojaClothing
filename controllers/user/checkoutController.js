@@ -199,7 +199,7 @@ const getCheckoutPage = async (req, res) => {
   }
 };
 
-const postApplyCoupon = async (req, res) => {
+/*const postApplyCoupon = async (req, res) => {
   try {
     const { couponCode } = req.body;
     const userId = req.session.user._id;
@@ -269,13 +269,83 @@ const postApplyCoupon = async (req, res) => {
     req.session.couponError = 'Failed to apply coupon.';
     res.redirect('/checkout');
   }
-};
+};*/
 
+const postApplyCoupon = async (req, res) => {
+  try {
+    const { couponCode } = req.body;
+    const userId = req.session.user._id;
+
+    const user = await User.findById(userId).populate('cart.productId');
+
+    const coupon = await Coupon.findOne({
+      code: couponCode,
+      isActive: true,
+      isDeleted: false,
+      expiryDate: { $gte: new Date() },
+      usageLimit: { $gte: 1 }
+    });
+
+    const subtotal = user.cart.reduce((sum, item) => {
+      const product = item.productId;
+      const discounted = product.price * (1 - (product.discountPercentage || 0) / 100);
+      return sum + (discounted * item.quantity);
+    }, 0);
+
+    // Check regular coupon
+    if (coupon) {
+      if (subtotal < coupon.minPurchase) {
+        return res.status(400).json({
+          success: false,
+          message: `Minimum purchase of ₹${coupon.minPurchase} required to use this coupon.`
+        });
+      }
+
+      req.session.appliedCoupon = {
+        id: coupon._id,
+        code: coupon.code,
+        discountType: coupon.discountType,
+        discountValue: coupon.discountValue,
+        type: 'regular'
+      };
+
+      return res.json({ success: true });
+    }
+
+    // Check referral coupon
+    const userRewardedCoupon = user.rewardedCoupons.find(c => c.code === couponCode && !c.used);
+    if (!userRewardedCoupon) {
+      return res.status(400).json({
+        success: false,
+        message: 'This referral coupon has already been used.'
+      });
+    }
+
+    const REWARD_DISCOUNT = 100;
+
+    req.session.appliedCoupon = {
+      id: 'reward',
+      code: userRewardedCoupon.code,
+      discountType: 'flat',
+      discountValue: REWARD_DISCOUNT,
+      type: 'referral'
+    };
+
+    return res.json({ success: true });
+
+  } catch (err) {
+    console.error('Apply Coupon Error:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Something went wrong while applying the coupon.'
+    });
+  }
+};
 
 
 const postRemoveCoupon = (req, res) => {
   req.session.appliedCoupon = null;
-  res.redirect('/checkout');
+  return res.json({ success: true });
 };
 
 
@@ -319,7 +389,7 @@ const postPlaceOrder = async (req, res) => {
     const user = await User.findById(userId).populate('cart.productId').populate('rewardCoupons');
     const selectedAddress = user.addresses.id(selectedAddressId);
     if (!selectedAddress) return res.redirect('/checkout');
-    
+
 
     for (const item of user.cart) {
       if (!item.productId || item.productId.isDeleted || item.productId.isBlocked) {

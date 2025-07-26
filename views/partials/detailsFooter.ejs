@@ -141,4 +141,74 @@
   });
 
 
+
+document.addEventListener('DOMContentLoaded', () => {
+  const couponForm = document.querySelector('.coupon-form');
+
+  if (couponForm) {
+    couponForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(couponForm);
+      const couponCode = formData.get('couponCode');
+
+      const res = await fetch('/checkout/apply-coupon', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ couponCode })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        location.reload();
+      } else {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Coupon Error',
+          text: data.message || 'Invalid coupon'
+        });
+      }
+    });
+  }
+
+  // ✅ Updated block for Remove Coupon
+  const removeCouponForm = document.getElementById('removeCouponForm');
+
+  if (removeCouponForm) {
+    removeCouponForm.addEventListener('submit', async (e) => {
+      e.preventDefault(); // Prevent form reload
+
+      try {
+        const res = await fetch('/checkout/remove-coupon', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          location.reload(); // Refresh to update totals
+        } else {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Remove Coupon Failed',
+            text: data.message || 'Could not remove coupon'
+          });
+        }
+      } catch (err) {
+        console.error('Remove coupon error:', err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Something went wrong',
+          text: 'Please try again later.'
+        });
+      }
+    });
+  }
+});
+
 </script>
