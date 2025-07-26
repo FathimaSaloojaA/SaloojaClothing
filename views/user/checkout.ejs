@@ -5,23 +5,37 @@
   <div class="section address-section">
     <h3>Select Delivery Address</h3>
     
-    <div class="address-list">
+    <div class="address-list" id="addressContainer">
       <% addresses.forEach(addr => { %>
         <div class="address-card <%= addr._id.toString() === defaultAddressId ? 'selected' : '' %>">
-          <input type="radio" name="selectedAddress" value="<%= addr._id %>" 
-            <%= addr._id.toString() === defaultAddressId ? 'checked' : '' %> />
+          <input type="radio" 
+  name="selectedAddress" 
+  value="<%= addr._id %>" 
+  data-id="<%= addr._id %>"
+  <%= addr._id.toString() === defaultAddressId ? 'checked' : '' %> />
+
           <div class="details">
             <p><%= addr.street %>, <%= addr.city %></p>
             <p><%= addr.state %> - <%= addr.zip %></p>
             <p><%= addr.country %></p>
           </div>
           <button class="edit-btn" data-id="<%= addr._id %>">✏️ Edit</button>
+<% if (error === 'duplicate' && source === 'edit' && errorId === addr._id.toString()) { %>
+      <p class="error-msg" style="color:red;">This address already exists.</p>
+    <% } %>
+
         </div>
       <% }) %>
     </div>
 
     <!-- 🔶 Add Address Button -->
     <button class="add-address-toggle">➕ Add New Address</button>
+<!-- 🔴 Error Message -->
+<% if (error === 'duplicate') { %>
+  <p class="error-msg">This address already exists.</p>
+<% } else if (error === 'server') { %>
+  <p class="error-msg">Something went wrong. Please try again.</p>
+<% } %>
 
     <!-- 🔶 Add Address Form (Hidden initially) -->
     <form action="/checkout/add-address" method="POST" class="address-form hidden" id="addAddressForm">
@@ -34,7 +48,10 @@
     </form>
 
     <!-- 🔶 Edit Address Form Placeholder (Rendered via JS) -->
+     
     <div id="editAddressContainer"></div>
+
+
   </div>
 
   <!-- 🛍️ Cart Summary -->
@@ -407,6 +424,19 @@ function createError(input, message) {
       };
 
       // ✅ Step 4: Open Razorpay Checkout
+
+      const selectedAddressValue = selectedAddressInput.value;
+
+if (!selectedAddressValue) {
+  return Swal.fire({
+    icon: 'warning',
+    title: 'Select Address',
+    text: 'Please choose a delivery address before proceeding to payment.',
+    confirmButtonColor: '#ff69b4'
+  });
+}
+
+
       const razorpay = new Razorpay(options);
       razorpay.open();
     }
@@ -427,6 +457,42 @@ function createError(input, message) {
       });
       return;
     }
+
+    const selectedAddressValue = selectedAddressInput.value;
+  if (!selectedAddressValue) {
+    e.preventDefault();
+    Swal.fire({
+      icon: 'warning',
+      title: 'Select Address',
+      text: 'Please choose a delivery address before placing the order.',
+      confirmButtonColor: '#ff69b4'
+    });
+    return;
+  }
+
+
     hiddenPaymentInput.value = selected.value;
   });
+
+   const radios = document.querySelectorAll('input[name="selectedAddress"]');
+    let lastChecked = null;
+
+    radios.forEach(radio => {
+      radio.addEventListener('click', function () {
+        // If clicked radio is the same as last checked, uncheck it
+        if (lastChecked === this) {
+          this.checked = false;
+          lastChecked = null;
+        } else {
+          lastChecked = this;
+        }
+        const checkedRadio = [...radios].find(r => r.checked);
+    selectedAddressInput.value = checkedRadio ? checkedRadio.value : '';
+      });
+
+      // Set initial lastChecked if one is already selected
+      if (radio.checked) {
+        lastChecked = radio;
+      }
+    });
 </script>

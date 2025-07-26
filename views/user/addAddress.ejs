@@ -1,6 +1,13 @@
 <div class="address-form-container">
   <div class="address-form-card">
     <h2>Add New Address</h2>
+
+    <% if (error === 'duplicate') { %>
+  <p class="error-msg" style="color:red; margin-bottom:10px;">This address already exists.</p>
+<% } else if (error === 'server') { %>
+  <p class="error-msg" style="color:red; margin-bottom:10px;">Something went wrong. Please try again.</p>
+<% } %>
+
     <form action="/add-address" method="POST" id="addAddressForm">
       <div class="form-group">
         <label for="street">Street</label>

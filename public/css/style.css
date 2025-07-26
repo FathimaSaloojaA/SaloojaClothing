@@ -10222,10 +10222,7 @@ h2.title {
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   transform: scale(1.02);
 }
-.address-card.selected {
-  border-color: #e91e63;
-  background: #ffe4ec;
-}
+
 .address-card input[type="radio"] {
   position: absolute;
   top: 1rem;

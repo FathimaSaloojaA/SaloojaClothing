@@ -20,12 +20,12 @@ const getUserProfile = async (req, res) => {
     .sort({ orderDate: -1 })
     .limit(5)
     .lean();
-
+const error = req.query.error || null;
   res.render('user/profile', {
     user,
     orders,
     userName: user.firstName,
-    layout: 'user/detailsLayout'
+    layout: 'user/detailsLayout',error
   });
 };
 
@@ -206,9 +206,9 @@ const postCancelOrder=async (req, res) => {
 };
 
 const getAddAddressPage = (req, res) => {
-
+const error = req.query.error || null;
   res.render('user/addAddress', { user: req.session.user,userName: req.session.user ? req.session.user.firstName : '',
-    layout: 'user/detailsLayout' });
+    layout: 'user/detailsLayout',error });
 };
 
 const postAddAddress = async (req, res) => {
@@ -216,15 +216,29 @@ const postAddAddress = async (req, res) => {
     const { street, city, state, zip, country } = req.body;
     const user = await User.findById(req.session.user._id);
 
+    const isDuplicate = user.addresses.some(
+      (addr) =>
+        addr.street.trim().toLowerCase() === street.trim().toLowerCase() &&
+        addr.city.trim().toLowerCase() === city.trim().toLowerCase() &&
+        addr.state.trim().toLowerCase() === state.trim().toLowerCase() &&
+        addr.zip.trim() === zip.trim() &&
+        addr.country.trim().toLowerCase() === country.trim().toLowerCase()
+    );
+
+    if (isDuplicate) {
+      return res.redirect('/add-address?error=duplicate');
+    }
+
     user.addresses.push({ street, city, state, zip, country });
     await user.save();
 
     res.redirect('/profile');
   } catch (err) {
     console.error("Error adding address:", err);
-    res.status(500).send("Something went wrong");
+    res.redirect('/add-address?error=server');
   }
 };
+
 
 const getEditAddressForm = async (req, res) => {
   const userId = req.session.user._id;
@@ -239,7 +253,7 @@ const getEditAddressForm = async (req, res) => {
     }
 
     res.render('user/editAddress', { address,userName: req.session.user ? req.session.user.firstName : '',
-    layout: 'user/detailsLayout' });
+    layout: 'user/detailsLayout', query: req.query });
   } catch (error) {
     console.error(error);
     res.status(500).send('Server error');
@@ -249,15 +263,30 @@ const getEditAddressForm = async (req, res) => {
 const postEditAddress = async (req, res) => {
   const userId = req.session.user._id;
   const addressId = req.params.id;
-
   const { street, city, state, zip, country } = req.body;
 
   try {
     const user = await User.findById(userId);
-    const address = user.addresses.id(addressId);
 
+    // Get the address to edit
+    const address = user.addresses.id(addressId);
     if (!address) return res.status(404).send('Address not found');
 
+    // Check for duplicate excluding the current address being edited
+    const isDuplicate = user.addresses.some((addr) =>
+      addr._id.toString() !== addressId &&
+      addr.street.trim().toLowerCase() === street.trim().toLowerCase() &&
+      addr.city.trim().toLowerCase() === city.trim().toLowerCase() &&
+      addr.state.trim().toLowerCase() === state.trim().toLowerCase() &&
+      addr.zip.trim() === zip.trim() &&
+      addr.country.trim().toLowerCase() === country.trim().toLowerCase()
+    );
+
+    if (isDuplicate) {
+      return res.redirect(`/edit-address/${addressId}?error=duplicate`);
+    }
+
+    // Update the address
     address.street = street;
     address.city = city;
     address.state = state;
@@ -268,9 +297,10 @@ const postEditAddress = async (req, res) => {
     res.redirect('/profile');
   } catch (error) {
     console.error(error);
-    res.status(500).send('Server error');
+    res.redirect(`/edit-address/${addressId}?error=server`);
   }
 };
+
 
 const deleteAddress = async (req, res) => {
   const userId    = req.session.user._id;

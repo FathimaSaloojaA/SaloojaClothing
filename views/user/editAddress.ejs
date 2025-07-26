@@ -1,6 +1,13 @@
 <div class="address-form-container">
   <div class="address-form-card">
     <h2>Edit Address</h2>
+<% if (query.error === 'duplicate') { %>
+  <p class="error-message">This address already exists!</p>
+<% } else if (query.error === 'server') { %>
+  <p class="error-message">Something went wrong. Please try again.</p>
+<% } %>
+
+
     <form action="/edit-address/<%= address._id %>" method="POST" id="editAddressForm" >
       <div class="form-group">
         <label for="street">Street</label>

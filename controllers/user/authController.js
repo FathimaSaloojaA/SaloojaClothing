@@ -238,6 +238,10 @@ googleCallback: (req, res) => {
       req.flash('error', 'Your account is blocked by admin.');
       return res.redirect('/login');
     }
+    if(user.isAdmin){
+      req.flash('error', 'Authentication failed.');
+      return res.redirect('/login');
+    }
 
     req.session.user = user;
     req.session.showPreloader = true;

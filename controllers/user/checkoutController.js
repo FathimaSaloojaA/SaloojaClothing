@@ -170,6 +170,7 @@ const getCheckoutPage = async (req, res) => {
     const allAddresses = user.addresses;
     const couponError = req.session.couponError || null;
     req.session.couponError = null;
+    
 
     res.render('user/checkout', {
       cartItems,
@@ -186,7 +187,10 @@ const getCheckoutPage = async (req, res) => {
       addresses: allAddresses,
       defaultAddressId: defaultAddress?._id?.toString() || null,
       userName: req.session.user ? req.session.user.firstName : '',
-      layout: 'user/detailsLayout'
+      layout: 'user/detailsLayout',
+      error: req.query.error || null,
+  errorId: req.query.id || null,
+  source: req.query.source || null
     });
 
   } catch (err) {
@@ -315,6 +319,7 @@ const postPlaceOrder = async (req, res) => {
     const user = await User.findById(userId).populate('cart.productId').populate('rewardCoupons');
     const selectedAddress = user.addresses.id(selectedAddressId);
     if (!selectedAddress) return res.redirect('/checkout');
+    
 
     for (const item of user.cart) {
       if (!item.productId || item.productId.isDeleted || item.productId.isBlocked) {
@@ -442,7 +447,7 @@ const getAddress= async (req, res) => {
   }
 };
 
-const postAddAddress=async (req, res) => {
+const postAddAddress = async (req, res) => {
   try {
     const userId = req.session.user._id;
     const user = await User.findById(userId);
@@ -456,17 +461,34 @@ const postAddAddress=async (req, res) => {
       isDefault: false
     };
 
+    // Check for duplicate
+    const isDuplicate = user.addresses.some(addr =>
+      addr.street === newAddress.street &&
+      addr.city === newAddress.city &&
+      addr.state === newAddress.state &&
+      addr.zip === newAddress.zip &&
+      addr.country === newAddress.country
+    );
+
+    if (isDuplicate) {
+      return res.redirect('/checkout?error=duplicate');
+    }
+
     user.addresses.push(newAddress);
     await user.save();
 
     res.redirect('/checkout');
   } catch (err) {
     console.error(err);
-    res.redirect('/checkout');
+    res.redirect('/checkout?error=server');
   }
 };
 
-const postEditAddress=async (req, res) => {
+
+
+
+
+const postEditAddress = async (req, res) => {
   try {
     const userId = req.session.user._id;
     const user = await User.findById(userId);
@@ -474,19 +496,43 @@ const postEditAddress=async (req, res) => {
     const address = user.addresses.id(req.params.id);
     if (!address) return res.redirect('/checkout');
 
-    address.street = req.body.street;
-    address.city = req.body.city;
-    address.state = req.body.state;
-    address.zip = req.body.zip;
-    address.country = req.body.country;
+    const updatedAddress = {
+      street: req.body.street,
+      city: req.body.city,
+      state: req.body.state,
+      zip: req.body.zip,
+      country: req.body.country,
+    };
+
+    // Check for duplicate (excluding the current address)
+    const isDuplicate = user.addresses.some(addr =>
+      addr._id.toString() !== req.params.id &&
+      addr.street === updatedAddress.street &&
+      addr.city === updatedAddress.city &&
+      addr.state === updatedAddress.state &&
+      addr.zip === updatedAddress.zip &&
+      addr.country === updatedAddress.country
+    );
+
+    if (isDuplicate) {
+      return res.redirect(`/checkout?error=duplicate&id=${req.params.id}&source=edit`);
+    }
+
+    // Update fields
+    address.street = updatedAddress.street;
+    address.city = updatedAddress.city;
+    address.state = updatedAddress.state;
+    address.zip = updatedAddress.zip;
+    address.country = updatedAddress.country;
 
     await user.save();
     res.redirect('/checkout');
   } catch (err) {
     console.error(err);
-    res.redirect('/checkout');
+    res.redirect('/checkout?error=server');
   }
-}
+};
+
 
 
 
