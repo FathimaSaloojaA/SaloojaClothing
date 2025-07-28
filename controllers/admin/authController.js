@@ -11,12 +11,12 @@ const mongoose = require('mongoose');
 //const { layout } = require('pdfkit/js/page');
 const sessionCollection = mongoose.connection.collection('sessions');
 
-const loadLogin = (req, res) => {
+/*const loadLogin = (req, res) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
   res.render('admin/login',{error:null,layout:false}); 
-};
+};*/
 
-const verifyLogin = async (req, res) => {
+/*const verifyLogin = async (req, res) => {
   const { email, password } = req.body;
 
   const user = await User.findOne({ email });
@@ -33,7 +33,52 @@ const verifyLogin = async (req, res) => {
   req.session.admin = user._id;
   req.session.isAdmin = true;
   res.redirect('/admin/dashboard');
+};*/
+
+const loadLogin = (req, res) => {
+ 
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+
+  
+  if (req.session.admin) {
+    return res.redirect('/admin/dashboard');
+  }
+
+  
+  const error = req.session.loginError || null;
+
+  
+  req.session.loginError = null;
+
+  
+  res.render('admin/login', { error, layout: false });
 };
+
+
+
+const verifyLogin = async (req, res) => {
+  const { email, password } = req.body;
+
+  const user = await User.findOne({ email });
+
+  if (!user || !user.isAdmin) {
+    req.session.loginError = 'Access denied!';
+    return res.redirect('/admin');
+  }
+
+  const match = await bcrypt.compare(password, user.password);
+  if (!match) {
+    req.session.loginError = 'Invalid credentials!';
+    return res.redirect('/admin');
+  }
+
+  
+  req.session.admin = user._id;
+  req.session.isAdmin = true;
+
+  res.redirect('/admin/dashboard');
+};
+
 
 const loadDashboard = async (req, res) => {
   try {

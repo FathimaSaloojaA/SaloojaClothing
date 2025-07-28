@@ -101,7 +101,7 @@ app.use('/', authRoutes);
 app.use('/',productRoutes);
 // mount un
  app.use('/admin', adminAuthRoutes);
-app.use('/admin', adminUserRoutes); // '/admin/users' now works 
+app.use('/admin', adminUserRoutes); 
 app.use('/admin', adminCategoryRoutes);
  app.use('/admin', adminProductRoutes) ;
  app.use('/admin', adminOrderRoutes)

@@ -4,6 +4,7 @@ const Subcategory = require('../../models/subCategoryModel');
 const Product=require('../../models/productModel');
 
 
+ 
 const loadCategoryList = async (req, res) => {
   try {
     const searchQuery = req.query.search || '';
